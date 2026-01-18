@@ -188,11 +188,21 @@
         top: auto;
         right: auto;
         justify-content: center;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
       }
       .card { grid-template-columns: 1fr; margin-top: 0; }
       .content { padding: 36px 28px; }
       .image-panel { height: 320px; }
+      /* Make panels smaller on mobile */
+      .top-info {
+        font-size: 0.75rem;
+        min-width: 140px;
+        padding: 8px 10px;
+      }
+      .region { font-size: 0.65rem; }
+      .time { font-size: 0.7rem; }
+      .date { font-size: 0.65rem; }
+      .weather { font-size: 0.7rem; }
     }
 
     @media (max-width: 500px) {
