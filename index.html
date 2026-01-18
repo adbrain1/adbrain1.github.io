@@ -189,14 +189,17 @@
         right: auto;
         justify-content: center;
         margin-bottom: 15px;
+        gap: 10px;
       }
       .card { grid-template-columns: 1fr; margin-top: 0; }
       .content { padding: 36px 28px; }
       .image-panel { height: 320px; }
-      /* Make panels smaller on mobile */
+
+      /* Make panels smaller and narrower on mobile */
       .top-info {
         font-size: 0.75rem;
-        min-width: 140px;
+        min-width: 120px;   /* narrower than before */
+        max-width: 85%;     /* do not exceed 85% of screen */
         padding: 8px 10px;
       }
       .region { font-size: 0.65rem; }
@@ -207,7 +210,7 @@
 
     @media (max-width: 500px) {
       .top-info {
-        min-width: 90%;
+        min-width: 80%;
         text-align: center;
       }
     }
