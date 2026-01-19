@@ -142,7 +142,7 @@
     .flags-track {
       display: flex;
       gap: 20px;
-      animation: moveFlags 390s linear infinite;
+      animation: moveFlags 100s linear infinite;
     }
 
     .flags-track.paused { animation-play-state: paused; }
@@ -200,20 +200,13 @@
     }
 
     @media (max-width: 500px) {
-      .top-info {
-        min-width: 80%;
-        text-align: center;
-      }
+      .top-info { min-width: 140px; } /* Reduced width */
       .card {
         display: flex;
         flex-direction: column;
       }
-      .image-panel, .content {
-        width: 100%;
-      }
-      .image-panel img {
-        height: auto;
-      }
+      .image-panel, .content { width: 100%; }
+      .image-panel img { height: auto; }
     }
 
   </style>
@@ -228,9 +221,8 @@
 
   <!-- Top Right Dual Panels -->
   <div class="top-wrapper">
-
     <div class="top-info">
-      <div class="region"><img src="https://flagcdn.com/w20/gb.png" alt="UK Flag"></div>
+      <div class="region"><img src="https://flagcdn.com/w20/gb.png" alt="UK Flag">United Kingdom</div>
       <div class="time" id="time-uk"></div>
       <div class="date" id="date-uk"></div>
       <div class="weather" id="weather-uk">Loading…</div>
@@ -242,7 +234,6 @@
       <div class="date" id="date-pk"></div>
       <div class="weather" id="weather-pk">Loading…</div>
     </div>
-
   </div>
 
   <div class="card">
@@ -295,31 +286,25 @@
     const track = document.getElementById("flagsTrack");
     const all = [...countries, ...countries];
 
+    let activeFlag = null; // Mobile-only flag lock
+
     all.forEach(c => {
       const div = document.createElement("div");
       div.className = "flag";
       div.innerHTML = `<img src="https://flagcdn.com/w80/${c.code}.png" alt="${c.name}"><span>${c.name}</span>`;
       track.appendChild(div);
 
-      let locked = false;
-
       // Desktop hover
-      div.addEventListener("mouseenter", () => {
-        track.classList.add("paused");
-        div.classList.add("show");
-      });
-      div.addEventListener("mouseleave", () => {
-        if (!locked) { track.classList.remove("paused"); div.classList.remove("show"); }
-      });
-      div.addEventListener("mousedown", () => { locked = true; track.classList.add("paused"); div.classList.add("show"); });
-      div.addEventListener("mouseup", () => { locked = false; track.classList.remove("paused"); div.classList.remove("show"); });
+      div.addEventListener("mouseenter", () => { track.classList.add("paused"); div.classList.add("show"); });
+      div.addEventListener("mouseleave", () => { if(activeFlag===null){ track.classList.remove("paused"); div.classList.remove("show"); } });
 
       // Mobile toggle click
       div.addEventListener("click", () => {
-        if (/Mobi|Android/i.test(navigator.userAgent)) {
-          locked = !locked;
-          if (locked) { track.classList.add("paused"); div.classList.add("show"); }
-          else { track.classList.remove("paused"); div.classList.remove("show"); }
+        if(/Mobi|Android/i.test(navigator.userAgent)){
+          if(activeFlag && activeFlag!==div) return; // prevent others being clicked
+          const isActive = div.classList.contains("show");
+          if(isActive){ div.classList.remove("show"); track.classList.remove("paused"); activeFlag=null; }
+          else { div.classList.add("show"); track.classList.add("paused"); activeFlag=div; }
         }
       });
     });
