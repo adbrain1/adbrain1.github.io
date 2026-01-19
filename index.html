@@ -208,10 +208,17 @@
       .image-panel, .content { width: 100%; }
       .image-panel img { height: auto; }
 
-      /* MOBILE ONLY: move comment box under text + image */
-      .comment-container {
-        order: 2; /* after image-panel */
+      /* MOBILE ONLY: move comment box below image */
+      .card {
+        display: flex;
+        flex-direction: column;
+      }
+      .image-panel + .comment-container {
         margin-top: 16px;
+      }
+      .comment-container input {
+        /* MOBILE width of comment box - adjust here */
+        max-width: 90%; 
       }
     }
 
@@ -283,25 +290,24 @@
       </p>
 
       <div class="badge">Launching soon</div>
-
-      <!-- COMMENT BOX -->
-      <div class="comment-container" id="commentContainer">
-        <input type="text" id="commentInput" placeholder="Say hello to me!">
-        <button id="sendBtn">Send</button>
-      </div>
-
     </div>
 
     <div class="image-panel">
       <img src="./20250809_120138.jpg" alt="Yum exploring">
       <div class="credit">📍 Adventure in progress</div>
     </div>
+
+    <!-- COMMENT BOX - moved OUTSIDE content for mobile -->
+    <div class="comment-container" id="commentContainer">
+      <input type="text" id="commentInput" placeholder="Say hello to me!">
+      <button id="sendBtn">Send</button>
+    </div>
   </div>
 
   <!-- ===== SCRIPTS ===== -->
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
-    emailjs.init("PZGTEkN5j0VkE3Q5V");
+    emailjs.init("PZGTEkN5j0VkE3Q5V"); // Your public key
 
     /* ===== FLAGS ===== */
     const countries = [
@@ -325,8 +331,7 @@
       {code:"ee",name:"Estonia"},{code:"eg",name:"Egypt"},{code:"es",name:"Spain"},
       {code:"et",name:"Ethiopia"},{code:"fi",name:"Finland"},{code:"fj",name:"Fiji"},
       {code:"fr",name:"France"},{code:"gb",name:"United Kingdom"},{code:"gh",name:"Ghana"},
-      {code:"pk",name:"Pakistan"},{code:"us",name:"United States"}
-      // continue full list of 250+ countries...
+      {code:"pk",name:"Pakistan"},{code:"us",name:"United States"} // truncated
     ];
 
     const track = document.getElementById("flagsTrack");
@@ -393,7 +398,7 @@
     const sendBtn = document.getElementById("sendBtn");
     const commentContainer = document.getElementById("commentContainer");
 
-    const audio = new Audio("./send button ding dong.mp3");
+    const audio = new Audio("./send button ding dong.mp3"); // NEW AUDIO
 
     commentInput.addEventListener("focus", () => {
       if(commentInput.value === "" || commentInput.value === "Say hello to me!") commentInput.value = "";
@@ -401,21 +406,21 @@
 
     sendBtn.addEventListener("click", () => {
       const text = commentInput.value.trim();
-      if(!text) return;
+      if(!text) return; // Do nothing if empty
 
       emailjs.send('service_q9wwalo','template_nwu3bod',{message:text},'PZGTEkN5j0VkE3Q5V')
         .then(() => {
-          audio.play();
-          // Remove input and button
-          commentContainer.innerHTML = "";
-          // Show thank you message
+          audio.play(); // Play sound
+          commentContainer.innerHTML = ""; 
           const thankMsg = document.createElement("div");
           thankMsg.style.color = "green";
           thankMsg.style.fontWeight = "600";
           thankMsg.style.fontSize = "1rem";
           thankMsg.textContent = "Thank you for saying hello to me :)";
           commentContainer.appendChild(thankMsg);
-        }, (err) => console.error(err));
+        }, (err) => {
+          console.error(err);
+        });
     });
 
   </script>
