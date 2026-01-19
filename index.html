@@ -207,6 +207,12 @@
       .card { display: flex; flex-direction: column; }
       .image-panel, .content { width: 100%; }
       .image-panel img { height: auto; }
+
+      /* MOBILE ONLY: move comment box under text + image */
+      .comment-container {
+        order: 2; /* after image-panel */
+        margin-top: 16px;
+      }
     }
 
     /* ===== COMMENT BOX ===== */
@@ -295,7 +301,7 @@
   <!-- ===== SCRIPTS ===== -->
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
-    emailjs.init("PZGTEkN5j0VkE3Q5V"); // Your public key
+    emailjs.init("PZGTEkN5j0VkE3Q5V");
 
     /* ===== FLAGS ===== */
     const countries = [
@@ -319,7 +325,8 @@
       {code:"ee",name:"Estonia"},{code:"eg",name:"Egypt"},{code:"es",name:"Spain"},
       {code:"et",name:"Ethiopia"},{code:"fi",name:"Finland"},{code:"fj",name:"Fiji"},
       {code:"fr",name:"France"},{code:"gb",name:"United Kingdom"},{code:"gh",name:"Ghana"},
-      {code:"pk",name:"Pakistan"},{code:"us",name:"United States"} // truncated for brevity
+      {code:"pk",name:"Pakistan"},{code:"us",name:"United States"}
+      // continue full list of 250+ countries...
     ];
 
     const track = document.getElementById("flagsTrack");
@@ -381,40 +388,36 @@
     loadWeather(52.57,-1.82,"weather-uk","Sutton Coldfield");
     loadWeather(33.69,73.06,"weather-pk","Islamabad");
 
-/* ===== COMMENT BOX SEND ===== */
-const commentInput = document.getElementById("commentInput");
-const sendBtn = document.getElementById("sendBtn");
-const commentContainer = document.getElementById("commentContainer");
+    /* ===== COMMENT BOX SEND ===== */
+    const commentInput = document.getElementById("commentInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const commentContainer = document.getElementById("commentContainer");
 
-const audio = new Audio("./send button ding dong.mp3"); // NEW AUDIO
+    const audio = new Audio("./send button ding dong.mp3");
 
-commentInput.addEventListener("focus", () => {
-  if(commentInput.value === "" || commentInput.value === "Say hello to me!") commentInput.value = "";
-});
-
-sendBtn.addEventListener("click", () => {
-  const text = commentInput.value.trim();
-  if(!text) return; // Do nothing if empty
-
-  emailjs.send('service_q9wwalo','template_nwu3bod',{message:text},'PZGTEkN5j0VkE3Q5V')
-    .then(() => {
-      audio.play(); // Play sound
-      // Remove the input and button
-      commentContainer.innerHTML = ""; 
-      // Show thank-you message
-      const thankMsg = document.createElement("div");
-      thankMsg.style.color = "green";
-      thankMsg.style.fontWeight = "600";
-      thankMsg.style.fontSize = "1rem";
-      thankMsg.textContent = "Thank you for saying hello to me :)";
-      commentContainer.appendChild(thankMsg);
-    }, (err) => {
-      console.error(err);
+    commentInput.addEventListener("focus", () => {
+      if(commentInput.value === "" || commentInput.value === "Say hello to me!") commentInput.value = "";
     });
-});
+
+    sendBtn.addEventListener("click", () => {
+      const text = commentInput.value.trim();
+      if(!text) return;
+
+      emailjs.send('service_q9wwalo','template_nwu3bod',{message:text},'PZGTEkN5j0VkE3Q5V')
+        .then(() => {
+          audio.play();
+          // Remove input and button
+          commentContainer.innerHTML = "";
+          // Show thank you message
+          const thankMsg = document.createElement("div");
+          thankMsg.style.color = "green";
+          thankMsg.style.fontWeight = "600";
+          thankMsg.style.fontSize = "1rem";
+          thankMsg.textContent = "Thank you for saying hello to me :)";
+          commentContainer.appendChild(thankMsg);
+        }, (err) => console.error(err));
+    });
 
   </script>
 </body>
 </html>
-
-
