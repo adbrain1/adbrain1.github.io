@@ -381,31 +381,40 @@
     loadWeather(52.57,-1.82,"weather-uk","Sutton Coldfield");
     loadWeather(33.69,73.06,"weather-pk","Islamabad");
 
-   /* ===== COMMENT BOX SEND ===== */
-    const commentInput = document.getElementById("commentInput");
-    const sendBtn = document.getElementById("sendBtn");
-    const commentContainer = document.getElementById("commentContainer");
+/* ===== COMMENT BOX SEND ===== */
+const commentInput = document.getElementById("commentInput");
+const sendBtn = document.getElementById("sendBtn");
+const commentContainer = document.getElementById("commentContainer");
 
-    const audio = new Audio("./send button ding dong.mp3"); // NEW AUDIO
+const audio = new Audio("./send button ding dong.mp3"); // NEW AUDIO
 
-    commentInput.addEventListener("focus", () => {
-      if(commentInput.value === "" || commentInput.value==="Say hello to me!") commentInput.value="";
+commentInput.addEventListener("focus", () => {
+  if(commentInput.value === "" || commentInput.value === "Say hello to me!") commentInput.value = "";
+});
+
+sendBtn.addEventListener("click", () => {
+  const text = commentInput.value.trim();
+  if(!text) return; // Do nothing if empty
+
+  emailjs.send('service_q9wwalo','template_nwu3bod',{message:text},'PZGTEkN5j0VkE3Q5V')
+    .then(() => {
+      audio.play(); // Play sound
+      // Remove the input and button
+      commentContainer.innerHTML = ""; 
+      // Show thank-you message
+      const thankMsg = document.createElement("div");
+      thankMsg.style.color = "green";
+      thankMsg.style.fontWeight = "600";
+      thankMsg.style.fontSize = "1rem";
+      thankMsg.textContent = "Thank you for saying hello to me :)";
+      commentContainer.appendChild(thankMsg);
+    }, (err) => {
+      console.error(err);
     });
+});
 
-    sendBtn.addEventListener("click", () => {
-      const text = commentInput.value.trim();
-      if(!text) return;
-      emailjs.send('service_q9wwalo','template_nwu3bod',{message:text},'PZGTEkN5j0VkE3Q5V')
-        .then(()=>{
-          audio.play(); // Play sound
-          commentInput.value="";
-          const msg = document.createElement("div");
-          msg.style.color="green"; msg.textContent="Message sent! Thank you!";
-          commentContainer.appendChild(msg);
-          setTimeout(()=>{ msg.remove(); },3000);
-        }, (err)=>{console.error(err)});
-    });
   </script>
 </body>
 </html>
+
 
