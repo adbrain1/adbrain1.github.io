@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=1">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Abdul Rafay’s Adventures, coming Soon!</title>
 
   <style>
@@ -142,7 +145,7 @@
     .flags-track {
       display: flex;
       gap: 20px;
-      animation: moveFlags 300s linear infinite;
+      animation: moveFlags 100s linear infinite;
     }
 
     .flags-track.paused { animation-play-state: paused; }
@@ -201,10 +204,7 @@
 
     @media (max-width: 500px) {
       .top-info { min-width: 140px; } /* Reduced width */
-      .card {
-        display: flex;
-        flex-direction: column;
-      }
+      .card { display: flex; flex-direction: column; }
       .image-panel, .content { width: 100%; }
       .image-panel img { height: auto; }
     }
@@ -222,14 +222,14 @@
   <!-- Top Right Dual Panels -->
   <div class="top-wrapper">
     <div class="top-info">
-      <div class="region"><img src="https://flagcdn.com/w20/gb.png" alt="UK Flag"></div>
+      <div class="region"><img src="https://flagcdn.com/w20/gb.png" alt="UK Flag">United Kingdom</div>
       <div class="time" id="time-uk"></div>
       <div class="date" id="date-uk"></div>
       <div class="weather" id="weather-uk">Loading…</div>
     </div>
 
     <div class="top-info">
-      <div class="region"><img src="https://flagcdn.com/w20/pk.png" alt="Pakistan Flag"></div>
+      <div class="region"><img src="https://flagcdn.com/w20/pk.png" alt="Pakistan Flag">Pakistan</div>
       <div class="time" id="time-pk"></div>
       <div class="date" id="date-pk"></div>
       <div class="weather" id="weather-pk">Loading…</div>
@@ -286,7 +286,7 @@
     const track = document.getElementById("flagsTrack");
     const all = [...countries, ...countries];
 
-    let activeFlag = null; // Mobile-only flag lock
+    let activeFlag = null;
 
     all.forEach(c => {
       const div = document.createElement("div");
@@ -298,10 +298,10 @@
       div.addEventListener("mouseenter", () => { track.classList.add("paused"); div.classList.add("show"); });
       div.addEventListener("mouseleave", () => { if(activeFlag===null){ track.classList.remove("paused"); div.classList.remove("show"); } });
 
-      // Mobile toggle click
-      div.addEventListener("click", () => {
+      // Mobile tap fix
+      div.addEventListener("pointerdown", () => {
         if(/Mobi|Android/i.test(navigator.userAgent)){
-          if(activeFlag && activeFlag!==div) return; // prevent others being clicked
+          if(activeFlag && activeFlag!==div) return; // block other flags
           const isActive = div.classList.contains("show");
           if(isActive){ div.classList.remove("show"); track.classList.remove("paused"); activeFlag=null; }
           else { div.classList.add("show"); track.classList.add("paused"); activeFlag=div; }
@@ -345,4 +345,3 @@
   </script>
 </body>
 </html>
-
