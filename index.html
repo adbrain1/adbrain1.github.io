@@ -209,6 +209,34 @@
       .image-panel img { height: auto; }
     }
 
+    /* ===== COMMENT BOX ===== */
+    .comment-container {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      max-width: 500px;
+    }
+    .comment-container input {
+      flex: 1;
+      padding: 10px 12px;
+      font-size: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--muted);
+      color: #333;
+    }
+    .comment-container input::placeholder {
+      color: #999;
+    }
+    .comment-container button {
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: none;
+      background: var(--accent);
+      color: #111827;
+      font-weight: 600;
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -249,6 +277,13 @@
       </p>
 
       <div class="badge">Launching soon</div>
+
+      <!-- COMMENT BOX -->
+      <div class="comment-container" id="commentContainer">
+        <input type="text" id="commentInput" placeholder="Say hello to me!">
+        <button id="sendBtn">Send</button>
+      </div>
+
     </div>
 
     <div class="image-panel">
@@ -257,7 +292,11 @@
     </div>
   </div>
 
+  <!-- ===== SCRIPTS ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
+    emailjs.init("PZGTEkN5j0VkE3Q5V"); // Your public key
+
     /* ===== FLAGS ===== */
     const countries = [
       {code:"ad",name:"Andorra"},{code:"ae",name:"United Arab Emirates"},{code:"af",name:"Afghanistan"},
@@ -342,7 +381,25 @@
     loadWeather(52.57,-1.82,"weather-uk","Sutton Coldfield");
     loadWeather(33.69,73.06,"weather-pk","Islamabad");
 
+    /* ===== COMMENT BOX SEND ===== */
+    const commentInput = document.getElementById("commentInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const commentContainer = document.getElementById("commentContainer");
+
+    commentInput.addEventListener("focus", () => {
+      if(commentInput.value === "") return;
+      if(commentInput.value === "Say hello to me!") commentInput.value="";
+    });
+
+    sendBtn.addEventListener("click", () => {
+      const text = commentInput.value.trim();
+      if(!text) return;
+      emailjs.send('service_q9wwalo','template_nwu3bod',{message:text},'PZGTEkN5j0VkE3Q5V')
+        .then(()=> {
+          commentContainer.innerHTML = "<div style='color:green;'>Message sent! Thank you!</div>";
+        }, (err)=>{console.error(err)});
+    });
+
   </script>
 </body>
 </html>
-
