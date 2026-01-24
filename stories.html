@@ -65,7 +65,8 @@
       box-shadow: 10px 0 30px rgba(0,0,0,0.5);
       transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
-      flex-direction: column;      gap: 20px;
+      flex-direction: column;
+      gap: 20px;
       border-right: 1px solid rgba(56,189,248,0.2);
     }
     .slide-menu.open { left: 0; }
@@ -160,7 +161,7 @@
       animation: fadeUp 1s ease-out;
     }
 
-    /* PDF View Styling - Wide and Friendly */
+    /* PDF View Styling */
     #pdfViewerSection {
       display: none; 
       width: 100%;
@@ -334,10 +335,12 @@
     <a href="chat.html" class="menu-item">Chat</a>
     <a href="about.html" class="menu-item">About Me</a>
   </div>
-  <div class="flags-bar">
+
+  <div class="flags-bar" id="flagsBar">
     <div class="flags-track" id="flagsTrack"></div>
   </div>
-  <div class="top-wrapper">
+
+  <div class="top-wrapper" id="topWrapper">
     <div class="top-info">
       <span class="location-text">Where I now live</span>
       <div class="region"><img src="https://flagcdn.com/w20/gb.png" alt="UK Flag"></div>
@@ -353,6 +356,7 @@
       <div class="weather" id="weather-pk">Loading…</div>
     </div>
   </div>
+
   <div class="view-container">
     <div class="card" id="mainCard">
       <div class="content">
@@ -375,6 +379,7 @@
       <iframe src="" id="pdfFrame"></iframe>
     </div>
   </div>
+
   <div class="trip-container">
     <div class="trip-btn" onclick="openPDF('legoland.pdf', 'Trips to LEGOLAND')">
       <span class="btn-id">A1</span>
@@ -389,24 +394,43 @@
       <span class="btn-text">Trip to Sea Life</span>
     </div>
   </div>
+
   <script>
-    /* ===== PDF VIEWER LOGIC ===== */
+    /* ===== PDF VIEWER LOGIC WITH HIDE/SHOW ELEMENTS ===== */
     function openPDF(fileName, title) {
       const mainCard = document.getElementById('mainCard');
       const pdfSection = document.getElementById('pdfViewerSection');
       const pdfFrame = document.getElementById('pdfFrame');
       const pdfTitle = document.getElementById('pdfTitle');
+      const topWrapper = document.getElementById('topWrapper');
+      const flagsBar = document.getElementById('flagsBar');
+
+      // Hide surrounding UI elements
+      topWrapper.style.display = 'none';
+      flagsBar.style.display = 'none';
+
+      // Load PDF and Swap views
       pdfFrame.src = fileName + "#toolbar=0&navpanes=0";
       pdfTitle.textContent = title;
       mainCard.style.display = 'none';
       pdfSection.style.display = 'flex';
+      
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
     function closePDF() {
+      const topWrapper = document.getElementById('topWrapper');
+      const flagsBar = document.getElementById('flagsBar');
+
+      // Show surrounding UI elements
+      topWrapper.style.display = 'flex';
+      flagsBar.style.display = 'flex';
+
       document.getElementById('mainCard').style.display = 'grid';
       document.getElementById('pdfViewerSection').style.display = 'none';
       document.getElementById('pdfFrame').src = "";
     }
+
     /* ===== MENU FUNCTIONALITY ===== */
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const closeMenuBtn = document.getElementById('closeMenuBtn');
@@ -419,6 +443,7 @@
     hamburgerBtn.addEventListener('click', toggleMenu);
     closeMenuBtn.addEventListener('click', toggleMenu);
     menuOverlay.addEventListener('click', toggleMenu);
+
     /* ===== TIME & WEATHER ===== */
     function updateTime(zone, timeId, dateId){
       const now = new Date();
@@ -436,7 +461,7 @@
     loadWeather(52.57,-1.82,"weather-uk","Birmingham");
     loadWeather(33.69,73.06,"weather-pk","Islamabad");
 
-    /* ===== FULL RESTORED COUNTRIES LIST ===== */
+    /* ===== FULL COUNTRIES LIST ===== */
     const countries = [
         {code:"af",name:"Afghanistan"},{code:"ax",name:"Åland Islands"},{code:"al",name:"Albania"},{code:"dz",name:"Algeria"},
         {code:"as",name:"American Samoa"},{code:"ad",name:"Andorra"},{code:"ao",name:"Angola"},{code:"ai",name:"Anguilla"},
