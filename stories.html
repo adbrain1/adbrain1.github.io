@@ -57,7 +57,7 @@
     .slide-menu {
       position: fixed;
       top: 0;
-      left: -320px; /* Hidden by default */
+      left: -320px;
       width: 300px;
       height: 100vh;
       background: var(--card);
@@ -71,9 +71,7 @@
       border-right: 1px solid rgba(56,189,248,0.2);
     }
 
-    .slide-menu.open {
-      left: 0;
-    }
+    .slide-menu.open { left: 0; }
 
     .menu-item {
       text-decoration: none;
@@ -104,7 +102,6 @@
     }
     .close-menu:hover { color: var(--accent); }
 
-    /* Overlay when menu is open */
     .menu-overlay {
       position: fixed;
       inset: 0;
@@ -115,7 +112,6 @@
       transition: opacity 0.4s ease;
     }
     .menu-overlay.active { opacity: 1; pointer-events: all; }
-
 
     /* ===== Top Right Info ===== */
     .top-wrapper {
@@ -138,7 +134,6 @@
       backdrop-filter: blur(6px);
     }
 
-    /* New location text styling */
     .location-text {
         font-size: 0.7rem;
         color: var(--muted);
@@ -188,20 +183,13 @@
     h1 { font-size: clamp(2rem, 4vw, 3rem); margin: 0; line-height: 1.15; }
     p { margin: 0; font-size: 1.05rem; color: var(--muted); max-width: 420px; }
 
-    /* Badge removed as requested */
-
     .image-panel { position: relative; background: #000; overflow: hidden; }
     .image-panel img { width: 100%; height: 100%; object-fit: cover; animation: slowFloat 6s ease-in-out infinite; }
     .image-panel::after {
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(
-        to top,
-        rgba(15,23,42,0.85),
-        rgba(15,23,42,0.1),
-        rgba(15,23,42,0)
-      );
+      background: linear-gradient(to top, rgba(15,23,42,0.85), rgba(15,23,42,0.1), rgba(15,23,42,0));
     }
 
     .credit { position: absolute; bottom: 18px; left: 20px; font-size: 0.85rem; z-index: 2; }
@@ -227,7 +215,6 @@
     .flags-track {
       display: flex;
       gap: 20px;
-      /* Slowed down slightly as list is longer */
       animation: moveFlags 500s linear infinite;
     }
 
@@ -272,78 +259,22 @@
     @media (max-width: 800px) {
       .top-wrapper {
         position: relative;
-        top: auto;
-        right: auto;
         justify-content: center;
         margin-bottom: 15px;
         gap: 10px;
-        margin-top: 60px; /* Space for hamburger */
+        margin-top: 60px;
       }
-      .card { 
-        grid-template-columns: 1fr; 
-        margin-top: 0; 
-      }
+      .card { grid-template-columns: 1fr; margin-top: 0; }
       .content { padding: 36px 28px; }
       .image-panel { height: 320px; }
     }
 
     @media (max-width: 500px) {
-      .top-info { min-width: 140px; } /* Reduced width */
+      .top-info { min-width: 140px; }
       .card { display: flex; flex-direction: column; }
       .image-panel, .content { width: 100%; }
       .image-panel img { height: auto; }
-
-      /* MOBILE ONLY: move comment box below image */
-      .card {
-        display: flex;
-        flex-direction: column;
-      }
-      .image-panel + .comment-container {
-        margin-top: 16px;
-      }
-      .comment-container input {
-        /* MOBILE width of comment box - adjust here */
-        max-width: 90%; 
-      }
     }
-
-    /* ===== COMMENT BOX ===== */
-    .comment-container {
-      margin-top: 24px;
-      display: flex;
-      gap: 12px;
-      width: 100%;
-      max-width: 500px;
-    }
-    .comment-container input {
-      flex: 1;
-      padding: 10px 12px;
-      font-size: 1rem;
-      border-radius: 12px;
-      border: 1px solid var(--muted);
-      color: #333;
-    }
-    .comment-container input::placeholder {
-      color: #999;
-    }
-    .comment-container button {
-      padding: 10px 16px;
-      border-radius: 12px;
-      border: none;
-      background: var(--accent);
-      color: #111827;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    /* ===== DESKTOP ONLY COMMENT BOX CENTER ALIGN ===== */
-    @media (min-width: 501px) {
-      .comment-container {
-        justify-content: center;
-        margin-left: auto;
-        margin-right: auto;
-      }
-    }
-
   </style>
 </head>
 
@@ -357,16 +288,13 @@
 
   <div class="slide-menu" id="slideMenu">
     <button class="close-menu" id="closeMenuBtn">&times;</button>
-    
     <a href="index.html" class="menu-item">Home</a>
     <a href="stories.html" class="menu-item">My Stories</a>
     <a href="learning.html" class="menu-item">Fun Learning</a>
     <a href="videos.html" class="menu-item">My Videos</a>
     <a href="chat.html" class="menu-item">Chat</a>
-    
-    
     <a href="about.html" class="menu-item">About Me</a>
-    </div>
+  </div>
 
   <div class="flags-bar">
     <div class="flags-track" id="flagsTrack"></div>
@@ -392,32 +320,21 @@
 
   <div class="card">
     <div class="content">
-      <div class="eyebrow">The website is live!</div>
+      <div class="eyebrow">Complete story coming soon!</div>
       <h1>Travel stories from Abdul Rafay</h1>
-
       <p>
-        Hi, I’m Bub's Yum! <br><br>
-        I love visiting new places, trying new things,
-        and sharing my adventures.
+        Join Yum and Bub on three exciting trips to Legoland, traveling by bus, train, tram, and car <br><br>
+        From monster trucks to 4D cinemas, every adventure is packed with fun, laughter, and Lego magic!
       </p>
-
-      </div>
-
-    <div class="image-panel">
-      <img src="./20250809_120138.jpg" alt="Yum exploring">
-      <div class="credit">📍 Adventure in progress</div>
     </div>
 
-    <div class="comment-container" id="commentContainer">
-      <input type="text" id="commentInput" placeholder="Say hello to me!">
-      <button id="sendBtn">Send</button>
+    <div class="image-panel">
+      <img src="./LegoMainPage.jpg" alt="Yum exploring">
+      <div class="credit">📍 Adventure complete!</div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
-    emailjs.init("PZGTEkN5j0VkE3Q5V"); // Your public key
-
     /* ===== MENU FUNCTIONALITY ===== */
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const closeMenuBtn = document.getElementById('closeMenuBtn');
@@ -434,7 +351,6 @@
     menuOverlay.addEventListener('click', toggleMenu);
 
     /* ===== FLAGS ===== */
-    // Expanded list containing all countries
     const countries = [
         {code:"af",name:"Afghanistan"},{code:"ax",name:"Åland Islands"},{code:"al",name:"Albania"},{code:"dz",name:"Algeria"},
         {code:"as",name:"American Samoa"},{code:"ad",name:"Andorra"},{code:"ao",name:"Angola"},{code:"ai",name:"Anguilla"},
@@ -512,14 +428,12 @@
       div.innerHTML = `<img src="https://flagcdn.com/w80/${c.code}.png" alt="${c.name}"><span>${c.name}</span>`;
       track.appendChild(div);
 
-      // Desktop hover
       div.addEventListener("mouseenter", () => { track.classList.add("paused"); div.classList.add("show"); });
       div.addEventListener("mouseleave", () => { if(activeFlag===null){ track.classList.remove("paused"); div.classList.remove("show"); } });
 
-      // Mobile tap fix
       div.addEventListener("pointerdown", () => {
         if(/Mobi|Android/i.test(navigator.userAgent)){
-          if(activeFlag && activeFlag!==div) return; // block other flags
+          if(activeFlag && activeFlag!==div) return;
           const isActive = div.classList.contains("show");
           if(isActive){ div.classList.remove("show"); track.classList.remove("paused"); activeFlag=null; }
           else { div.classList.add("show"); track.classList.add("paused"); activeFlag=div; }
@@ -559,46 +473,6 @@
 
     loadWeather(52.57,-1.82,"weather-uk","Birmingham");
     loadWeather(33.69,73.06,"weather-pk","Islamabad");
-
-    /* ===== COMMENT BOX SEND ===== */
-    const commentInput = document.getElementById("commentInput");
-    const sendBtn = document.getElementById("sendBtn");
-    const commentContainer = document.getElementById("commentContainer");
-
-    const audio1 = new Audio("./send button ding dong.mp3");
-    // Second audio added as requested
-    const audio2 = new Audio("./Yum thankyou.mp4");
-
-    commentInput.addEventListener("focus", () => {
-      if(commentInput.value === "" || commentInput.value === "Say hi to me!") commentInput.value = "";
-    });
-
-    sendBtn.addEventListener("click", () => {
-      const text = commentInput.value.trim();
-      if(!text) return; // Do nothing if empty
-
-      emailjs.send('service_q9wwalo','template_nwu3bod',{message:text},'PZGTEkN5j0VkE3Q5V')
-        .then(() => {
-          
-          // Play first sound
-          audio1.play();
-          
-          // When first sound ends, play the second sound
-          audio1.onended = function() {
-            audio2.play();
-          };
-
-          commentContainer.innerHTML = ""; 
-          const thankMsg = document.createElement("div");
-          thankMsg.style.color = "green";
-          thankMsg.style.fontWeight = "600";
-          thankMsg.style.fontSize = "1rem";
-          thankMsg.textContent = "Thank you for saying hello to me :)";
-          commentContainer.appendChild(thankMsg);
-        }, (err) => {
-          console.error(err);
-        });
-    });
 
   </script>
 </body>
