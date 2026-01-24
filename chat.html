@@ -9,6 +9,7 @@
     :root {
       --bg: #0f172a; --card: #111827; --text: #e5e7eb;
       --muted: #9ca3af; --accent: #38bdf8; --chat-msg: #1e293b;
+      --danger: #ef4444;
     }
     * { box-sizing: border-box; }
     body {
@@ -17,21 +18,7 @@
       display: flex; flex-direction: column; align-items: center; padding: 24px; overflow-x: hidden;
     }
 
-    /* Top Info Panels */
-    .top-wrapper { position: fixed; top: 18px; right: 20px; display: flex; gap: 14px; z-index: 1000; }
-    .top-info {
-      background: rgba(30,41,59,0.85); padding: 12px 14px; border-radius: 14px;
-      font-size: 0.85rem; min-width: 175px; text-align: right; backdrop-filter: blur(6px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05);
-    }
-    .location-text { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px;}
-    .region img { width: 22px; border-radius: 2px; }
-    .time { font-weight: 700; margin-top: 2px; font-size: 1rem; color: white; }
-    .date { color: var(--muted); font-size: 0.75rem; }
-    .weather { margin-top: 6px; font-size: 0.8rem; color: var(--accent); font-weight: 600; }
-
-    /* Layout */
-    .view-container { max-width: 1100px; width: 100%; margin-top: 100px; margin-bottom: 40px; }
+    .view-container { max-width: 1100px; width: 100%; margin-top: 40px; margin-bottom: 40px; }
     .card {
       width: 100%; background: linear-gradient(180deg, #0b1220, var(--card));
       border-radius: 20px; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden;
@@ -40,58 +27,40 @@
     .content { padding: 40px; display: flex; flex-direction: column; justify-content: center; gap: 20px; }
     .image-panel img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* Chat Styling */
+    .chat-header { display: flex; justify-content: space-between; align-items: center; }
     .chat-portal { display: flex; flex-direction: column; gap: 15px; }
-    .chat-input { background: #1e293b; border: 1px solid rgba(56,189,248,0.3); border-radius: 8px; padding: 12px; color: white; width: 100%; }
-    .chat-btn { background: var(--accent); color: #000; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-    #chatBox { display: none; flex-direction: column; height: 380px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(56,189,248,0.2); }
+    .chat-input { background: #1e293b; border: 1px solid rgba(56,189,248,0.3); border-radius: 8px; padding: 12px; color: white; width: 100%; font-size: 1rem; }
+    .chat-btn { background: var(--accent); color: #000; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+    
+    .delete-btn { background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
+
+    #chatBox { display: none; flex-direction: column; height: 450px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(56,189,248,0.2); }
     #messages { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-    .msg { padding: 10px 14px; border-radius: 12px; background: var(--chat-msg); max-width: 85%; align-self: flex-start; }
-    .msg.me { align-self: flex-end; background: var(--accent); color: #0f172a; }
+    .msg { padding: 10px 14px; border-radius: 12px; background: var(--chat-msg); max-width: 85%; align-self: flex-start; border: 1px solid rgba(255,255,255,0.05); position: relative; }
+    .msg.me { align-self: flex-end; background: var(--accent); color: #0f172a; font-weight: 500; }
+    
+    /* Timestamp Style */
+    .ts { display: block; font-size: 0.65rem; margin-top: 4px; opacity: 0.7; }
 
-    /* Flags Bar */
-    .flags-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; background: #020617; overflow: hidden; display: flex; align-items: center; border-top: 1px solid rgba(56,189,248,0.3); z-index: 999; }
-    .flags-track { display: flex; gap: 20px; animation: moveFlags 400s linear infinite; }
-    .flag { width: 48px; height: 32px; flex-shrink: 0; }
-    .flag img { width: 100%; height: 100%; border-radius: 4px; }
-    @keyframes moveFlags { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-
-    #pdfViewerSection { display: none; width: 100%; height: 85vh; background: var(--card); border-radius: 20px; overflow: hidden; border: 1px solid var(--accent); flex-direction: column; }
-    #pdfFrame { width: 100%; height: 100%; border: none; }
-    .pdf-controls { padding: 12px 20px; background: #1e293b; display: flex; justify-content: space-between; align-items: center; }
-
-    @media (max-width: 800px) { .card { grid-template-columns: 1fr; } .top-wrapper { position: relative; margin-top: 40px; flex-direction: column; align-items: center; } }
+    @media (max-width: 800px) { .card { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
-  <div class="top-wrapper" id="topWrapper">
-    <div class="top-info">
-      <span class="location-text">Where I now live</span>
-      <div class="region"><img src="https://flagcdn.com/w40/gb.png"></div>
-      <div class="time" id="time-uk"></div>
-      <div class="date" id="date-uk"></div>
-      <div class="weather" id="weather-uk">Loading...</div>
-    </div>
-    <div class="top-info">
-      <span class="location-text">Where I came from</span>
-      <div class="region"><img src="https://flagcdn.com/w40/pk.png"></div>
-      <div class="time" id="time-pk"></div>
-      <div class="date" id="date-pk"></div>
-      <div class="weather" id="weather-pk">Loading...</div>
-    </div>
-  </div>
-
   <div class="view-container">
     <div class="card" id="mainCard">
       <div class="content">
-        <h1 style="color:var(--accent);">Adventure Chat</h1>
+        <div class="chat-header">
+            <h1 style="margin:0; color:var(--accent);">Adventure Chat</h1>
+            <button id="adminDelete" class="delete-btn" style="display:none;" onclick="clearHistory()">Clear History</button>
+        </div>
+
         <div class="chat-portal">
           <div id="chatNameSection">
-            <p style="color: var(--muted);">Join the conversation! Enter your name to start chatting.</p>
             <input type="text" id="userName" class="chat-input" placeholder="Your name...">
             <button class="chat-btn" onclick="startChat()" style="margin-top:10px; width:100%;">Join Chat Room</button>
           </div>
+          
           <div id="chatBox">
             <div id="messages"></div>
             <div style="display:flex; padding:12px; gap:10px; background: rgba(0,0,0,0.2);">
@@ -103,20 +72,12 @@
       </div>
       <div class="image-panel"><img src="./LegoMainPage.jpg"></div>
     </div>
-
-    <div id="pdfViewerSection">
-      <div class="pdf-controls"><span id="pdfTitle" style="color:var(--accent);">Log</span><button class="chat-btn" onclick="closePDF()">← Back to Home</button></div>
-      <iframe src="" id="pdfFrame"></iframe>
-    </div>
   </div>
-
-  <div class="flags-bar" id="flagsBar"><div class="flags-track" id="flagsTrack"></div></div>
 
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
   <script>
-    // These keys are from your screenshot!
     const firebaseConfig = {
       apiKey: "AIzaSyBWwSAuseEPvBoFiPHaZoFNiLV6xhBSeAJI",
       authDomain: "abdulrafaychat.firebaseapp.com",
@@ -133,70 +94,73 @@
 
     function startChat() {
       const name = document.getElementById('userName').value.trim();
-      if (!name) return alert("Enter your name!");
+      if (!name) return alert("Please enter a name");
+      
       currentUserName = name;
       document.getElementById('chatNameSection').style.display = 'none';
       document.getElementById('chatBox').style.display = 'flex';
+      document.getElementById('adminDelete').style.display = 'block';
 
-      // Send Email Notification
       fetch("https://formsubmit.co/ajax/adbrain@gmail.com", {
         method: "POST", headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name, message: `${name} is online!`, cc: "adnan.sattar.k@gmail.com" })
       });
 
-      // Listen for messages
-      db.ref("messages").limitToLast(50).on("child_added", (snap) => {
+      // Child_added will fire for every existing message once when the app starts
+      db.ref("messages").on("child_added", (snap) => {
         const data = snap.val();
-        appendMessage(data.user, data.text, data.user === currentUserName);
+        appendMessage(data.user, data.text, data.user === currentUserName, data.time);
+      });
+
+      db.ref("messages").on("value", (snap) => {
+        if (!snap.exists()) {
+          document.getElementById('messages').innerHTML = "";
+        }
       });
     }
+
+    // Keyboard "Enter" support
+    document.getElementById('chatInput').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
 
     function sendMessage() {
       const input = document.getElementById('chatInput');
       if (!input.value.trim()) return;
-      db.ref("messages").push().set({ user: currentUserName, text: input.value });
+      
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      db.ref("messages").push().set({
+        user: currentUserName,
+        text: input.value,
+        time: now // Store timestamp
+      });
       input.value = "";
     }
 
-    function appendMessage(user, text, isMe) {
+    function appendMessage(user, text, isMe, time) {
       const div = document.createElement('div');
       div.className = isMe ? 'msg me' : 'msg';
-      div.innerHTML = `<strong>${user}</strong><br>${text}`;
+      // Added time display
+      div.innerHTML = `<strong>${user}</strong><br>${text}<span class="ts">${time || ''}</span>`;
       const box = document.getElementById('messages');
       box.appendChild(div);
       box.scrollTop = box.scrollHeight;
     }
 
-    function closePDF() {
-      document.getElementById('topWrapper').style.display = 'flex';
-      document.getElementById('flagsBar').style.display = 'flex';
-      document.getElementById('mainCard').style.display = 'grid';
-      document.getElementById('pdfViewerSection').style.display = 'none';
+    function clearHistory() {
+      const pw = prompt("Enter Admin Password:");
+      if (pw === "71797179") { // Updated Password
+        if (confirm("Delete ALL messages from the database?")) {
+          db.ref("messages").remove();
+          alert("History Deleted.");
+        }
+      } else if (pw !== null) {
+        alert("Wrong password.");
+      }
     }
-
-    function updateClock(zone, tId, dId) {
-      const now = new Date();
-      document.getElementById(tId).textContent = now.toLocaleTimeString("en-GB", {timeZone: zone, hour12:true, hour:'numeric', minute:'2-digit'});
-      document.getElementById(dId).textContent = now.toLocaleDateString("en-GB", {timeZone: zone, day:'numeric', month:'short'});
-    }
-    setInterval(() => { updateClock("Europe/London", "time-uk", "date-uk"); updateClock("Asia/Karachi", "time-pk", "date-pk"); }, 1000);
-
-    function getWeather(lat, lon, id, city) {
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
-      .then(r => r.json()).then(d => {
-        document.getElementById(id).textContent = `${city} ☀️ ${Math.round(d.current_weather.temperature)}°C`;
-      });
-    }
-    getWeather(52.48, -1.89, "weather-uk", "Birmingham");
-    getWeather(33.68, 73.04, "weather-pk", "Islamabad");
-
-    const countries = ["gb","pk","us","ca","fr","de","it","es","ae","sa","cn","jp","au","in","br","ru","tr","nl","se"];
-    const track = document.getElementById("flagsTrack");
-    [...countries, ...countries, ...countries].forEach(c => {
-      const f = document.createElement("div"); f.className="flag";
-      f.innerHTML = `<img src="https://flagcdn.com/w80/${c}.png">`;
-      track.appendChild(f);
-    });
   </script>
 </body>
 </html>
