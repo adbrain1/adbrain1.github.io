@@ -8,7 +8,6 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Abdul Rafay’s Adventures</title>
-
   <style>
     :root {
       --bg: #0f172a;
@@ -66,11 +65,9 @@
       box-shadow: 10px 0 30px rgba(0,0,0,0.5);
       transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
-      flex-direction: column;
-      gap: 20px;
+      flex-direction: column;      gap: 20px;
       border-right: 1px solid rgba(56,189,248,0.2);
     }
-
     .slide-menu.open { left: 0; }
 
     .menu-item {
@@ -83,7 +80,6 @@
       transition: background 0.2s, color 0.2s;
       border-left: 3px solid transparent;
     }
-
     .menu-item:hover {
       background: rgba(56,189,248,0.1);
       color: var(--accent);
@@ -100,7 +96,6 @@
       font-size: 2rem;
       cursor: pointer;
     }
-    .close-menu:hover { color: var(--accent); }
 
     .menu-overlay {
       position: fixed;
@@ -113,7 +108,7 @@
     }
     .menu-overlay.active { opacity: 1; pointer-events: all; }
 
-    /* ===== Top Right Info ===== */
+    /* ===== Top Info ===== */
     .top-wrapper {
       position: fixed;
       top: 18px;
@@ -122,7 +117,6 @@
       gap: 14px;
       z-index: 1000;
     }
-
     .top-info {
       background: rgba(30,41,59,0.85);
       padding: 12px 14px;
@@ -133,7 +127,6 @@
       box-shadow: 0 8px 20px rgba(0,0,0,0.4);
       backdrop-filter: blur(6px);
     }
-
     .location-text {
         font-size: 0.7rem;
         color: var(--muted);
@@ -143,22 +136,20 @@
         font-weight: 600;
         display: block;
     }
-
-    .region img {
-      width: 24px;
-      height: 16px;
-      border-radius: 2px;
-      vertical-align: middle;
-      margin-right: 6px;
-    }
-
     .time { font-weight: 700; margin-top: 4px; }
     .date { color: var(--muted); font-size: 0.75rem; }
     .weather { margin-top: 6px; font-size: 0.8rem; color: var(--accent); }
 
-    /* ===== Main Card ===== */
+    /* ===== Main Card & PDF Viewer Section ===== */
+    .view-container {
+      max-width: 1100px; 
+      width: 100%;
+      margin-top: 100px;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
     .card {
-      max-width: 900px;
       width: 100%;
       background: linear-gradient(180deg, #0b1220, var(--card));
       border-radius: 20px;
@@ -166,10 +157,47 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       overflow: hidden;
-      animation: fadeUp 1.2s ease-out;
-      margin-top: 100px;
-      margin-bottom: 40px; /* Reduced to fit buttons closer */
+      animation: fadeUp 1s ease-out;
     }
+
+    /* PDF View Styling - Wide and Friendly */
+    #pdfViewerSection {
+      display: none; 
+      width: 100%;
+      height: 85vh; 
+      background: var(--card);
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(56,189,248,0.3);
+      box-shadow: 0 40px 80px rgba(0,0,0,0.4);
+      flex-direction: column;
+    }
+
+    #pdfFrame {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .pdf-controls {
+      padding: 10px 20px;
+      background: #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .back-btn {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .back-btn:hover { transform: scale(1.05); }
 
     .content {
       padding: 48px;
@@ -184,15 +212,7 @@
     p { margin: 0; font-size: 1.05rem; color: var(--muted); max-width: 420px; }
 
     .image-panel { position: relative; background: #000; overflow: hidden; }
-    .image-panel img { width: 100%; height: 100%; object-fit: cover; animation: slowFloat 6s ease-in-out infinite; }
-    .image-panel::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(15,23,42,0.85), rgba(15,23,42,0.1), rgba(15,23,42,0));
-    }
-
-    .credit { position: absolute; bottom: 18px; left: 20px; font-size: 0.85rem; z-index: 2; }
+    .image-panel img { width: 100%; height: 100%; object-fit: cover; }
 
     /* ===== TRIP BUTTONS SECTION ===== */
     .trip-container {
@@ -202,8 +222,7 @@
       gap: 20px;
       max-width: 900px;
       width: 100%;
-      margin-bottom: 140px; /* Space for the flags bar */
-      animation: fadeUp 1.4s ease-out;
+      margin-bottom: 140px; 
     }
 
     .trip-btn {
@@ -217,13 +236,13 @@
       transition: all 0.3s ease;
       backdrop-filter: blur(4px);
       min-width: 260px;
+      cursor: pointer;
     }
 
     .trip-btn:hover {
       background: rgba(56, 189, 248, 0.1);
       border-color: var(--accent);
       transform: translateY(-3px);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     }
 
     .btn-id {
@@ -233,14 +252,9 @@
       padding: 4px 10px;
       border-radius: 6px;
       margin-right: 15px;
-      font-size: 0.9rem;
     }
 
-    .btn-text {
-      color: var(--text);
-      font-weight: 500;
-      font-size: 1rem;
-    }
+    .btn-text { color: var(--text); font-weight: 500; }
 
     /* ===== FLAGS BAR ===== */
     .flags-bar {
@@ -256,7 +270,6 @@
       z-index: 999;
       border-top: 2px solid rgba(56,189,248,0.3);
     }
-
     .flags-track {
       display: flex;
       gap: 20px;
@@ -295,45 +308,23 @@
       transition: opacity 0.2s ease;
       z-index: 10;
     }
-
-    .flag.show span {opacity: 1;}
+    .flag.show span { opacity: 1; }
 
     @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes slowFloat { 0% { transform: scale(1) translateY(0); } 50% { transform: scale(1.02) translateY(-6px); } 100% { transform: scale(1) translateY(0); } }
     @keyframes moveFlags { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
     /* ===== MOBILE FIXES ===== */
     @media (max-width: 800px) {
-      .top-wrapper {
-        position: relative;
-        justify-content: center;
-        margin-bottom: 15px;
-        gap: 10px;
-        margin-top: 60px;
-      }
-      .card { grid-template-columns: 1fr; margin-top: 0; margin-bottom: 20px;}
-      .content { padding: 36px 28px; }
-      .image-panel { height: 320px; }
+      .top-wrapper { position: relative; margin-top: 60px; justify-content: center; }
+      .card { grid-template-columns: 1fr; }
+      #pdfViewerSection { height: 80vh; } 
       .trip-btn { width: 100%; }
-    }
-
-    @media (max-width: 500px) {
-      .top-info { min-width: 140px; }
-      .card { display: flex; flex-direction: column; }
-      .image-panel, .content { width: 100%; }
-      .image-panel img { height: auto; }
     }
   </style>
 </head>
-
 <body>
-
-  <button id="hamburgerBtn" class="hamburger">
-    &#9776;
-  </button>
-
+  <button id="hamburgerBtn" class="hamburger">&#9776;</button>
   <div class="menu-overlay" id="menuOverlay"></div>
-
   <div class="slide-menu" id="slideMenu">
     <button class="close-menu" id="closeMenuBtn">&times;</button>
     <a href="index.html" class="menu-item">Home</a>
@@ -343,11 +334,9 @@
     <a href="chat.html" class="menu-item">Chat</a>
     <a href="about.html" class="menu-item">About Me</a>
   </div>
-
   <div class="flags-bar">
     <div class="flags-track" id="flagsTrack"></div>
   </div>
-
   <div class="top-wrapper">
     <div class="top-info">
       <span class="location-text">Where I now live</span>
@@ -356,7 +345,6 @@
       <div class="date" id="date-uk"></div>
       <div class="weather" id="weather-uk">Loading…</div>
     </div>
-
     <div class="top-info">
       <span class="location-text">Where I came from</span>
       <div class="region"><img src="https://flagcdn.com/w20/pk.png" alt="Pakistan Flag"></div>
@@ -365,58 +353,90 @@
       <div class="weather" id="weather-pk">Loading…</div>
     </div>
   </div>
-
-  <div class="card">
-    <div class="content">
-      <div class="eyebrow">Complete story coming soon!</div>
-      <h1>Fun-Filled Trips to Legoland</h1>
-      <p>
-        Join Yum and Bub on three exciting trips to Legoland, traveling by bus, train, tram, and car <br><br>
-        From monster trucks to 4D cinemas, every adventure is packed with fun, laughter, and Lego magic!
-      </p>
+  <div class="view-container">
+    <div class="card" id="mainCard">
+      <div class="content">
+        <div class="eyebrow">Complete story coming soon!</div>
+        <h1>Fun-Filled Trips to Legoland</h1>
+        <p>
+          Join Yum and Bub on three exciting trips to Legoland, traveling by bus, train, tram, and car <br><br>
+          From monster trucks to 4D cinemas, every adventure is packed with fun, laughter, and Lego magic!
+        </p>
+      </div>
+      <div class="image-panel">
+        <img src="./LegoMainPage.jpg" alt="Yum exploring">
+      </div>
     </div>
-
-    <div class="image-panel">
-      <img src="./LegoMainPage.jpg" alt="Yum exploring">
-      <div class="credit">📍 Adventure complete!</div>
+    <div id="pdfViewerSection">
+      <div class="pdf-controls">
+        <span id="pdfTitle" style="font-weight:600; color:var(--accent);">Adventure Log</span>
+        <button class="back-btn" onclick="closePDF()">← Back to Home</button>
+      </div>
+      <iframe src="" id="pdfFrame"></iframe>
     </div>
   </div>
-
   <div class="trip-container">
-    
-    <a href="legoland.html" class="trip-btn">
+    <div class="trip-btn" onclick="openPDF('legoland.pdf', 'Trips to LEGOLAND')">
       <span class="btn-id">A1</span>
       <span class="btn-text">Trips to LEGOLAND</span>
-    </a>
-
-    <a href="#" class="trip-btn">
+    </div>
+    <div class="trip-btn" onclick="openPDF('cadbury.pdf', 'Trip to Cadbury World')">
       <span class="btn-id">B2</span>
       <span class="btn-text">Trip to Cadbury World</span>
-    </a>
-
-    <a href="#" class="trip-btn">
+    </div>
+    <div class="trip-btn" onclick="openPDF('sealife.pdf', 'Trip to Sea Life')">
       <span class="btn-id">C3</span>
       <span class="btn-text">Trip to Sea Life</span>
-    </a>
-
+    </div>
   </div>
   <script>
+    /* ===== PDF VIEWER LOGIC ===== */
+    function openPDF(fileName, title) {
+      const mainCard = document.getElementById('mainCard');
+      const pdfSection = document.getElementById('pdfViewerSection');
+      const pdfFrame = document.getElementById('pdfFrame');
+      const pdfTitle = document.getElementById('pdfTitle');
+      pdfFrame.src = fileName + "#toolbar=0&navpanes=0";
+      pdfTitle.textContent = title;
+      mainCard.style.display = 'none';
+      pdfSection.style.display = 'flex';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function closePDF() {
+      document.getElementById('mainCard').style.display = 'grid';
+      document.getElementById('pdfViewerSection').style.display = 'none';
+      document.getElementById('pdfFrame').src = "";
+    }
     /* ===== MENU FUNCTIONALITY ===== */
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const closeMenuBtn = document.getElementById('closeMenuBtn');
     const slideMenu = document.getElementById('slideMenu');
     const menuOverlay = document.getElementById('menuOverlay');
-
     function toggleMenu() {
       slideMenu.classList.toggle('open');
       menuOverlay.classList.toggle('active');
     }
-
     hamburgerBtn.addEventListener('click', toggleMenu);
     closeMenuBtn.addEventListener('click', toggleMenu);
     menuOverlay.addEventListener('click', toggleMenu);
+    /* ===== TIME & WEATHER ===== */
+    function updateTime(zone, timeId, dateId){
+      const now = new Date();
+      document.getElementById(timeId).textContent = now.toLocaleTimeString("en-GB",{hour:"numeric",minute:"2-digit",second:"2-digit",hour12:true,timeZone:zone});
+      document.getElementById(dateId).textContent = now.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:zone});
+    }
+    setInterval(()=>{ updateTime("Europe/London","time-uk","date-uk"); updateTime("Asia/Karachi","time-pk","date-pk"); },1000);
+    function loadWeather(lat,lon,elId,label){
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+        .then(res=>res.json()).then(data=>{
+          const temp=Math.round(data.current_weather.temperature);
+          document.getElementById(elId).textContent=`${label} ☀️ ${temp}°C`;
+        });
+    }
+    loadWeather(52.57,-1.82,"weather-uk","Birmingham");
+    loadWeather(33.69,73.06,"weather-pk","Islamabad");
 
-    /* ===== FLAGS ===== */
+    /* ===== FULL RESTORED COUNTRIES LIST ===== */
     const countries = [
         {code:"af",name:"Afghanistan"},{code:"ax",name:"Åland Islands"},{code:"al",name:"Albania"},{code:"dz",name:"Algeria"},
         {code:"as",name:"American Samoa"},{code:"ad",name:"Andorra"},{code:"ao",name:"Angola"},{code:"ai",name:"Anguilla"},
@@ -485,7 +505,6 @@
 
     const track = document.getElementById("flagsTrack");
     const all = [...countries, ...countries];
-
     let activeFlag = null;
 
     all.forEach(c => {
@@ -506,40 +525,6 @@
         }
       });
     });
-
-    /* ===== Time & Weather ===== */
-    function updateTime(zone, timeId, dateId){
-      const now = new Date();
-      document.getElementById(timeId).textContent =
-        now.toLocaleTimeString("en-GB",{hour:"numeric",minute:"2-digit",second:"2-digit",hour12:true,timeZone:zone});
-      document.getElementById(dateId).textContent =
-        now.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:zone});
-    }
-
-    setInterval(()=>{
-      updateTime("Europe/London","time-uk","date-uk");
-      updateTime("Asia/Karachi","time-pk","date-pk");
-    },1000);
-
-    function loadWeather(lat,lon,elId,label){
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
-        .then(res=>res.json())
-        .then(data=>{
-          const temp=Math.round(data.current_weather.temperature);
-          const code=data.current_weather.weathercode;
-          let icon="☀️";
-          if([1,2,3].includes(code)) icon="⛅";
-          if([45,48].includes(code)) icon="🌫️";
-          if([51,53,55,61,63,65,80].includes(code)) icon="🌧️";
-          if([71,73,75,85].includes(code)) icon="❄️";
-          if([95,96,99].includes(code)) icon="⛈️";
-          document.getElementById(elId).textContent=`${label} ${icon} ${temp}°C`;
-        });
-    }
-
-    loadWeather(52.57,-1.82,"weather-uk","Birmingham");
-    loadWeather(33.69,73.06,"weather-pk","Islamabad");
-
   </script>
 </body>
 </html>
