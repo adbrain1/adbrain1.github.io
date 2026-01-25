@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yum's Math Hero Academy</title>
+  <style>
+    :root {
+      --bg: #0f172a; --card: #111827; --text: #e5e7eb;
+      --muted: #9ca3af; --accent: #38bdf8; --success: #22c55e;
+      --danger: #ef4444; --math-gold: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text); font-family: system-ui, -apple-system, sans-serif;
+      display: flex; flex-direction: column; align-items: center; padding: 24px; overflow-x: hidden;
+    }
+
+    /* Sidebar Styles */
+    .hamburger { position: fixed; top: 20px; left: 20px; z-index: 2000; background: rgba(30,41,59,0.85); border: 1px solid var(--accent); color: var(--accent); padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 1.5rem; backdrop-filter: blur(6px); transition: transform 0.2s ease; }
+    .slide-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card); z-index: 2001; padding: 80px 30px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; gap: 20px; border-right: 1px solid rgba(56,189,248,0.2); }
+    .slide-menu.open { left: 0; }
+    .menu-item { text-decoration: none; color: var(--text); font-size: 1.2rem; font-weight: 600; padding: 12px 16px; border-radius: 8px; transition: 0.2s; border-left: 3px solid transparent; }
+    .menu-item:hover { background: rgba(56,189,248,0.1); color: var(--accent); border-left: 3px solid var(--accent); }
+    .close-menu { position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: var(--muted); font-size: 2rem; cursor: pointer; }
+    .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1999; opacity: 0; pointer-events: none; transition: 0.4s; }
+    .menu-overlay.active { opacity: 1; pointer-events: all; }
+
+    /* Scoreboard */
+    .scoreboard { position: fixed; top: 18px; right: 20px; background: rgba(30,41,59,0.85); padding: 12px 14px; border-radius: 14px; z-index: 1000; min-width: 220px; text-align: left; box-shadow: 0 8px 20px rgba(0,0,0,0.4); backdrop-filter: blur(6px); border: 1px solid rgba(56,189,248,0.2); }
+    .board-title { font-size: 0.7rem; color: var(--math-gold); text-transform: uppercase; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid rgba(251,191,36,0.3); padding-bottom: 4px;}
+    .score-entry { font-size: 0.85rem; display: flex; justify-content: space-between; margin: 2px 0; }
+    .btn-reset { background: transparent; color: var(--muted); border: 1px solid var(--muted); font-size: 0.6rem; margin-top: 10px; padding: 4px 8px; border-radius: 4px; cursor: pointer; width: 100%; }
+
+    .view-container { max-width: 900px; width: 100%; margin-top: 100px; margin-bottom: 50px; }
+    .learning-card { background: var(--card); border-radius: 20px; padding: 40px; box-shadow: 0 40px 80px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); }
+    
+    /* 5x2 Flashcard Grid */
+    .flashcard-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 30px 0; }
+    .card-item { background: #1e293b; border: 2px solid var(--accent); border-radius: 12px; height: 90px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; font-weight: 700; transition: transform 0.2s; text-align: center; }
+    .card-item.flipped { background: var(--success); color: white; border-color: var(--success); }
+
+    .challenge-zone { background: rgba(255,255,255,0.02); border-radius: 20px; padding: 40px; text-align: center; border: 2px dashed rgba(56,189,248,0.3); }
+    .timer-display { font-size: 2.5rem; font-weight: 900; color: var(--danger); margin: 10px 0; }
+    .quiz-q { font-size: 4rem; font-weight: 900; margin: 20px 0; }
+    .quiz-input { background: #0f172a; border: 3px solid var(--muted); border-radius: 12px; padding: 15px; color: white; width: 160px; font-size: 2.5rem; text-align: center; outline: none; }
+    .btn { background: var(--accent); color: #0f172a; border: none; padding: 15px 30px; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 1.1rem; margin-top: 10px; }
+    
+    .progress-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+    .dot { width: 15px; height: 15px; border-radius: 50%; background: #334155; }
+    .dot.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    .dot.green { background: var(--success); }
+    .dot.red { background: var(--danger); }
+
+    @media (max-width: 800px) {
+      .flashcard-grid { grid-template-columns: repeat(2, 1fr); }
+      .scoreboard { position: static; width: 100%; margin-bottom: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <button id="hamburgerBtn" class="hamburger">&#9776;</button>
+  <div class="menu-overlay" id="menuOverlay"></div>
+  <div class="slide-menu" id="slideMenu">
+    <button class="close-menu" id="closeMenuBtn">&times;</button>
+    <a href="index.html" class="menu-item">Home</a>
+    <a href="stories.html" class="menu-item">My Stories</a>
+    <a href="learning.html" class="menu-item">Fun Learning</a>
+    <a href="videos.html" class="menu-item">My Videos</a>
+    <a href="chat.html" class="menu-item">Chat</a>
+    <a href="about.html" class="menu-item">About Me</a>
+  </div>
+
+  <div class="scoreboard">
+    <div class="board-title">🏆 Top Weekly Heroes</div>
+    <div id="leaderboardList"></div>
+    <button class="btn-reset" onclick="adminReset()">Reset Board</button>
+  </div>
+
+  <div class="view-container">
+    <div class="learning-card">
+      <h1 style="margin-top:0">Practice & Challenge</h1>
+      
+      <h3>1. Flashcard Warm-up</h3>
+      <div class="flashcard-grid" id="flashcards"></div>
+
+      <div class="challenge-zone">
+        <h2 style="margin-top:0; color:var(--accent)">2. Speed Sprint</h2>
+        <div id="startScreen">
+           <button class="btn" onclick="startChallenge()">Start Challenge</button>
+        </div>
+        
+        <div id="quizContent" style="display:none">
+          <div class="timer-display" id="timer">10</div>
+          <div class="progress-dots" id="dots"></div>
+          <div class="quiz-q" id="question">8 x 5</div>
+          <input type="number" id="mathInput" class="quiz-input" placeholder="?">
+          <br>
+          <button class="btn" onclick="submitAnswer()">Submit</button>
+          <div id="feedback" style="margin-top:15px; font-weight:bold; height:20px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let timer, timeLeft, currentTable, currentNum, qCount, totalScore;
+    let results = []; // Tracks true/false for dots
+    const KEY_ENCODED = "NzE3OTcxNzk="; // Base64 for 71797179
+
+    /* Sidebar */
+    const hBtn = document.getElementById('hamburgerBtn');
+    const sMenu = document.getElementById('slideMenu');
+    const overlay = document.getElementById('menuOverlay');
+    function toggleMenu() { sMenu.classList.toggle('open'); overlay.classList.toggle('active'); }
+    hBtn.onclick = toggleMenu; 
+    document.getElementById('closeMenuBtn').onclick = toggleMenu;
+    overlay.onclick = toggleMenu;
+
+    /* Leaderboard Logic */
+    function getLeaderboard() {
+      return JSON.parse(localStorage.getItem('mathHeroBoard')) || [];
+    }
+
+    function updateBoardDisplay() {
+      const board = getLeaderboard();
+      const list = document.getElementById('leaderboardList');
+      list.innerHTML = board.length === 0 ? '<div style="font-size:0.7rem">No scores yet!</div>' : '';
+      board.slice(0, 5).forEach((entry, i) => {
+        list.innerHTML += `<div class="score-entry"><span>${i+1}. ${entry.name}</span><span>${entry.score} pts</span></div>`;
+      });
+    }
+
+    function adminReset() {
+      const p = prompt("Enter Admin Password:");
+      if (btoa(p) === KEY_ENCODED) {
+        localStorage.removeItem('mathHeroBoard');
+        updateBoardDisplay();
+        alert("Board Cleared!");
+      } else { alert("Incorrect Password"); }
+    }
+
+    /* Flashcards */
+    function getRandQ() { return { t: Math.random() > 0.5 ? 8 : 9, n: Math.floor(Math.random()*12)+1 }; }
+
+    function createFlashcards() {
+      const container = document.getElementById('flashcards');
+      container.innerHTML = '';
+      for(let i=0; i<10; i++) {
+        let q = getRandQ();
+        const div = document.createElement('div');
+        div.className = 'card-item';
+        div.innerText = `${q.t} x ${q.n}`;
+        div.onclick = () => {
+          if(div.classList.contains('flipped')) return;
+          div.innerText = q.t * q.n; div.classList.add('flipped');
+          setTimeout(() => {
+            q = getRandQ(); div.innerText = `${q.t} x ${q.n}`;
+            div.classList.remove('flipped');
+          }, 2000);
+        };
+        container.appendChild(div);
+      }
+    }
+
+    /* Challenge */
+    function startChallenge() {
+      document.getElementById('startScreen').style.display = 'none';
+      document.getElementById('quizContent').style.display = 'block';
+      qCount = 0; totalScore = 0; results = [];
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      if(qCount >= 10) { endChallenge(); return; }
+      currentTable = Math.random() > 0.5 ? 8 : 9;
+      currentNum = Math.floor(Math.random()*12)+1;
+      document.getElementById('question').innerText = `${currentTable} x ${currentNum}`;
+      document.getElementById('mathInput').value = '';
+      document.getElementById('mathInput').focus();
+      updateDots();
+      runTimer();
+    }
+
+    function runTimer() {
+      clearInterval(timer);
+      timeLeft = 10;
+      document.getElementById('timer').innerText = timeLeft;
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').innerText = timeLeft;
+        if(timeLeft <= 0) { handleResponse(false, "Time's up! Nice try! 👍"); }
+      }, 1000);
+    }
+
+    function updateDots() {
+      const d = document.getElementById('dots');
+      d.innerHTML = '';
+      for(let i=0; i<10; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot';
+        if (results[i] === true) dot.classList.add('green');
+        else if (results[i] === false) dot.classList.add('red');
+        else if (i === qCount) dot.classList.add('active');
+        d.appendChild(dot);
+      }
+    }
+
+    function submitAnswer() {
+      const val = parseInt(document.getElementById('mathInput').value);
+      if(val === currentTable * currentNum) {
+        // Score = 1 * remaining seconds
+        totalScore += (1 * timeLeft);
+        handleResponse(true, "Correct! 🌟");
+      } else {
+        handleResponse(false, "Nice try, let's try another! 👍");
+      }
+    }
+
+    function handleResponse(isCorrect, msg) {
+      clearInterval(timer);
+      results.push(isCorrect);
+      updateDots();
+      const feed = document.getElementById('feedback');
+      feed.innerText = msg;
+      feed.style.color = isCorrect ? "var(--success)" : "var(--accent)";
+      qCount++;
+      setTimeout(() => { feed.innerText = ""; nextQuestion(); }, 1200);
+    }
+
+    function endChallenge() {
+      alert(`Challenge Over! Total Score: ${totalScore}`);
+      const name = prompt("Great job! Enter your name for the board:");
+      if(name) {
+        let board = getLeaderboard();
+        board.push({name, score: totalScore, date: new Date().toISOString()});
+        board.sort((a,b) => b.score - a.score);
+        localStorage.setItem('mathHeroBoard', JSON.stringify(board));
+        updateBoardDisplay();
+      }
+      document.getElementById('quizContent').style.display = 'none';
+      document.getElementById('startScreen').style.display = 'block';
+    }
+
+    window.onload = () => { updateBoardDisplay(); createFlashcards(); };
+  </script>
+</body>
+</html>
