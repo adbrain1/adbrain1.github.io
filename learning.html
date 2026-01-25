@@ -90,7 +90,7 @@
     <div class="image-panel">      <img src="./20250809_120138.jpg" alt="Yum exploring">      <div class="credit">📍 Learning in progress!</div>    </div>  </div>
 
   <div class="external-btn-wrap">
-    <a href="tables.html" class="adventure-btn">Start Math Hero!</a>
+    <a href="tables.html" class="adventure-btn">Start times table practice and challenge!</a>
   </div>
 
   <script>    /* ===== MENU FUNCTIONALITY ===== */    const hamburgerBtn = document.getElementById('hamburgerBtn');    const closeMenuBtn = document.getElementById('closeMenuBtn');    const slideMenu = document.getElementById('slideMenu');    const menuOverlay = document.getElementById('menuOverlay');
@@ -106,4 +106,5 @@
     setInterval(()=>{      updateTime("Europe/London","time-uk","date-uk");      updateTime("Asia/Karachi","time-pk","date-pk");    },1000);
     function loadWeather(lat,lon,elId,label){      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)        .then(res=>res.json())        .then(data=>{          const temp=Math.round(data.current_weather.temperature);          const code=data.current_weather.weathercode;          let icon="☀️";          if([1,2,3].includes(code)) icon="⛅";          if([45,48].includes(code)) icon="🌫️";          if([51,53,55,61,63,65,80].includes(code)) icon="🌧️";          if([71,73,75,85].includes(code)) icon="❄️";          if([95,96,99].includes(code)) icon="⛈️";          document.getElementById(elId).textContent=`${label} ${icon} ${temp}°C`;        });    }
     loadWeather(52.57,-1.82,"weather-uk","Birmingham");    loadWeather(33.69,73.06,"weather-pk","Islamabad");
+
   </script></body></html>
