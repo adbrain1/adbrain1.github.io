@@ -518,40 +518,37 @@
     const db = firebase.database();
     let currentUserName = "";
 
-    function startChat() {
+function startChat() {
   const name = document.getElementById('userName').value.trim();
-  if (!name) return alert("Please enter a name");
+  if (!name) return alert("Enter a name");
   
   currentUserName = name;
+  
+  // These lines only hide/show elements INSIDE the card
   document.getElementById('chatNameSection').style.display = 'none';
   document.getElementById('chatBox').style.display = 'flex';
   document.getElementById('adminDelete').style.display = 'block';
 
-  // CUSTOMIZED EMAIL NOTIFICATION
+  // The email fetch happens in the background and won't remove layout elements
   fetch("https://formsubmit.co/ajax/adbrain@gmail.com", {
-    method: "POST",
+    method: "POST", 
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      _subject: "🚀 " + name + " just came online on Rafay's website", // Changes Subject
-      "Visitor Name": name,                                 // Custom Body Label
-      "Status": "Online and ready to chat",                 // Custom Body Label
-      "Activity": "Entered Math Hero Academy Chatroom",     // Custom Body Label
-      cc: "adnan.sattar.k@gmail.com"
+    body: JSON.stringify({ 
+        _subject: "🚀 " + name + " joined the chat!",
+        name: name,
+        message: name + " is now online.",
+        cc: "adnan.sattar.k@gmail.com"
     })
   });
 
-  db.ref("messages").on("child_added", (snap) => {
-    const data = snap.val();
-    appendMessage(data.user, data.text, data.user === currentUserName, data.time);
-  });
+  // Re-verify the clock is still running
+  updateClocks(); 
 
-  db.ref("messages").on("value", (snap) => {
-    if (!snap.exists()) {
-      document.getElementById('messages').innerHTML = "";
-    }
+  db.ref("messages").on("child_added", (snap) => {
+    const d = snap.val();
+    appendMessage(d.user, d.text, d.user === currentUserName, d.time);
   });
 }
-
     // Keyboard "Enter" support
     document.getElementById('chatInput').addEventListener('keypress', function (e) {
       if (e.key === 'Enter') {
@@ -598,3 +595,4 @@
 </body>
 
 </html>
+
