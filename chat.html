@@ -19,30 +19,30 @@
     }
 
     /* --- SIDE MENU --- */
-    .hamburger { position: fixed; top: 20px; left: 20px; z-index: 2005; background: rgba(30,41,59,0.85); border: 1px solid var(--accent); color: var(--accent); padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 1.5rem; backdrop-filter: blur(6px); }
-    .slide-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card); z-index: 2006; padding: 80px 30px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); transition: left 0.4s ease; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid rgba(56,189,248,0.2); }
+    .hamburger { position: fixed; top: 20px; left: 20px; z-index: 3000; background: rgba(30,41,59,0.85); border: 1px solid var(--accent); color: var(--accent); padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 1.5rem; backdrop-filter: blur(6px); }
+    .slide-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card); z-index: 3001; padding: 80px 30px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); transition: left 0.4s ease; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid rgba(56,189,248,0.2); }
     .slide-menu.open { left: 0; }
     .menu-item { text-decoration: none; color: var(--text); font-size: 1.2rem; font-weight: 600; padding: 12px 16px; border-radius: 8px; transition: 0.2s; }
     .menu-item:hover { background: rgba(56,189,248,0.1); color: var(--accent); }
     .close-menu { position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: var(--muted); font-size: 2rem; cursor: pointer; }
-    .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2004; opacity: 0; pointer-events: none; transition: 0.4s; }
+    .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2999; opacity: 0; pointer-events: none; transition: 0.4s; }
     .menu-overlay.active { opacity: 1; pointer-events: all; }
 
     /* --- TOP WIDGETS --- */
-    .top-widgets { position: fixed; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 2003; flex-wrap: wrap; justify-content: flex-end; }
+    .top-widgets { position: fixed; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 2500; flex-wrap: wrap; justify-content: flex-end; }
     .widget-card { background: rgba(30,41,59,0.85); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(56,189,248,0.2); backdrop-filter: blur(6px); text-align: center; min-width: 90px; }
     .widget-label { font-size: 0.6rem; color: var(--accent); text-transform: uppercase; display: block; margin-bottom: 2px; }
     .widget-value { font-size: 0.85rem; font-weight: bold; display: block; }
 
     /* --- CHAT MAIN --- */
-    .view-container { max-width: 1100px; width: 100%; margin-top: 80px; margin-bottom: 100px; z-index: 10; }
+    .view-container { max-width: 1100px; width: 100%; margin-top: 100px; margin-bottom: 120px; position: relative; z-index: 10; }
     .card { width: 100%; background: linear-gradient(180deg, #0b1220, var(--card)); border-radius: 20px; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); }
     .content { padding: 40px; display: flex; flex-direction: column; justify-content: center; gap: 20px; }
     .image-panel img { width: 100%; height: 100%; object-fit: cover; }
     .chat-header { display: flex; justify-content: space-between; align-items: center; }
-    #chatBox { display: none; flex-direction: column; height: 450px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(56,189,248,0.2); }
+    #chatBox { display: none; flex-direction: column; height: 450px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(56,189,248,0.2); margin-top: 10px; }
     #messages { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-    .msg { padding: 10px 14px; border-radius: 12px; background: var(--chat-msg); max-width: 85%; align-self: flex-start; }
+    .msg { padding: 10px 14px; border-radius: 12px; background: var(--chat-msg); max-width: 85%; align-self: flex-start; line-height: 1.4; }
     .msg.me { align-self: flex-end; background: var(--accent); color: #0f172a; font-weight: 500; }
     .ts { display: block; font-size: 0.65rem; margin-top: 4px; opacity: 0.7; }
     .chat-input { background: #1e293b; border: 1px solid rgba(56,189,248,0.3); border-radius: 8px; padding: 12px; color: white; width: 100%; font-size: 1rem; }
@@ -50,19 +50,19 @@
     .delete-btn { background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
 
     /* --- INFINITE FLAG MARQUEE --- */
-    .marquee-wrapper { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.9); padding: 15px 0; border-top: 1px solid rgba(56,189,248,0.2); overflow: hidden; z-index: 2002; }
-    .marquee-content { display: flex; width: max-content; animation: marquee-scroll 30s linear infinite; }
-    .flag-set { display: flex; gap: 50px; padding-right: 50px; }
-    .flag-box { display: flex; align-items: center; gap: 10px; color: white; font-weight: 600; white-space: nowrap; }
-    .flag-box img { width: 24px; height: auto; border-radius: 2px; }
+    .marquee-wrapper { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.95); padding: 15px 0; border-top: 1px solid rgba(56,189,248,0.2); overflow: hidden; z-index: 2500; }
+    .marquee-content { display: flex; width: max-content; animation: marquee-scroll 40s linear infinite; }
+    .flag-set { display: flex; gap: 60px; padding-right: 60px; }
+    .flag-box { display: flex; align-items: center; gap: 12px; color: white; font-weight: 600; white-space: nowrap; font-size: 0.9rem; }
+    .flag-box img { width: 28px; height: auto; border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
     @keyframes marquee-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-    @media (max-width: 800px) { .card { grid-template-columns: 1fr; } .top-widgets { position: relative; top: 0; right: 0; margin-bottom: 20px; justify-content: center; } }
+    @media (max-width: 800px) { .card { grid-template-columns: 1fr; } .top-widgets { position: relative; top: 0; right: 0; margin-bottom: 20px; justify-content: center; } .view-container { margin-top: 20px; } }
   </style>
 </head>
 <body>
 
-  <button id="hamburgerBtn" class="hamburger">&#9776;</button>
+  <button id="hamburgerBtn" class="hamburger" aria-label="Menu">&#9776;</button>
   <div class="menu-overlay" id="menuOverlay"></div>
   <div class="slide-menu" id="slideMenu">
     <button class="close-menu" id="closeMenuBtn">&times;</button>
@@ -85,12 +85,12 @@
     <div class="card" id="mainCard">
       <div class="content">
         <div class="chat-header">
-            <h1 style="margin:0; color:var(--accent);">Chat with Yum right now!</h1>
+            <h1 style="margin:0; color:var(--accent);">Chat with Yum!</h1>
             <button id="adminDelete" class="delete-btn" style="display:none;" onclick="clearHistory()">Clear History</button>
         </div>
         <div class="chat-portal">
           <div id="chatNameSection">
-            <input type="text" id="userName" class="chat-input" placeholder="Your name...">
+            <input type="text" id="userName" class="chat-input" placeholder="Enter your name...">
             <button class="chat-btn" onclick="startChat()" style="margin-top:10px; width:100%;">Join Chat Room</button>
           </div>
           <div id="chatBox">
@@ -102,7 +102,7 @@
           </div>
         </div>
       </div>
-      <div class="image-panel"><img src="./20250809_120138.jpg"></div>
+      <div class="image-panel"><img src="./20250809_120138.jpg" alt="Yum"></div>
     </div>
   </div>
 
@@ -145,82 +145,96 @@
     const db = firebase.database();
     let currentUserName = "";
 
-    /* --- MENU --- */
+    /* --- MENU LOGIC --- */
     const hBtn = document.getElementById('hamburgerBtn'), sMenu = document.getElementById('slideMenu'), overlay = document.getElementById('menuOverlay');
     function toggle() { sMenu.classList.toggle('open'); overlay.classList.toggle('active'); }
     hBtn.onclick = toggle; document.getElementById('closeMenuBtn').onclick = toggle; overlay.onclick = toggle;
 
-    /* --- CLOCK & WEATHER --- */
+    /* --- WIDGET LOGIC --- */
     function updateClocks() {
-        const now = new Date();
-        document.getElementById('ukTime').innerText = now.toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit' });
-        document.getElementById('pkTime').innerText = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Karachi', hour: '2-digit', minute: '2-digit' });
+        const options = { hour: '2-digit', minute: '2-digit', hour12: true };
+        document.getElementById('ukTime').innerText = new Date().toLocaleTimeString('en-GB', { ...options, timeZone: 'Europe/London' });
+        document.getElementById('pkTime').innerText = new Date().toLocaleTimeString('en-GB', { ...options, timeZone: 'Asia/Karachi' });
     }
     setInterval(updateClocks, 1000); updateClocks();
 
     async function getWeatherData() {
         try {
-            const ukRes = await fetch('https://api.open-meteo.com/v1/forecast?latitude=52.48&longitude=-1.89&current_weather=true');
-            const ukData = await ukRes.json();
-            document.getElementById('ukWeather').innerText = Math.round(ukData.current_weather.temperature) + "°C";
-            const pkRes = await fetch('https://api.open-meteo.com/v1/forecast?latitude=33.68&longitude=73.04&current_weather=true');
-            const pkData = await pkRes.json();
-            document.getElementById('pkWeather').innerText = Math.round(pkData.current_weather.temperature) + "°C";
-        } catch(e) { console.error("Weather update failed"); }
+            const uk = await fetch('https://api.open-meteo.com/v1/forecast?latitude=52.48&longitude=-1.89&current_weather=true').then(r => r.json());
+            document.getElementById('ukWeather').innerText = Math.round(uk.current_weather.temperature) + "°C";
+            const pk = await fetch('https://api.open-meteo.com/v1/forecast?latitude=33.68&longitude=73.04&current_weather=true').then(r => r.json());
+            document.getElementById('pkWeather').innerText = Math.round(pk.current_weather.temperature) + "°C";
+        } catch(e) { console.log("Weather offline"); }
     }
     getWeatherData();
 
-    /* --- CHAT --- */
+    /* --- CHAT LOGIC --- */
     function startChat() {
       const name = document.getElementById('userName').value.trim();
-      if (!name) return alert("Please enter a name");
+      if (!name) return alert("Please enter your name!");
+      
       currentUserName = name;
       document.getElementById('chatNameSection').style.display = 'none';
       document.getElementById('chatBox').style.display = 'flex';
       document.getElementById('adminDelete').style.display = 'block';
 
+      // Send Email Notification
       fetch("https://formsubmit.co/ajax/adbrain@gmail.com", {
         method: "POST", headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-            _subject: "🚀 " + name + " just came online on Rafay's website",
-            "Visitor Name": name, "Status": "Online", "Activity": "Joined Chat",
+            _subject: "🚀 " + name + " joined the chat room!",
+            "Hero Name": name, "Status": "Online", "Location": "Adventure Chat",
             cc: "adnan.sattar.k@gmail.com" 
         })
       });
 
-      db.ref("messages").on("child_added", (snap) => {
+      // SYNC HISTORY & LIVE MESSAGES
+      const msgRef = db.ref("messages");
+      msgRef.off(); // Prevent duplicate listeners
+      msgRef.on("child_added", (snap) => {
         const data = snap.val();
         appendMessage(data.user, data.text, data.user === currentUserName, data.time);
+      });
+
+      // Sync UI if database is cleared
+      msgRef.on("value", (snap) => {
+        if (!snap.exists()) document.getElementById('messages').innerHTML = "";
       });
     }
 
     function sendMessage() {
-      const input = document.getElementById('chatInput');
-      if (!input.value.trim()) return;
-      const now = new Date().toLocaleDateString([], {day:'2-digit', month:'short'}) + " " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      db.ref("messages").push().set({ user: currentUserName, text: input.value, time: now });
-      input.value = "";
+      const inp = document.getElementById('chatInput');
+      if (!inp.value.trim()) return;
+      
+      const timeStr = new Date().toLocaleDateString([], {day:'2-digit', month:'short'}) + " " + 
+                      new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      db.ref("messages").push().set({
+        user: currentUserName,
+        text: inp.value,
+        time: timeStr
+      });
+      inp.value = "";
     }
 
     function appendMessage(user, text, isMe, time) {
+      const box = document.getElementById('messages');
       const div = document.createElement('div');
       div.className = isMe ? 'msg me' : 'msg';
       div.innerHTML = `<strong>${user}</strong><br>${text}<span class="ts">${time || ''}</span>`;
-      const box = document.getElementById('messages');
       box.appendChild(div);
       box.scrollTop = box.scrollHeight;
     }
 
     function clearHistory() {
-      const encodedPass = "NzE3OTcxNzk="; 
-      const pw = prompt("Enter Admin Password:");
-      if (pw === atob(encodedPass)) {
-        if (confirm("Delete ALL messages?")) {
+      const p = "NzE3OTcxNzk="; // Encoded 71797179
+      const entry = prompt("Admin Password:");
+      if (entry === atob(p)) {
+        if (confirm("Delete all chat history?")) {
           db.ref("messages").remove();
-          document.getElementById('messages').innerHTML = "";
-          alert("History Deleted.");
+          alert("History Cleared.");
         }
-      } else if (pw !== null) alert("Wrong password.");
+      } else if (entry !== null) alert("Access Denied.");
     }
 
     document.getElementById('chatInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
