@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
@@ -26,7 +27,7 @@
 
   <div class="scoreboard" id="scoreboard">
     <div class="board-title">
-      <span>🏆 Super Hero Leaderboard</span> 
+      <span>🏆 Hero Leaderboard</span> 
       <span style="font-size: 0.55rem; opacity: 0.8;">PTS | SEC</span>
     </div>
     <div id="leaderboardList"></div>
@@ -34,7 +35,7 @@
   </div>
 
   <div class="view-container">
-    <div class="learning-card">
+    <div class="learning-card" id="mainCard">
       <h1 style="margin:0 0 10px 0; color:var(--accent); text-align:center;">Math Hero Academy</h1>
       
       <div style="max-width: 400px; margin: 0 auto 25px auto;">
@@ -54,14 +55,13 @@
           <div id="timerDisplay" class="math-timer">10</div>
           <div id="dots" class="dots-container"></div>
           <div id="question" class="math-question">8 x 5</div>
-          
           <div id="optionsGrid" class="options-grid"></div>
-
           <div id="feedback" style="margin-top:20px; font-weight:bold; min-height:30px; font-size:1.5rem;"></div>
         </div>
 
         <div id="endScreen" style="display:none; flex-direction:column; align-items:center;">
           <h2 style="color:var(--accent); margin:0;">Challenge Complete!</h2>
+          <div id="rankBadge" class="rank-badge">Calculating Rank...</div>
           <p id="resScore" style="font-size:1.5rem; margin:10px 0;"></p>
           <p id="resTime" style="color:var(--muted); margin-bottom:15px;"></p>
           <input type="text" id="heroName" class="quiz-input" placeholder="Enter Name" style="width:200px; font-size: 1.2rem; border-width: 3px;">
@@ -88,10 +88,9 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let timerObj, timeLeft, currentTable, currentNum, qCount, totalScore, startTime, finalTime;
+    let timerObj, timeLeft, currentTable, currentNum, qCount, totalScore, startTime, finalTime, streak;
     let results = [];
 
-    /* MENU LOGIC */
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const closeMenuBtn = document.getElementById('closeMenuBtn');
     const slideMenu = document.getElementById('slideMenu');
@@ -101,7 +100,6 @@
     closeMenuBtn.addEventListener('click', toggleMenu);
     menuOverlay.addEventListener('click', toggleMenu);
 
-    /* LEADERBOARD LOGIC */
     function initLeaderboard() {
       db.ref("mathLeaderboard").orderByChild("score").limitToLast(8).on("value", (snap) => {
         const list = document.getElementById('leaderboardList');
@@ -115,7 +113,6 @@
       });
     }
 
-    /* FLASHCARDS */
     function createFlashcards() {
       const container = document.getElementById('flashcards');
       container.innerHTML = '';
@@ -135,12 +132,11 @@
       }
     }
 
-    /* GAME LOGIC */
     function startChallenge() {
       document.getElementById('startScreen').style.display = 'none';
       document.getElementById('quizContent').style.display = 'block';
       document.getElementById('scoreboard').style.display = 'none'; 
-      qCount = 0; totalScore = 0; results = []; startTime = Date.now();
+      qCount = 0; totalScore = 0; results = []; streak = 0; startTime = Date.now();
       nextQuestion();
     }
 
@@ -151,7 +147,6 @@
       const correct = currentTable * currentNum;
       document.getElementById('question').innerText = `${currentTable} x ${currentNum}`;
       
-      // Generate Buttons
       const grid = document.getElementById('optionsGrid');
       grid.innerHTML = '';
       let opts = new Set([correct]);
@@ -177,15 +172,25 @@
       timerObj = setInterval(() => {
         timeLeft--;
         document.getElementById('timerDisplay').innerText = timeLeft;
-        if(timeLeft <= 0) { clearInterval(timerObj); handleResponse(false, "Time's Up! ⏳"); }
+        if(timeLeft <= 0) { streak = 0; clearInterval(timerObj); handleResponse(false, "Time's Up! ⏳"); }
       }, 1000);
     }
 
     function checkAns(sel, cor) {
       clearInterval(timerObj);
       document.querySelectorAll('.option-btn').forEach(b => b.style.pointerEvents = 'none');
-      if(sel === cor) { totalScore += timeLeft; handleResponse(true, "Correct! 🌟"); }
-      else { handleResponse(false, "Wrong! 💪"); }
+      if(sel === cor) {
+        streak++;
+        let bonus = streak >= 3 ? 2 : 1; // Double points for streaks
+        totalScore += (timeLeft * bonus);
+        handleResponse(true, streak >= 3 ? `STREAK x${bonus}! 🔥` : "Correct! 🌟");
+      } else {
+        streak = 0;
+        handleResponse(false, "Wrong! 💪");
+        // Shake effect on wrong answer
+        document.getElementById('mainCard').classList.add('shake');
+        setTimeout(() => document.getElementById('mainCard').classList.remove('shake'), 500);
+      }
     }
 
     function handleResponse(isCorrect, msg) {
@@ -206,12 +211,27 @@
       }
     }
 
+    function getRank(score) {
+      if (score >= 90) return "👑 MATH LEGEND";
+      if (score >= 65) return "⚡ CALCULATION KING";
+      if (score >= 35) return "⚔️ NUMBER KNIGHT";
+      return "🛡️ MATH TRAINEE";
+    }
+
     function endChallenge() {
       finalTime = Math.floor((Date.now() - startTime) / 1000);
       document.getElementById('quizContent').style.display = 'none';
       document.getElementById('endScreen').style.display = 'flex';
+      
+      const rank = getRank(totalScore);
+      document.getElementById('rankBadge').innerText = rank;
       document.getElementById('resScore').innerText = `Total Pts: ${totalScore}`;
       document.getElementById('resTime').innerText = `Finished in ${finalTime}s`;
+      
+      // Celebrate if they did well!
+      if(totalScore > 50) {
+        confetti({ feather: 50, spread: 70, origin: { y: 0.6 } });
+      }
     }
 
     function saveToCloud() {
@@ -226,4 +246,3 @@
   </script>
 </body>
 </html>
-
