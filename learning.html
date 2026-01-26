@@ -1,83 +1,23 @@
-<!DOCTYPE html><html lang="en"><head> <link rel="icon" type="image/png" href="./favicon.png">  <meta charset="UTF-8" />  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />  <meta http-equiv="Pragma" content="no-cache" />  <meta http-equiv="Expires" content="0" />  <title>Abdul Rafay’s Adventures</title>
-  <style>    :root {      --bg: #0f172a;      --card: #111827;      --text: #e5e7eb;      --muted: #9ca3af;      --accent: #38bdf8;      --accent-glow: rgba(56, 189, 248, 0.4);    }
-    * { box-sizing: border-box; }
-    body {      margin: 0;      min-height: 100vh;      background: radial-gradient(circle at top, #1e293b, var(--bg));      color: var(--text);      font-family: system-ui, -apple-system, BlinkMacSystemFont,                     "Segoe UI", Roboto, Helvetica, Arial, sans-serif;      display: flex;      flex-direction: column;      align-items: center;      justify-content: flex-start;      padding: 24px;      overflow-x: hidden;    }
-    /* ===== Hamburger Menu & Slide Bar ===== */    .hamburger {      position: fixed;      top: 20px;      left: 20px;      z-index: 2000;      background: rgba(30,41,59,0.85);      border: 1px solid var(--accent);      color: var(--accent);      padding: 10px 14px;      border-radius: 8px;      cursor: pointer;      font-size: 1.5rem;      backdrop-filter: blur(6px);      box-shadow: 0 4px 12px rgba(0,0,0,0.3);      transition: transform 0.2s ease;    }    .hamburger:hover { transform: scale(1.05); }
-    .slide-menu {      position: fixed;      top: 0;      left: -320px;      width: 300px;      height: 100vh;      background: var(--card);      z-index: 2001;      padding: 80px 30px;      box-shadow: 10px 0 30px rgba(0,0,0,0.5);      transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);      display: flex;      flex-direction: column;      gap: 20px;      border-right: 1px solid rgba(56,189,248,0.2);    }
-    .slide-menu.open { left: 0; }
-    .menu-item {      text-decoration: none;      color: var(--text);      font-size: 1.2rem;      font-weight: 600;      padding: 12px 16px;      border-radius: 8px;      transition: background 0.2s, color 0.2s;      border-left: 3px solid transparent;    }
-    .menu-item:hover {      background: rgba(56,189,248,0.1);      color: var(--accent);      border-left: 3px solid var(--accent);    }
-    .close-menu {      position: absolute;      top: 20px;      right: 20px;      background: transparent;      border: none;      color: var(--muted);      font-size: 2rem;      cursor: pointer;    }    .close-menu:hover { color: var(--accent); }
-    .menu-overlay {      position: fixed;      inset: 0;      background: rgba(0,0,0,0.6);      z-index: 1999;      opacity: 0;      pointer-events: none;      transition: opacity 0.4s ease;    }    .menu-overlay.active { opacity: 1; pointer-events: all; }
+<!DOCTYPE html><html lang="en">
 
-    /* ===== Adventure Button (Outside Panel) ===== */
-    .external-btn-wrap {
-      margin: -100px 0 120px 0; /* Positioned between card and flags */
-      z-index: 10;
-      animation: fadeUp 1.5s ease-out;
-    }
-    .adventure-btn {
-      text-decoration: none;
-      background: linear-gradient(135deg, var(--accent), #0ea5e9);
-      color: #0f172a;
-      font-weight: 800;
-      font-size: 1.1rem;
-      padding: 16px 40px;
-      border-radius: 50px; /* Pill shape */
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      box-shadow: 0 10px 25px var(--accent-glow);
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      display: inline-block;
-      position: relative;
-      overflow: hidden;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-    }
-    .adventure-btn:hover {
-      transform: scale(1.1) translateY(-5px);
-      box-shadow: 0 20px 40px var(--accent-glow);
-      filter: brightness(1.15);
-    }
-    .adventure-btn::after {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -60%;
-      width: 20%;
-      height: 200%;
-      background: rgba(255, 255, 255, 0.4);
-      transform: rotate(30deg);
-      animation: shimmer 4s infinite;
-    }
-    @keyframes shimmer {
-      0% { left: -60%; }
-      15% { left: 120%; }
-      100% { left: 120%; }
-    }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abdul Rafay’s Adventures</title>
+  <link rel="icon" type="image/png" href="./favicon.png">
 
-    /* ===== Top Right Info ===== */    .top-wrapper {      position: fixed;      top: 18px;      right: 20px;      display: flex;      gap: 14px;      z-index: 1000;    }
-    .top-info {      background: rgba(30,41,59,0.85);      padding: 12px 14px;      border-radius: 14px;      font-size: 0.85rem;      min-width: 170px;      text-align: right;      box-shadow: 0 8px 20px rgba(0,0,0,0.4);      backdrop-filter: blur(6px);    }
-    .location-text {        font-size: 0.7rem;        color: var(--muted);        margin-bottom: 4px;        text-transform: uppercase;        letter-spacing: 0.05em;        font-weight: 600;        display: block;    }
-    .region img {      width: 24px;      height: 16px;      border-radius: 2px;      vertical-align: middle;      margin-right: 6px;    }
-    .time { font-weight: 700; margin-top: 4px; }    .date { color: var(--muted); font-size: 0.75rem; }    .weather { margin-top: 6px; font-size: 0.8rem; color: var(--accent); }
-    /* ===== Main Card ===== */    .card {      max-width: 900px;      width: 100%;      background: linear-gradient(180deg, #0b1220, var(--card));      border-radius: 20px;      box-shadow: 0 40px 80px rgba(0,0,0,0.4);      display: grid;      grid-template-columns: 1fr 1fr;      overflow: hidden;      animation: fadeUp 1.2s ease-out;      margin-top: 100px;      margin-bottom: 140px;    }
-    .content {      padding: 48px;      display: flex;      flex-direction: column;      justify-content: center;      gap: 20px;    }
-    .eyebrow { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.75rem; color: var(--accent); }    h1 { font-size: clamp(2rem, 4vw, 3rem); margin: 0; line-height: 1.15; }    p { margin: 0; font-size: 1.05rem; color: var(--muted); max-width: 420px; }
-    .image-panel { position: relative; background: #000; overflow: hidden; }    .image-panel img { width: 100%; height: 100%; object-fit: cover; animation: slowFloat 6s ease-in-out infinite; }    .image-panel::after {      content: "";      position: absolute;      inset: 0;      background: linear-gradient(to top, rgba(15,23,42,0.85), rgba(15,23,42,0.1), rgba(15,23,42,0));    }
-    .credit { position: absolute; bottom: 18px; left: 20px; font-size: 0.85rem; z-index: 2; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }    @keyframes slowFloat { 0% { transform: scale(1) translateY(0); } 50% { transform: scale(1.02) translateY(-6px); } 100% { transform: scale(1) translateY(0); } }
-    /* ===== FLAGS BAR ===== */    .flags-bar {      position: fixed;      bottom: 0;      left: 0;      width: 100%;      height: 80px;      background: linear-gradient(to right, #020617, #0f172a);      overflow: hidden;      display: flex;      align-items: center;      z-index: 999;      border-top: 2px solid rgba(56,189,248,0.3);    }
-    .flags-track {      display: flex;      gap: 20px;      animation: moveFlags 500s linear infinite;    }
-    .flags-track.paused { animation-play-state: paused; }
-    .flag {      position: relative;      width: 48px;      height: 32px;      flex-shrink: 0;      cursor: pointer;    }
-    .flag img {      width: 100%;      height: 100%;      border-radius: 4px;      box-shadow: 0 2px 6px rgba(0,0,0,0.5);    }
-    .flag span {      position: absolute;      bottom: 36px;      left: 50%;      transform: translateX(-50%);      background: rgba(0,0,0,0.8);      padding: 4px 8px;      border-radius: 6px;      font-size: 0.7rem;      white-space: nowrap;      opacity: 0;      pointer-events: none;      transition: opacity 0.2s ease;      z-index: 10;    }
-    .flag.show span {opacity: 1;}
-    @keyframes moveFlags { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-    /* ===== MOBILE FIXES ===== */    @media (max-width: 800px) {      .top-wrapper {        position: relative;        justify-content: center;        margin-bottom: 15px;        gap: 10px;        margin-top: 60px;      }      .card { grid-template-columns: 1fr; margin-top: 0; margin-bottom: 40px; }
-      .external-btn-wrap { margin-top: 0; margin-bottom: 100px; }
-      .content { padding: 36px 28px; }      .image-panel { height: 320px; }    }
-    @media (max-width: 500px) {      .top-info { min-width: 140px; }      .card { display: flex; flex-direction: column; }      .image-panel, .content { width: 100%; }      .image-panel img { height: auto; }    }  </style></head>
+  <link rel="stylesheet" href="style.css">
+
+  <meta name="theme-color" content="#2e0249">
+  <meta property="og:title" content="Abdul Rafay’s Adventures">
+  <meta property="og:description" content="Check out my space-themed travel stories!">
+  <meta property="og:image" content="link-to-a-cool-photo.jpg">
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+</head>
+  
 <body>
   <button id="hamburgerBtn" class="hamburger">    &#9776;  </button>
   <div class="menu-overlay" id="menuOverlay"></div>
@@ -108,4 +48,5 @@
     loadWeather(52.57,-1.82,"weather-uk","Birmingham");    loadWeather(33.69,73.06,"weather-pk","Islamabad");
 
   </script></body></html>
+
 
