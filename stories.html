@@ -1,28 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Abdul Rafay’s Adventures</title>
-  <link rel="icon" type="image/png" href="./favicon.png">
-  
-  <meta name="theme-color" content="#2e0249">
-  <meta property="og:title" content="Abdul Rafay’s Adventures">
-  <meta property="og:description" content="Check out my space-themed travel stories!">
-  <meta property="og:image" content="link-to-a-cool-photo.jpg">
-  
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-</head>
-<button id="hamburgerBtn" class="hamburger">&#9776;</button>
-<div class="menu-overlay" id="menuOverlay"></div>
-<div class="slide-menu" id="slideMenu">
+<body>
+  <button id="hamburgerBtn" class="hamburger">&#9776;</button>
+  <div class="menu-overlay" id="menuOverlay"></div>
+  <div class="slide-menu" id="slideMenu">
     <button class="close-menu" id="closeMenuBtn">&times;</button>
     <a href="index.html" class="menu-item">Home</a>
     <a href="stories.html" class="menu-item">My Stories</a>
@@ -30,80 +9,83 @@
     <a href="videos.html" class="menu-item">My Videos</a>
     <a href="chat.html" class="menu-item">Chat</a>
     <a href="about.html" class="menu-item">About Me</a>
-</div>
+  </div>
 
-<div class="flags-bar" id="flagsBar">
+  <div class="flags-bar" id="flagsBar">
     <div class="flags-track" id="flagsTrack"></div>
-</div>
+  </div>
 
-<div class="top-wrapper" id="topWrapper">
+  <div class="top-wrapper" id="topWrapper">
     <div class="top-info">
-        <span class="location-text">Where I now live</span>
-        <div class="region"><img src="https://flagcdn.com/w20/gb.png" alt="UK Flag"></div>
-        <div class="time" id="time-uk"></div>
-        <div class="date" id="date-uk"></div>
-        <div class="weather" id="weather-uk">Loading…</div>
+      <span class="location-text">Where I now live</span>
+      <div class="region"><img src="https://flagcdn.com/w20/gb.png" alt="UK Flag"></div>
+      <div class="time" id="time-uk"></div>
+      <div class="date" id="date-uk"></div>
+      <div class="weather" id="weather-uk">Loading…</div>
     </div>
     <div class="top-info">
-        <span class="location-text">Where I came from</span>
-        <div class="region"><img src="https://flagcdn.com/w20/pk.png" alt="Pakistan Flag"></div>
-        <div class="time" id="time-pk"></div>
-        <div class="date" id="date-pk"></div>
-        <div class="weather" id="weather-pk">Loading…</div>
+      <span class="location-text">Where I came from</span>
+      <div class="region"><img src="https://flagcdn.com/w20/pk.png" alt="Pakistan Flag"></div>
+      <div class="time" id="time-pk"></div>
+      <div class="date" id="date-pk"></div>
+      <div class="weather" id="weather-pk">Loading…</div>
     </div>
-</div>
+  </div>
 
-<div class="view-container">
+  <div class="view-container">
     <div class="card" id="mainCard">
-        <div class="content">
-            <span class="eyebrow">The complete story is here!</span>
-            <h1>Fun-Filled Trips to Legoland</h1>
-            <p>
-                Join Yum and Bub on three exciting trips to Legoland, traveling by bus, train, tram, and car. <br><br>
-                From monster trucks to 4D cinemas, every adventure is packed with fun, laughter, and Lego magic!
-            </p>
+      <div class="content">
+        <span class="eyebrow">The complete story is here!</span>
+        <h1>Fun-Filled Trips to Legoland</h1>
+        <p>
+          Join Yum and Bub on three exciting trips to Legoland, traveling by bus, train, tram, and car. <br><br>
+          From monster trucks to 4D cinemas, every adventure is packed with fun, laughter, and Lego magic!
+        </p>
 
-            <div class="btn-group">
-                <a href="legoland.pdf" target="_blank" class="theme-btn btn-primary">Open Full PDF</a>
-                <button class="theme-btn btn-secondary" onclick="window.print()">Print Page</button>
-            </div>
-
-            <div class="pdf-container">
-                <div class="pdf-header">
-                    <span class="pdf-title">Story Preview: Legoland</span>
-                </div>
-                <iframe class="pdf-viewer" src="legoland.pdf"></iframe>
-            </div>
+        <div class="btn-group">
+          <a href="legoland.pdf" target="_blank" class="theme-btn btn-primary">Open Full PDF</a>
+          <button class="theme-btn btn-secondary" onclick="window.print()">Print Page</button>
         </div>
 
-        <div class="image-panel">
-            <img src="./LegoMainPage.jpg" alt="Yum exploring Legoland">
+        <div class="pdf-container">
+          <div class="pdf-header">
+            <span class="pdf-title">Story Preview</span>
+          </div>
+          <iframe class="pdf-viewer" src="legoland.pdf"></iframe>
         </div>
+      </div>
+
+      <div class="image-panel">
+        <img src="./LegoMainPage.jpg" alt="Yum exploring Legoland">
+      </div>
     </div>
 
     <div class="trip-container">
-        <div class="trip-btn" onclick="openPDF('legoland.pdf', 'Trips to LEGOLAND')">
-            <span class="btn-id">A1</span>
-            <span class="btn-text">Trips to LEGOLAND</span>
-        </div>
-        <div class="trip-btn" onclick="openPDF('cadbury.pdf', 'Trip to Cadbury World')">
-            <span class="btn-id">B2</span>
-            <span class="btn-text">Trip to Cadbury World</span>
-        </div>
-        <div class="trip-btn" onclick="openPDF('sealife.pdf', 'Trip to Sea Life')">
-            <span class="btn-id">C3</span>
-            <span class="btn-text">Trip to Sea Life</span>
-        </div>
+      <div class="trip-btn" onclick="openPDF('legoland.pdf', 'Trips to LEGOLAND')">
+        <span class="btn-id">A1</span>
+        <span class="btn-text">Trips to LEGOLAND</span>
+      </div>
+      <div class="trip-btn" onclick="openPDF('cadbury.pdf', 'Trip to Cadbury World')">
+        <span class="btn-id">B2</span>
+        <span class="btn-text">Trip to Cadbury World</span>
+      </div>
+      <div class="trip-btn" onclick="openPDF('sealife.pdf', 'Trip to Sea Life')">
+        <span class="btn-id">C3</span>
+        <span class="btn-text">Trip to Sea Life</span>
+      </div>
     </div>
 
-    <div id="pdfViewerSection" style="display:none; flex-direction:column; width:100%; max-width:900px;">
-        <div class="pdf-header" style="border-radius: 20px 20px 0 0;">
-            <span id="pdfTitle" style="color:white; font-family:'Fredoka';">Adventure Log</span>
-            <button class="theme-btn btn-primary" onclick="closePDF()" style="padding: 5px 15px; font-size: 0.8rem;">✕ Close</button>
-        </div>
-        <iframe src="" id="pdfFrame" style="width:100%; height:80vh; border:4px solid white; border-radius:0 0 20px 20px;"></iframe>
+    <div id="pdfViewerSection" style="display:none;">
+      <div class="pdf-controls">
+        <span id="pdfTitle">Adventure Log</span>
+        <button class="back-btn" onclick="closePDF()">← Close Story</button>
+      </div>
+      <iframe src="" id="pdfFrame" class="pdf-viewer" style="height: 80vh;"></iframe>
     </div>
-</div>
-</html>
+  </div>
 
-
+  <script>
+    /* ... (The script code you provided goes here - I haven't changed the logic) ... */
+    /* Paste your script back here if you are replacing the whole body */
+  </script>
+</body>
