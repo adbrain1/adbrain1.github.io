@@ -22,6 +22,7 @@
 </head>
 
 <body>
+  <div class="shooting-star"></div>
 
   <button id="hamburgerBtn" class="hamburger">
     &#9776;
@@ -31,16 +32,13 @@
 
   <div class="slide-menu" id="slideMenu">
     <button class="close-menu" id="closeMenuBtn">&times;</button>
-    
     <a href="index.html" class="menu-item">Home</a>
     <a href="stories.html" class="menu-item">My Stories</a>
     <a href="learning.html" class="menu-item">Fun Learning</a>
     <a href="videos.html" class="menu-item">My Videos</a>
     <a href="chat.html" class="menu-item">Chat</a>
-    
-    
     <a href="about.html" class="menu-item">About Me</a>
-    </div>
+  </div>
 
   <div class="flags-bar">
     <div class="flags-track" id="flagsTrack"></div>
@@ -68,14 +66,12 @@
     <div class="content">
       <div class="eyebrow">The website is live!</div>
       <h1>Travel stories from Abdul Rafay</h1>
-
       <p>
         Hi, I’m Bub's Yum! <br><br>
         I love visiting new places, trying new things,
         and sharing my adventures.
       </p>
-
-      </div>
+    </div>
 
     <div class="image-panel">
       <img src="./20250809_120138.jpg" alt="Yum exploring">
@@ -90,7 +86,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
-    emailjs.init("PZGTEkN5j0VkE3Q5V"); // Your public key
+    emailjs.init("PZGTEkN5j0VkE3Q5V");
 
     /* ===== MENU FUNCTIONALITY ===== */
     const hamburgerBtn = document.getElementById('hamburgerBtn');
@@ -108,7 +104,6 @@
     menuOverlay.addEventListener('click', toggleMenu);
 
     /* ===== FLAGS ===== */
-    // Expanded list containing all countries
     const countries = [
         {code:"af",name:"Afghanistan"},{code:"ax",name:"Åland Islands"},{code:"al",name:"Albania"},{code:"dz",name:"Algeria"},
         {code:"as",name:"American Samoa"},{code:"ad",name:"Andorra"},{code:"ao",name:"Angola"},{code:"ai",name:"Anguilla"},
@@ -186,14 +181,12 @@
       div.innerHTML = `<img src="https://flagcdn.com/w80/${c.code}.png" alt="${c.name}"><span>${c.name}</span>`;
       track.appendChild(div);
 
-      // Desktop hover
       div.addEventListener("mouseenter", () => { track.classList.add("paused"); div.classList.add("show"); });
       div.addEventListener("mouseleave", () => { if(activeFlag===null){ track.classList.remove("paused"); div.classList.remove("show"); } });
 
-      // Mobile tap fix
       div.addEventListener("pointerdown", () => {
         if(/Mobi|Android/i.test(navigator.userAgent)){
-          if(activeFlag && activeFlag!==div) return; // block other flags
+          if(activeFlag && activeFlag!==div) return;
           const isActive = div.classList.contains("show");
           if(isActive){ div.classList.remove("show"); track.classList.remove("paused"); activeFlag=null; }
           else { div.classList.add("show"); track.classList.add("paused"); activeFlag=div; }
@@ -240,7 +233,6 @@
     const commentContainer = document.getElementById("commentContainer");
 
     const audio1 = new Audio("./send button ding dong.mp3");
-    // Second audio added as requested
     const audio2 = new Audio("./Yum thankyou.mp4");
 
     commentInput.addEventListener("focus", () => {
@@ -249,19 +241,14 @@
 
     sendBtn.addEventListener("click", () => {
       const text = commentInput.value.trim();
-      if(!text) return; // Do nothing if empty
+      if(!text) return;
 
       emailjs.send('service_q9wwalo','template_nwu3bod',{message:text},'PZGTEkN5j0VkE3Q5V')
         .then(() => {
-          
-          // Play first sound
           audio1.play();
-          
-          // When first sound ends, play the second sound
           audio1.onended = function() {
             audio2.play();
           };
-
           commentContainer.innerHTML = ""; 
           const thankMsg = document.createElement("div");
           thankMsg.style.color = "green";
@@ -273,7 +260,6 @@
           console.error(err);
         });
     });
-
   </script>
 </body>
 </html>
