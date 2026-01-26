@@ -699,4 +699,43 @@ p {
 }
 
 
+/* Update the container to allow for a wider inner PDF section */
+.view-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Updated PDF Viewer Window */
+#pdfViewerSection {
+  display: none; /* Hidden by default */
+  flex-direction: column;
+  width: 95%;          /* Use more of the screen width */
+  max-width: 1200px;   /* Increased from 900px to 1200px for desktop */
+  height: 85vh;        /* Slightly taller for better viewing */
+  background: var(--card);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 4px solid var(--accent);
+  margin-top: 100px;
+  margin-bottom: 140px;
+}
+
+/* Ensure the iframe fills the wider container */
+#pdfFrame {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Mobile adjustments for PDF */
+@media (max-width: 800px) {
+  .trip-container { margin-top: 0; padding: 0 20px; }
+  #pdfViewerSection { 
+    height: 70vh; 
+    margin-top: 20px; 
+    width: 98%; /* Almost full width on small screens */
+  }
+}
 
