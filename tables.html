@@ -37,8 +37,8 @@
     <div class="learning-card">
       <h1 style="margin:0 0 10px 0; color:var(--accent); text-align:center;">Math Hero Academy</h1>
       
-      <div style="max-width: 500px; margin: 0 auto 25px auto;">
-        <p style="text-align:center; color:var(--muted); line-height: 1.4;">
+      <div style="max-width: 400px; margin: 0 auto 25px auto;">
+        <p style="text-align:center; color:var(--muted); line-height: 1.4; font-size: 1.1rem;">
           Tap the warm-up cards below, then hit the Sprint button!
         </p>
       </div>
@@ -55,8 +55,7 @@
           <div id="dots" class="dots-container"></div>
           <div id="question" class="math-question">8 x 5</div>
           
-          <div id="optionsGrid" class="options-grid">
-            </div>
+          <div id="optionsGrid" class="options-grid"></div>
 
           <div id="feedback" style="margin-top:20px; font-weight:bold; min-height:30px; font-size:1.5rem;"></div>
         </div>
@@ -65,7 +64,7 @@
           <h2 style="color:var(--accent); margin:0;">Challenge Complete!</h2>
           <p id="resScore" style="font-size:1.5rem; margin:10px 0;"></p>
           <p id="resTime" style="color:var(--muted); margin-bottom:15px;"></p>
-          <input type="text" id="heroName" class="quiz-input" placeholder="Type Your Name" style="width:250px; font-size: 1.2rem; border-width: 3px;">
+          <input type="text" id="heroName" class="quiz-input" placeholder="Enter Name" style="width:200px; font-size: 1.2rem; border-width: 3px;">
           <button class="btn-math" onclick="saveToCloud()">Save My Score</button>
         </div>
       </div>
@@ -92,7 +91,7 @@
     let timerObj, timeLeft, currentTable, currentNum, qCount, totalScore, startTime, finalTime;
     let results = [];
 
-    /* MENU */
+    /* MENU LOGIC */
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const closeMenuBtn = document.getElementById('closeMenuBtn');
     const slideMenu = document.getElementById('slideMenu');
@@ -102,7 +101,7 @@
     closeMenuBtn.addEventListener('click', toggleMenu);
     menuOverlay.addEventListener('click', toggleMenu);
 
-    /* LEADERBOARD */
+    /* LEADERBOARD LOGIC */
     function initLeaderboard() {
       db.ref("mathLeaderboard").orderByChild("score").limitToLast(8).on("value", (snap) => {
         const list = document.getElementById('leaderboardList');
@@ -116,7 +115,7 @@
       });
     }
 
-    /* WARM UP */
+    /* FLASHCARDS */
     function createFlashcards() {
       const container = document.getElementById('flashcards');
       container.innerHTML = '';
@@ -136,7 +135,7 @@
       }
     }
 
-    /* GAME ENGINE */
+    /* GAME LOGIC */
     function startChallenge() {
       document.getElementById('startScreen').style.display = 'none';
       document.getElementById('quizContent').style.display = 'block';
@@ -149,37 +148,27 @@
       if(qCount >= 10) { endChallenge(); return; }
       currentTable = Math.random() > 0.5 ? 8 : 9;
       currentNum = Math.floor(Math.random()*12)+1;
-      const correctAnswer = currentTable * currentNum;
-      
+      const correct = currentTable * currentNum;
       document.getElementById('question').innerText = `${currentTable} x ${currentNum}`;
-      generateOptions(correctAnswer);
-      updateDots();
-      startTimer();
-    }
-
-    function generateOptions(correct) {
+      
+      // Generate Buttons
       const grid = document.getElementById('optionsGrid');
       grid.innerHTML = '';
-      
-      let options = new Set();
-      options.add(correct);
-      
-      while(options.size < 4) {
-        // Generate wrong answers that are somewhat close to the correct one
-        let wrong = correct + (Math.floor(Math.random() * 10) - 5);
-        if (wrong > 0 && wrong !== correct) options.add(wrong);
+      let opts = new Set([correct]);
+      while(opts.size < 4) {
+        let w = correct + (Math.floor(Math.random()*12)-6);
+        if(w > 0 && w !== correct) opts.add(w);
       }
-      
-      // Shuffle options
-      let shuffled = Array.from(options).sort(() => Math.random() - 0.5);
-      
-      shuffled.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.innerText = opt;
-        btn.onclick = () => checkAnswer(opt, correct);
-        grid.appendChild(btn);
+      Array.from(opts).sort(() => Math.random() - 0.5).forEach(o => {
+        const b = document.createElement('button');
+        b.className = 'option-btn';
+        b.innerText = o;
+        b.onclick = () => checkAns(o, correct);
+        grid.appendChild(b);
       });
+
+      updateDots();
+      startTimer();
     }
 
     function startTimer() {
@@ -192,18 +181,11 @@
       }, 1000);
     }
 
-    function checkAnswer(selected, correct) {
+    function checkAns(sel, cor) {
       clearInterval(timerObj);
-      // Disable buttons to prevent double clicking
-      const btns = document.querySelectorAll('.option-btn');
-      btns.forEach(b => b.style.pointerEvents = 'none');
-
-      if(selected === correct) {
-        totalScore += timeLeft;
-        handleResponse(true, "Correct! 🌟");
-      } else {
-        handleResponse(false, "Wrong! 💪");
-      }
+      document.querySelectorAll('.option-btn').forEach(b => b.style.pointerEvents = 'none');
+      if(sel === cor) { totalScore += timeLeft; handleResponse(true, "Correct! 🌟"); }
+      else { handleResponse(false, "Wrong! 💪"); }
     }
 
     function handleResponse(isCorrect, msg) {
@@ -212,7 +194,7 @@
       const f = document.getElementById('feedback');
       f.innerText = msg; f.style.color = isCorrect ? "#4ade80" : "#ff4d4d";
       qCount++;
-      setTimeout(() => { f.innerText = ""; nextQuestion(); }, 800);
+      setTimeout(() => { f.innerText = ""; nextQuestion(); }, 700);
     }
 
     function updateDots() {
@@ -229,12 +211,12 @@
       document.getElementById('quizContent').style.display = 'none';
       document.getElementById('endScreen').style.display = 'flex';
       document.getElementById('resScore').innerText = `Total Pts: ${totalScore}`;
-      document.getElementById('resTime').innerText = `Finished in ${finalTime} seconds`;
+      document.getElementById('resTime').innerText = `Finished in ${finalTime}s`;
     }
 
     function saveToCloud() {
       const name = document.getElementById('heroName').value.trim();
-      if(!name) return alert("Enter your name!");
+      if(!name) return alert("Enter name!");
       db.ref("mathLeaderboard").push({ name, score: totalScore, timeTaken: finalTime, timestamp: Date.now() });
       location.reload(); 
     }
