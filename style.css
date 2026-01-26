@@ -451,7 +451,7 @@ p {
 .external-btn-wrap {
   display: flex;
   justify-content: center;
-  margin: -100px 0 160px 0; /* Space below the card */
+  margin: -210px 0 160px 0; /* Space below the card */
   z-index: 10;
 }
 
@@ -738,6 +738,7 @@ p {
     width: 98%; /* Almost full width on small screens */
   }
 }
+
 
 
 
