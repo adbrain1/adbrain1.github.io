@@ -451,7 +451,7 @@ p {
 .external-btn-wrap {
   display: flex;
   justify-content: center;
-  margin: -250px 0 160px 0; /* Space below the card */
+  margin: -90px 0 160px 0; /* Space below the card */
   z-index: 10;
 }
 
@@ -1027,5 +1027,6 @@ p {
 @media (max-width: 800px) {
   .scoreboard { position: relative; top: 0; right: 0; width: 100%; margin-bottom: 20px; }
 }
+
 
 
