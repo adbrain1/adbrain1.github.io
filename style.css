@@ -949,28 +949,81 @@ p {
   }
 }
 
-
-/* Shake animation for wrong answers */
-.shake {
-  animation: shake 0.5s;
+/* --- FIXED LEADERBOARD (Top-Right) --- */
+.scoreboard {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  left: auto !important; /* Forces it to the right */
+  width: 200px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 3px solid var(--accent);
+  border-radius: 15px;
+  padding: 12px;
+  z-index: 1500;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-@keyframes shake {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-10px); }
-  50% { transform: translateX(10px); }
-  100% { transform: translateX(0); }
-}
-
-/* Rank Styling in End Screen */
+/* --- HERO RANK BADGE --- */
 .rank-badge {
   background: var(--accent);
   color: #000;
-  padding: 10px 20px;
+  padding: 10px 25px;
   border-radius: 50px;
+  font-family: 'Fredoka', sans-serif;
   font-weight: 900;
-  font-size: 1.5rem;
-  margin: 10px 0;
-  border: 3px solid #000;
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+  border: 4px solid #000;
+  box-shadow: 4px 4px 0px #000;
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+/* --- SHAKE ANIMATION FOR WRONG ANSWERS --- */
+.shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+@keyframes popIn {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+/* --- FLASHY BUTTONS (Mobile Friendly) --- */
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  max-width: 320px;
+  margin: 15px auto;
+}
+
+.option-btn {
+  background: linear-gradient(145deg, #ffcc00, #ff9900);
+  border: 3px solid #000;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #000;
+  cursor: pointer;
+  font-family: 'Fredoka', sans-serif;
+  transition: transform 0.1s;
+  box-shadow: 4px 4px 0px #000;
+}
+
+.option-btn:hover { transform: scale(1.05); background: #fff; }
+.option-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #000; }
+
+/* Hide leaderboard on mobile to keep screen clear */
+@media (max-width: 800px) {
+  .scoreboard { position: relative; top: 0; right: 0; width: 100%; margin-bottom: 20px; }
+}
