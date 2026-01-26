@@ -1,4 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abdul Rafay’s Adventures</title>
+  <link rel="icon" type="image/png" href="./favicon.png">
+  
+  <meta name="theme-color" content="#2e0249">
+  <meta property="og:title" content="Abdul Rafay’s Adventures">
+  <meta property="og:description" content="Check out my space-themed travel stories!">
+  <meta property="og:image" content="link-to-a-cool-photo.jpg">
+  
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
 <body>
+
   <button id="hamburgerBtn" class="hamburger">&#9776;</button>
   <div class="menu-overlay" id="menuOverlay"></div>
   <div class="slide-menu" id="slideMenu">
@@ -35,29 +58,24 @@
   <div class="view-container">
     <div class="card" id="mainCard">
       <div class="content">
-        <span class="eyebrow">The complete story is here!</span>
+        <div class="eyebrow">The complete story is here!</div>
         <h1>Fun-Filled Trips to Legoland</h1>
         <p>
           Join Yum and Bub on three exciting trips to Legoland, traveling by bus, train, tram, and car. <br><br>
           From monster trucks to 4D cinemas, every adventure is packed with fun, laughter, and Lego magic!
         </p>
-
-        <div class="btn-group">
-          <a href="legoland.pdf" target="_blank" class="theme-btn btn-primary">Open Full PDF</a>
-          <button class="theme-btn btn-secondary" onclick="window.print()">Print Page</button>
-        </div>
-
-        <div class="pdf-container">
-          <div class="pdf-header">
-            <span class="pdf-title">Story Preview</span>
-          </div>
-          <iframe class="pdf-viewer" src="legoland.pdf"></iframe>
-        </div>
       </div>
-
       <div class="image-panel">
         <img src="./LegoMainPage.jpg" alt="Yum exploring Legoland">
       </div>
+    </div>
+
+    <div id="pdfViewerSection">
+      <div class="pdf-controls">
+        <span id="pdfTitle">Adventure Log</span>
+        <button class="back-btn" onclick="closePDF()">← Close Story</button>
+      </div>
+      <iframe src="" id="pdfFrame"></iframe>
     </div>
 
     <div class="trip-container">
@@ -74,18 +92,93 @@
         <span class="btn-text">Trip to Sea Life</span>
       </div>
     </div>
-
-    <div id="pdfViewerSection" style="display:none;">
-      <div class="pdf-controls">
-        <span id="pdfTitle">Adventure Log</span>
-        <button class="back-btn" onclick="closePDF()">← Close Story</button>
-      </div>
-      <iframe src="" id="pdfFrame" class="pdf-viewer" style="height: 80vh;"></iframe>
-    </div>
   </div>
 
   <script>
-    /* ... (The script code you provided goes here - I haven't changed the logic) ... */
-    /* Paste your script back here if you are replacing the whole body */
+    /* ===== PDF VIEWER LOGIC ===== */
+    function openPDF(fileName, title) {
+      const mainCard = document.getElementById('mainCard');
+      const pdfSection = document.getElementById('pdfViewerSection');
+      const pdfFrame = document.getElementById('pdfFrame');
+      const pdfTitle = document.getElementById('pdfTitle');
+      const tripBtns = document.querySelector('.trip-container');
+
+      pdfFrame.src = fileName + "#toolbar=0&navpanes=0";
+      pdfTitle.textContent = title;
+      
+      mainCard.style.display = 'none';
+      tripBtns.style.display = 'none';
+      pdfSection.style.display = 'flex';
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function closePDF() {
+      document.getElementById('mainCard').style.display = 'grid';
+      document.getElementById('pdfViewerSection').style.display = 'none';
+      document.querySelector('.trip-container').style.display = 'flex';
+      document.getElementById('pdfFrame').src = "";
+    }
+
+    /* ===== MENU FUNCTIONALITY ===== */
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const closeMenuBtn = document.getElementById('closeMenuBtn');
+    const slideMenu = document.getElementById('slideMenu');
+    const menuOverlay = document.getElementById('menuOverlay');
+    
+    function toggleMenu() {
+      slideMenu.classList.toggle('open');
+      menuOverlay.classList.toggle('active');
+    }
+    
+    hamburgerBtn.addEventListener('click', toggleMenu);
+    closeMenuBtn.addEventListener('click', toggleMenu);
+    menuOverlay.addEventListener('click', toggleMenu);
+
+    /* ===== TIME & WEATHER ===== */
+    function updateTime(zone, timeId, dateId){
+      const now = new Date();
+      document.getElementById(timeId).textContent = now.toLocaleTimeString("en-GB",{hour:"numeric",minute:"2-digit",second:"2-digit",hour12:true,timeZone:zone});
+      document.getElementById(dateId).textContent = now.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:zone});
+    }
+    setInterval(()=>{ updateTime("Europe/London","time-uk","date-uk"); updateTime("Asia/Karachi","time-pk","date-pk"); },1000);
+
+    function loadWeather(lat,lon,elId,label){
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+        .then(res=>res.json()).then(data=>{
+          const temp=Math.round(data.current_weather.temperature);
+          document.getElementById(elId).textContent=`${label} ☀️ ${temp}°C`;
+        });
+    }
+    loadWeather(52.57,-1.82,"weather-uk","Birmingham");
+    loadWeather(33.69,73.06,"weather-pk","Islamabad");
+
+    /* ===== FLAGS LIST ===== */
+    const countries = [
+        {code:"af",name:"Afghanistan"},{code:"al",name:"Albania"},{code:"dz",name:"Algeria"},{code:"as",name:"American Samoa"},{code:"ad",name:"Andorra"},{code:"ao",name:"Angola"},{code:"ai",name:"Anguilla"},{code:"aq",name:"Antarctica"},{code:"ag",name:"Antigua & Barbuda"},{code:"ar",name:"Argentina"},{code:"am",name:"Armenia"},{code:"au",name:"Australia"},{code:"at",name:"Austria"},{code:"az",name:"Azerbaijan"},{code:"bs",name:"Bahamas"},{code:"bh",name:"Bahrain"},{code:"bd",name:"Bangladesh"},{code:"bb",name:"Barbados"},{code:"be",name:"Belgium"},{code:"bz",name:"Belize"},{code:"bm",name:"Bermuda"},{code:"bt",name:"Bhutan"},{code:"bo",name:"Bolivia"},{code:"ba",name:"Bosnia & Herzegovina"},{code:"bw",name:"Botswana"},{code:"br",name:"Brazil"},{code:"bn",name:"Brunei"},{code:"bg",name:"Bulgaria"},{code:"bf",name:"Burkina Faso"},{code:"bi",name:"Burundi"},{code:"kh",name:"Cambodia"},{code:"cm",name:"Cameroon"},{code:"ca",name:"Canada"},{code:"cv",name:"Cape Verde"},{code:"ky",name:"Cayman Islands"},{code:"cf",name:"Central African Rep."},{code:"td",name:"Chad"},{code:"cl",name:"Chile"},{code:"cn",name:"China"},{code:"co",name:"Colombia"},{code:"km",name:"Comoros"},{code:"cg",name:"Congo"},{code:"ck",name:"Cook Islands"},{code:"cr",name:"Costa Rica"},{code:"hr",name:"Croatia"},{code:"cu",name:"Cuba"},{code:"cy",name:"Cyprus"},{code:"cz",name:"Czechia"},{code:"dk",name:"Denmark"},{code:"dj",name:"Djibouti"},{code:"dm",name:"Dominica"},{code:"do",name:"Dominican Rep."},{code:"ec",name:"Ecuador"},{code:"eg",name:"Egypt"},{code:"sv",name:"El Salvador"},{code:"ee",name:"Estonia"},{code:"et",name:"Ethiopia"},{code:"fj",name:"Fiji"},{code:"fi",name:"Finland"},{code:"fr",name:"France"},{code:"ga",name:"Gabon"},{code:"gm",name:"Gambia"},{code:"ge",name:"Georgia"},{code:"de",name:"Germany"},{code:"gh",name:"Ghana"},{code:"gi",name:"Gibraltar"},{code:"gr",name:"Greece"},{code:"gl",name:"Greenland"},{code:"gd",name:"Grenada"},{code:"gu",name:"Guam"},{code:"gt",name:"Guatemala"},{code:"gn",name:"Guinea"},{code:"gy",name:"Guyana"},{code:"ht",name:"Haiti"},{code:"hn",name:"Honduras"},{code:"hk",name:"Hong Kong"},{code:"hu",name:"Hungary"},{code:"is",name:"Iceland"},{code:"in",name:"India"},{code:"id",name:"Indonesia"},{code:"ir",name:"Iran"},{code:"iq",name:"Iraq"},{code:"ie",name:"Ireland"},{code:"il",name:"Israel"},{code:"it",name:"Italy"},{code:"jm",name:"Jamaica"},{code:"jp",name:"Japan"},{code:"jo",name:"Jordan"},{code:"kz",name:"Kazakhstan"},{code:"ke",name:"Kenya"},{code:"ki",name:"Kiribati"},{code:"kp",name:"North Korea"},{code:"kr",name:"South Korea"},{code:"kw",name:"Kuwait"},{code:"kg",name:"Kyrgyzstan"},{code:"la",name:"Laos"},{code:"lv",name:"Latvia"},{code:"lb",name:"Lebanon"},{code:"ls",name:"Lesotho"},{code:"lr",name:"Liberia"},{code:"ly",name:"Libya"},{code:"lt",name:"Lithuania"},{code:"lu",name:"Luxembourg"},{code:"mo",name:"Macao"},{code:"mg",name:"Madagascar"},{code:"mw",name:"Malawi"},{code:"my",name:"Malaysia"},{code:"mv",name:"Maldives"},{code:"ml",name:"Mali"},{code:"mt",name:"Malta"},{code:"mx",name:"Mexico"},{code:"md",name:"Moldova"},{code:"mc",name:"Monaco"},{code:"mn",name:"Mongolia"},{code:"ma",name:"Morocco"},{code:"mz",name:"Mozambique"},{code:"mm",name:"Myanmar"},{code:"na",name:"Namibia"},{code:"np",name:"Nepal"},{code:"nl",name:"Netherlands"},{code:"nz",name:"New Zealand"},{code:"ni",name:"Nicaragua"},{code:"ne",name:"Niger"},{code:"ng",name:"Nigeria"},{code:"no",name:"Norway"},{code:"om",name:"Oman"},{code:"pk",name:"Pakistan"},{code:"pw",name:"Palau"},{code:"pa",name:"Panama"},{code:"pg",name:"Papua New Guinea"},{code:"py",name:"Paraguay"},{code:"pe",name:"Peru"},{code:"ph",name:"Philippines"},{code:"pl",name:"Poland"},{code:"pt",name:"Portugal"},{code:"pr",name:"Puerto Rico"},{code:"qa",name:"Qatar"},{code:"ro",name:"Romania"},{code:"ru",name:"Russia"},{code:"rw",name:"Rwanda"},{code:"sa",name:"Saudi Arabia"},{code:"sn",name:"Senegal"},{code:"rs",name:"Serbia"},{code:"sg",name:"Singapore"},{code:"sk",name:"Slovakia"},{code:"si",name:"Slovenia"},{code:"so",name:"Somalia"},{code:"za",name:"South Africa"},{code:"es",name:"Spain"},{code:"lk",name:"Sri Lanka"},{code:"sd",name:"Sudan"},{code:"se",name:"Sweden"},{code:"ch",name:"Switzerland"},{code:"sy",name:"Syria"},{code:"tw",name:"Taiwan"},{code:"tj",name:"Tajikistan"},{code:"tz",name:"Tanzania"},{code:"th",name:"Thailand"},{code:"tg",name:"Togo"},{code:"to",name:"Tonga"},{code:"tr",name:"Turkey"},{code:"ua",name:"Ukraine"},{code:"ae",name:"UAE"},{code:"gb",name:"United Kingdom"},{code:"us",name:"United States"},{code:"uy",name:"Uruguay"},{code:"uz",name:"Uzbekistan"},{code:"vu",name:"Vanuatu"},{code:"ve",name:"Venezuela"},{code:"vn",name:"Vietnam"},{code:"ye",name:"Yemen"},{code:"zm",name:"Zambia"},{code:"zw",name:"Zimbabwe"}
+    ];
+    
+    const track = document.getElementById("flagsTrack");
+    const all = [...countries, ...countries];
+    let activeFlag = null;
+
+    all.forEach(c => {
+      const div = document.createElement("div");
+      div.className = "flag";
+      div.innerHTML = `<img src="https://flagcdn.com/w80/${c.code}.png" alt="${c.name}"><span>${c.name}</span>`;
+      track.appendChild(div);
+
+      div.addEventListener("mouseenter", () => { track.classList.add("paused"); div.classList.add("show"); });
+      div.addEventListener("mouseleave", () => { if(activeFlag===null){ track.classList.remove("paused"); div.classList.remove("show"); } });
+      div.addEventListener("pointerdown", () => {
+        if(/Mobi|Android/i.test(navigator.userAgent)){
+          if(activeFlag && activeFlag!==div) return;
+          const isActive = div.classList.contains("show");
+          if(isActive){ div.classList.remove("show"); track.classList.remove("paused"); activeFlag=null; }
+          else { div.classList.add("show"); track.classList.add("paused"); activeFlag=div; }
+        }
+      });
+    });
   </script>
 </body>
+</html>
