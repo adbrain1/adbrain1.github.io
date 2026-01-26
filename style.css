@@ -30,6 +30,76 @@ body {
   overflow-x: hidden;
 }
 
+/* ===== STARFIELD & SHOOTING STAR ===== */
+#stars, #stars2, #stars3 {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1; 
+}
+
+#stars {
+  width: 1px;
+  height: 1px;
+  background: transparent;
+  box-shadow: 1744px 122px #FFF, 134px 1321px #FFF, 86px 859px #FFF, 1342px 1318px #FFF, 683px 1219px #FFF, 1195px 795px #FFF, 305px 145px #FFF, 1397px 188px #FFF;
+  animation: twinkle 3s ease-in-out infinite alternate;
+}
+
+#stars2 {
+  width: 2px;
+  height: 2px;
+  background: transparent;
+  box-shadow: 100px 100px #FFF, 500px 200px #FFF, 800px 500px #FFF, 1200px 50px #FFF, 300px 700px #FFF;
+  animation: twinkle 5s ease-in-out infinite alternate-reverse;
+}
+
+#stars3 {
+  width: 3px;
+  height: 3px;
+  background: transparent;
+  box-shadow: 400px 400px #FFF, 900px 100px #FFF, 100px 800px #FFF;
+  border-radius: 50%;
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+.shooting-star {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 2px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1), 0 0 20px rgba(255, 255, 255, 1);
+  transform: rotate(-45deg) translateX(0);
+  opacity: 0;
+  z-index: -1;
+  animation: shoot 10s linear infinite;
+}
+
+.shooting-star::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100px;
+  height: 1px;
+  background: linear-gradient(90deg, #fff, transparent);
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.3; transform: translateY(0); }
+  100% { opacity: 0.8; transform: translateY(-20px); }
+}
+
+@keyframes shoot {
+  0% { transform: rotate(-45deg) translateX(0); opacity: 0; }
+  5% { opacity: 1; }
+  15% { transform: rotate(-45deg) translateX(-1000px); opacity: 0; }
+  100% { transform: rotate(-45deg) translateX(-1000px); opacity: 0; }
+}
+
 /* ===== Hamburger Menu ===== */
 .hamburger {
   position: fixed;
@@ -392,25 +462,6 @@ p {
 .adventure-btn:active {
   transform: translate(4px, 4px);
   box-shadow: 2px 2px 0px #000;
-}
-
-/* Shimmer Light Reflection */
-.adventure-btn::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -60%;
-  width: 20%;
-  height: 200%;
-  background: rgba(255, 255, 255, 0.5);
-  transform: rotate(30deg);
-  animation: shimmer 4s infinite;
-}
-
-@keyframes shimmer {
-  0% { left: -60%; }
-  15% { left: 120%; }
-  100% { left: 120%; }
 }
 
 /* Zero-G Floating Animation */
