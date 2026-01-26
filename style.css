@@ -21,7 +21,7 @@ body {
   background-image: radial-gradient(#a91079 1px, transparent 1px);
   background-size: 30px 30px; /* Polka dot effect */
   color: var(--text);
-  font-family: 'Nunito', sans-serif; /* Rounded readable font */
+  font-family: 'Nunito', sans-serif; 
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -30,39 +30,7 @@ body {
   overflow-x: hidden;
 }
 
-/* ===== STARFIELD & SHOOTING STAR ===== */
-#stars, #stars2, #stars3 {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: -1; 
-}
-
-#stars {
-  width: 1px;
-  height: 1px;
-  background: transparent;
-  box-shadow: 1744px 122px #FFF, 134px 1321px #FFF, 86px 859px #FFF, 1342px 1318px #FFF, 683px 1219px #FFF, 1195px 795px #FFF, 305px 145px #FFF, 1397px 188px #FFF;
-  animation: twinkle 3s ease-in-out infinite alternate;
-}
-
-#stars2 {
-  width: 2px;
-  height: 2px;
-  background: transparent;
-  box-shadow: 100px 100px #FFF, 500px 200px #FFF, 800px 500px #FFF, 1200px 50px #FFF, 300px 700px #FFF;
-  animation: twinkle 5s ease-in-out infinite alternate-reverse;
-}
-
-#stars3 {
-  width: 3px;
-  height: 3px;
-  background: transparent;
-  box-shadow: 400px 400px #FFF, 900px 100px #FFF, 100px 800px #FFF;
-  border-radius: 50%;
-  animation: twinkle 2s ease-in-out infinite;
-}
-
+/* ===== SHOOTING STAR ONLY ===== */
 .shooting-star {
   position: fixed;
   top: 0;
@@ -86,11 +54,6 @@ body {
   width: 100px;
   height: 1px;
   background: linear-gradient(90deg, #fff, transparent);
-}
-
-@keyframes twinkle {
-  0% { opacity: 0.3; transform: translateY(0); }
-  100% { opacity: 0.8; transform: translateY(-20px); }
 }
 
 @keyframes shoot {
@@ -462,6 +425,12 @@ p {
 .adventure-btn:active {
   transform: translate(4px, 4px);
   box-shadow: 2px 2px 0px #000;
+}
+
+@keyframes shimmer {
+  0% { left: -60%; }
+  15% { left: 120%; }
+  100% { left: 120%; }
 }
 
 /* Zero-G Floating Animation */
