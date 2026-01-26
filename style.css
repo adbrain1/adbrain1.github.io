@@ -354,4 +354,95 @@ p {
     box-shadow: 2px 2px 0px #000;
 }
 
+
 @media (min-width: 501px) { .comment-container { justify-content: center; margin-left: auto; margin-right: auto; } }
+
+/* ===== STYLISH THEME BUTTONS ===== */
+.btn-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.theme-btn {
+    padding: 12px 24px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 12px;
+    border: 3px solid #000;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 5px 5px 0px #000;
+}
+
+/* Primary Button (Yellow) */
+.btn-primary {
+    background: var(--accent);
+    color: #000;
+}
+
+/* Secondary Button (Pink/Border color) */
+.btn-secondary {
+    background: var(--border-color);
+    color: #fff;
+}
+
+.theme-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0px #000;
+}
+
+.theme-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000;
+}
+
+/* ===== THEMED PDF VIEWER CONTAINER ===== */
+.pdf-container {
+    width: 100%;
+    max-width: 850px;
+    margin: 40px auto;
+    background: #fff; /* White background for the "paper" feel */
+    border: 6px solid #fff;
+    border-radius: 20px;
+    box-shadow: 12px 12px 0px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    position: relative;
+}
+
+/* Header bar for the PDF viewer */
+.pdf-header {
+    background: var(--border-color);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 4px solid #000;
+}
+
+.pdf-title {
+    font-family: 'Fredoka', sans-serif;
+    color: #fff;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.pdf-viewer {
+    width: 100%;
+    height: 600px; /* Adjust height as needed */
+    border: none;
+    display: block;
+}
+
+/* Mobile adjustments for PDF */
+@media (max-width: 600px) {
+    .pdf-viewer { height: 400px; }
+    .pdf-container { border-width: 3px; }
+}
