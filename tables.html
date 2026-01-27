@@ -6,9 +6,28 @@
   <title>Math Hero Academy - Abdul Rafay</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    #heroName::placeholder { font-size: 0.8rem; }
+    .dot-container { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; }
+    .dot { width: 12px; height: 12px; background-color: #ddd; border-radius: 50%; transition: background 0.3s; }
+    .dot.correct { background-color: #4ade80; }
+    .dot.wrong { background-color: #ff4d4d; }
+
+    .admin-reset-btn, .admin-ctrl-btn {
+        background: transparent; color: var(--muted); border: 1px solid var(--muted);
+        border-radius: 5px; font-size: 0.65rem; cursor: pointer; padding: 3px 8px;
+        margin-top: 5px; width: 100%; transition: 0.2s; text-transform: uppercase; font-weight: bold;
+    }
+    .admin-reset-btn:hover { background: #ff4d4d; color: white; border-color: #ff4d4d; }
+    .admin-ctrl-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+    .score-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; padding: 6px 5px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .rk-col { width: 20%; color: var(--accent); font-weight: bold; }
+    .name-col { width: 45%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stat-col { width: 35%; text-align: right; font-weight: bold; }
+  </style>
 </head>
 <body>
-
   <button id="hamburgerBtn" class="hamburger" onclick="toggleMenu()">&#9776;</button>
   <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
   <div class="slide-menu" id="slideMenu">
@@ -29,17 +48,14 @@
         <span style="width: 35%; text-align: right;">PTS | SEC</span>
     </div>
     <div id="leaderboardList"></div>
-    <button onclick="adminResetBoard()" class="admin-reset-btn">Reset</button>
+    <button onclick="adminResetBoard()" class="admin-reset-btn">Reset Board</button>
+    <button onclick="adminSetTables()" class="admin-ctrl-btn">Controls</button>
   </div>
 
   <div class="learning-card" id="mainCard">
     <h1 style="text-align:center; color:var(--accent); margin-bottom:10px;">Math Hero Academy</h1>
     
     <div id="bossArea" style="display:none;">
-        <div style="display:flex; justify-content: space-between; font-weight:bold; font-size:0.9rem; margin-bottom:5px;">
-            <span>👾 MATH MONSTER</span>
-            <span id="hpText">HP: 100/100</span>
-        </div>
         <div class="hp-container"><div id="hpBar" class="hp-bar"></div></div>
     </div>
 
@@ -51,8 +67,9 @@
       </div>
       
       <div id="quizContent" style="display:none">
+        <div id="dotContainer" class="dot-container"></div>
         <div id="timerDisplay" class="math-timer">10</div>
-        <div id="question" class="math-question">8 x 5</div>
+        <div id="question" class="math-question">...</div>
         <div id="optionsGrid" class="options-grid"></div>
         <div id="feedback" style="margin-top:20px; font-weight:bold; min-height:45px; font-size:1.5rem;"></div>
         <div id="heroTip" class="hero-tip"></div>
@@ -79,7 +96,7 @@
 
   <div id="certTemplate" style="display:none;">
     <div style="width:800px; height:580px; padding:40px; border:15px double #ffcc00; text-align:center; background:white; font-family:'Fredoka', sans-serif; color:#333; position:relative; box-sizing:border-box;">
-      <h1 style="font-size:48px; color:#ffcc00; margin:0;">HERO CERTIFICATE</h1>
+      <h1 style="font-size:48px; color:#ffcc00; margin:0;">MATHS HERO ACADEMY CERTIFICATE</h1>
       <p style="font-size:22px; margin:10px 0;">This award is proudly presented to</p>
       <h2 id="certName" style="font-size:55px; border-bottom:3px solid #333; display:inline-block; padding:0 30px; margin:10px 0; font-weight:700;">NAME</h2>
       <p style="font-size:22px; margin:10px 0;">for achieving the rank of</p>
@@ -95,23 +112,6 @@
       </div>
     </div>
   </div>
-
-  <style>
-    .admin-reset-btn {
-        background: transparent; color: var(--muted); border: 1px solid var(--muted);
-        border-radius: 5px; font-size: 0.65rem; cursor: pointer; padding: 3px 8px;
-        margin-top: 10px; width: 100%; transition: 0.2s; text-transform: uppercase; font-weight: bold;
-    }
-    .admin-reset-btn:hover { background: #ff4d4d; color: white; border-color: #ff4d4d; }
-    
-    .score-row {
-        display: flex; align-items: center; justify-content: space-between;
-        font-size: 0.75rem; padding: 6px 5px; border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-    .rk-col { width: 20%; color: var(--accent); font-weight: bold; }
-    .name-col { width: 45%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .stat-col { width: 35%; text-align: right; font-weight: bold; }
-  </style>
 
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -129,8 +129,8 @@
     let timerObj, timeLeft, currentTable, currentNum, qCount, totalScore, startTime, finalTime, bossHP;
     let finalRank = "";
     let isReviewing = false;
+    let activeTables = [8, 9]; // Default tables
 
-    // SIDE MENU LOGIC
     function toggleMenu() {
       const menu = document.getElementById('slideMenu');
       const overlay = document.getElementById('menuOverlay');
@@ -158,12 +158,7 @@
         snap.forEach(c => { entries.push(c.val()); });
         entries.sort((a,b) => b.score - a.score || a.timeTaken - b.timeTaken);
         entries.forEach((e, i) => {
-          list.innerHTML += `
-            <div class="score-row">
-                <span class="rk-col">#${i+1}</span>
-                <span class="name-col">${e.name}</span>
-                <span class="stat-col">${e.score} | ${e.timeTaken}s</span>
-            </div>`;
+          list.innerHTML += `<div class="score-row"><span class="rk-col">#${i+1}</span><span class="name-col">${e.name}</span><span class="stat-col">${e.score} | ${e.timeTaken}s</span></div>`;
         });
       });
     }
@@ -180,17 +175,14 @@
     }
 
     function setupFlashcard(div) {
-        let t = Math.random() > 0.5 ? 8 : 9;
+        let t = activeTables[Math.floor(Math.random() * activeTables.length)];
         let n = Math.floor(Math.random()*12)+1;
         div.innerText = `${t} x ${n}`;
         div.onclick = () => {
           if(div.classList.contains('flipped')) return;
           div.innerText = t*n;
           div.classList.add('flipped');
-          setTimeout(() => {
-            div.classList.remove('flipped');
-            setupFlashcard(div); 
-          }, 2000);
+          setTimeout(() => { div.classList.remove('flipped'); setupFlashcard(div); }, 2000);
         };
     }
 
@@ -199,6 +191,13 @@
       document.getElementById('flashcards').style.display = 'none';
       document.getElementById('bossArea').style.display = 'block';
       document.getElementById('quizContent').style.display = 'block';
+      const dotContainer = document.getElementById('dotContainer');
+      dotContainer.innerHTML = '';
+      for(let i=0; i<10; i++) {
+        const d = document.createElement('div');
+        d.className = 'dot'; d.id = `dot-${i}`;
+        dotContainer.appendChild(d);
+      }
       qCount = 0; totalScore = 0; bossHP = 100;
       startTime = Date.now();
       nextQuestion();
@@ -207,12 +206,12 @@
     function nextQuestion() {
       if(qCount >= 10) { endChallenge(); return; }
       isReviewing = false;
-      currentTable = Math.random() > 0.5 ? 8 : 9;
+      document.getElementById('optionsGrid').style.pointerEvents = 'auto';
+      currentTable = activeTables[Math.floor(Math.random() * activeTables.length)];
       currentNum = Math.floor(Math.random()*12)+1;
       const correct = currentTable * currentNum;
       document.getElementById('question').innerText = `${currentTable} x ${currentNum}`;
       document.getElementById('heroTip').style.display = 'none';
-      
       const grid = document.getElementById('optionsGrid');
       grid.innerHTML = '';
       let opts = new Set([correct]);
@@ -226,16 +225,19 @@
         b.onclick = () => checkAns(o, correct);
         grid.appendChild(b);
       });
-      startTimer();
+      startTimer(correct);
     }
 
-    function startTimer() {
+    function startTimer(correctVal) {
       clearInterval(timerObj); timeLeft = 10;
       document.getElementById('timerDisplay').innerText = timeLeft;
       timerObj = setInterval(() => {
         timeLeft--;
         document.getElementById('timerDisplay').innerText = timeLeft;
-        if(timeLeft <= 0) { clearInterval(timerObj); handleResponse(false, "Time's Up! ⏳"); }
+        if(timeLeft <= 0) { 
+          clearInterval(timerObj); 
+          handleResponse(false, `Time's Up! Correct: ${correctVal} ⏳`); 
+        }
       }, 1000);
     }
 
@@ -248,17 +250,20 @@
         document.getElementById('hpBar').style.width = bossHP + '%';
         handleResponse(true, "Great Job! 🌟");
       } else {
-        isReviewing = true;
         playSfx('lose');
         document.getElementById('heroTip').innerText = `Learning Tip: ${currentTable} x ${currentNum} = ${cor}. Review carefully!`;
         document.getElementById('heroTip').style.display = 'block';
         document.getElementById('mainCard').classList.add('shake');
         setTimeout(() => document.getElementById('mainCard').classList.remove('shake'), 500);
-        handleResponse(false, "Reviewing Answer...");
+        handleResponse(false, `Oops! Correct was ${cor}`);
       }
     }
 
     function handleResponse(isCorrect, msg) {
+      isReviewing = true;
+      document.getElementById('optionsGrid').style.pointerEvents = 'none';
+      const dot = document.getElementById(`dot-${qCount}`);
+      if(dot) dot.classList.add(isCorrect ? 'correct' : 'wrong');
       const f = document.getElementById('feedback');
       f.innerText = msg; f.style.color = isCorrect ? "#4ade80" : "#ff4d4d";
       qCount++;
@@ -301,7 +306,25 @@
       setTimeout(() => { win.print(); }, 1000);
     }
 
-    function adminResetBoard() { if (prompt("Pass?") === "71797179") { db.ref("mathLeaderboard").remove(); } }
+    function checkAuth() {
+      const input = prompt("Enter Admin Password:");
+      const secret = 7179 * 10000 + 7179;
+      return input === secret.toString();
+    }
+
+    function adminResetBoard() { if (checkAuth()) { db.ref("mathLeaderboard").remove(); alert("Board Reset!"); } }
+
+    function adminSetTables() {
+      if (checkAuth()) {
+        const val = prompt("Enter tables separated by commas (currently: " + activeTables.join(",") + "):", "8,9");
+        if (val) {
+          activeTables = val.split(",").map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+          createFlashcards();
+          alert("Tables updated to: " + activeTables.join(", "));
+        }
+      }
+    }
+
     window.onload = () => { initLeaderboard(); createFlashcards(); };
   </script>
 </body>
