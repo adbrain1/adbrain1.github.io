@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abdul Rafay’s Adventures</title>
+  <link rel="icon" type="image/png" href="./favicon.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* 1. FLAGS CSS: Names ABOVE with YELLOW background */
+    .flags-track.paused { animation-play-state: paused !important; }
+    .flag { position: relative; transition: transform 0.3s ease; cursor: pointer; }
+    .flag.show { transform: scale(1.3); z-index: 100; }
+    
+    .flag span { 
+      display: none; 
+      position: absolute; 
+      bottom: 115%; 
+      left: 50%; 
+      transform: translateX(-50%); 
+      background: #ffd700; 
+      color: #2e0249;      
+      padding: 5px 12px; 
+      border-radius: 8px; 
+      font-size: 0.8rem; 
+      font-weight: 700;
+      white-space: nowrap;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      border: 1px solid #2e0249;
+    }
+    .flag.show span { display: block; }
+
+    /* 2. SIDE MENU: Active link color */
+    .menu-item.active {
+      color: #ffd700 !important; 
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+
+    /* 3. STORY VIEWER: Slightly lower position */
+    #pdfViewerSection { 
+      background: #1a1a1a; 
+      display: none; 
+      flex-direction: column; 
+      align-items: center; 
+      min-height: 90vh; 
+      width: 100%; 
+      padding-top: 20px; 
+      margin-top: -10px; 
+      position: relative; 
+      animation: slideUp 0.5s ease-out;
+      z-index: 1000;
+    }
+    @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    
+    .book-viewport { position: relative; width: 95%; max-width: 450px; height: 500px; perspective: 1500px; margin-top: 10px; }
+    .page { 
+      position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+      background: white; border-radius: 0 15px 15px 0; padding: 25px;
+      box-sizing: border-box; transition: transform 0.8s;
+      transform-origin: left; backface-visibility: hidden;
+      display: flex; flex-direction: column; align-items: center;
+      box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+    }
+    .page.flipped { transform: rotateY(-180deg); }
+    .page img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 10px; margin-bottom: 15px; border: 2px solid #eee; }
+    
+    .nav-btn {
+      position: absolute; top: 50%; background: rgba(255,255,255,0.2);
+      border: none; color: white; font-size: 4rem; cursor: pointer; z-index: 100;
+      border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;
+    }
+    .prev-btn { left: -25px; } .next-btn { right: -25px; }
+
+    .close-btn {
+      background: #ff4757; color: white; border: none; padding: 10px 20px;
+      border-radius: 10px; cursor: pointer; font-weight: bold; margin-bottom: 5px;
+      font-family: 'Fredoka', sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+  <button id="hamburgerBtn" class="hamburger">&#9776;</button>
+  <div class="menu-overlay" id="menuOverlay"></div>
+  <div class="slide-menu" id="slideMenu">
+    <button class="close-menu" id="closeMenuBtn">&times;</button>
+    <a href="index.html" class="menu-item">Home</a>
+    <a href="stories.html" class="menu-item active">My Stories</a>
+    <a href="learning.html" class="menu-item">Fun Learning</a>
+    <a href="videos.html" class="menu-item">My Videos</a>
+    <a href="chat.html" class="menu-item">Chat</a>
+    <a href="about.html" class="menu-item">About Me</a>
+  </div>
+
+  <div class="flags-bar" id="flagsBar"><div class="flags-track" id="flagsTrack"></div></div>
+
+  <div class="top-wrapper" id="topWrapper">
+    <div class="top-info">
+      <span class="location-text">Where I now live</span>
+      <div class="region"><img src="https://flagcdn.com/w20/gb.png" alt="UK Flag"></div>
+      <div class="time" id="time-uk"></div>
+      <div class="date" id="date-uk"></div>
+      <div class="weather" id="weather-uk">Loading…</div>
+    </div>
+    <div class="top-info">
+      <span class="location-text">Where I came from</span>
+      <div class="region"><img src="https://flagcdn.com/w20/pk.png" alt="Pakistan Flag"></div>
+      <div class="time" id="time-pk"></div>
+      <div class="date" id="date-pk"></div>
+      <div class="weather" id="weather-pk">Loading…</div>
+    </div>
+  </div>
+
+  <div class="view-container">
+    <div class="card" id="mainCard">
+      <div class="content">
+        <div class="eyebrow">The website is live!</div>
+        <h1>Travel stories from Abdul Rafay</h1>
+        <p>Hi, I’m Bub's Yum! <br><br>I love visiting new places, trying new things, and sharing my adventures.</p>
+      </div>
+      <div class="image-panel">
+        <img id="rotatingImg" src="./20250809_120138.jpg" alt="Adventure">
+      </div>
+    </div>
+
+    <div id="pdfViewerSection">
+      <button class="close-btn" onclick="closeStory()">← Back to My Trips</button>
+      <div class="book-viewport" id="bookViewport"></div>
+      <button class="nav-btn prev-btn" onclick="prevPage()">‹</button>
+      <button class="nav-btn next-btn" onclick="nextPage()">›</button>
+    </div>
+
+    <div class="trip-container" id="tripContainer">
+      <div class="trip-btn" onclick="openStory('legoland')"><span class="btn-id">A1</span><span class="btn-text">Trips to LEGOLAND</span></div>
+      <div class="trip-btn" onclick="openStory('cadbury')"><span class="btn-id">B2</span><span class="btn-text">Trip to Cadbury World</span></div>
+      <div class="trip-btn" onclick="openStory('sealife')"><span class="btn-id">C3</span><span class="btn-text">Trip to Sea Life</span></div>
+    </div>
+  </div>
+
+  <script src="stories/legoland/stories-data.js"></script>
+
+  <script>
+    /* 1. MENU LOGIC */
+    const hb = document.getElementById('hamburgerBtn'), cm = document.getElementById('closeMenuBtn'), 
+          sm = document.getElementById('slideMenu'), mo = document.getElementById('menuOverlay');
+    function toggle() { sm.classList.toggle('open'); mo.classList.toggle('active'); }
+    hb.onclick = toggle; cm.onclick = toggle; mo.onclick = toggle;
+
+    /* 2. FLAGS LOGIC */
+    const countries = [ {code:"af",name:"Afghanistan"},{code:"ax",name:"Åland Islands"},{code:"al",name:"Albania"},{code:"dz",name:"Algeria"},{code:"as",name:"American Samoa"},{code:"ad",name:"Andorra"},{code:"ao",name:"Angola"},{code:"ai",name:"Anguilla"},{code:"aq",name:"Antarctica"},{code:"ag",name:"Antigua & Barbuda"},{code:"ar",name:"Argentina"},{code:"am",name:"Armenia"},{code:"aw",name:"Aruba"},{code:"au",name:"Australia"},{code:"at",name:"Austria"},{code:"az",name:"Azerbaijan"},{code:"bs",name:"Bahamas"},{code:"bh",name:"Bahrain"},{code:"bd",name:"Bangladesh"},{code:"bb",name:"Barbados"},{code:"by",name:"Belarus"},{code:"be",name:"Belgium"},{code:"bz",name:"Belize"},{code:"bj",name:"Benin"},{code:"bm",name:"Bermuda"},{code:"bt",name:"Bhutan"},{code:"bo",name:"Bolivia"},{code:"ba",name:"Bosnia & Herzegovina"},{code:"bw",name:"Botswana"},{code:"bv",name:"Bouvet Island"},{code:"br",name:"Brazil"},{code:"io",name:"Brit. Indian Ocean"},{code:"bn",name:"Brunei"},{code:"bg",name:"Bulgaria"},{code:"bf",name:"Burkina Faso"},{code:"bi",name:"Burundi"},{code:"kh",name:"Cambodia"},{code:"cm",name:"Cameroon"},{code:"ca",name:"Canada"},{code:"cv",name:"Cape Verde"},{code:"bq",name:"Caribbean NL"},{code:"ky",name:"Cayman Islands"},{code:"cf",name:"Central African Rep."},{code:"td",name:"Chad"},{code:"cl",name:"Chile"},{code:"cn",name:"China"},{code:"cx",name:"Christmas Island"},{code:"cc",name:"Cocos (Keeling)"},{code:"co",name:"Colombia"},{code:"km",name:"Comoros"},{code:"cg",name:"Congo (Rep.)"},{code:"cd",name:"Congo (DRC)"},{code:"ck",name:"Cook Islands"},{code:"cr",name:"Costa Rica"},{code:"ci",name:"Côte d’Ivoire"},{code:"hr",name:"Croatia"},{code:"cu",name:"Cuba"},{code:"cw",name:"Curaçao"},{code:"cy",name:"Cyprus"},{code:"cz",name:"Czechia"},{code:"dk",name:"Denmark"},{code:"dj",name:"Djibouti"},{code:"dm",name:"Dominica"},{code:"do",name:"Dominican Republic"},{code:"ec",name:"Ecuador"},{code:"eg",name:"Egypt"},{code:"sv",name:"El Salvador"},{code:"gq",name:"Equatorial Guinea"},{code:"er",name:"Eritrea"},{code:"ee",name:"Estonia"},{code:"sz",name:"Eswatini"},{code:"et",name:"Ethiopia"},{code:"fk",name:"Falkland Islands"},{code:"fo",name:"Faroe Islands"},{code:"fj",name:"Fiji"},{code:"fi",name:"Finland"},{code:"fr",name:"France"},{code:"gf",name:"French Guiana"},{code:"pf",name:"French Polynesia"},{code:"tf",name:"French S. Terr."},{code:"ga",name:"Gabon"},{code:"gm",name:"Gambia"},{code:"ge",name:"Georgia"},{code:"de",name:"Germany"},{code:"gh",name:"Ghana"},{code:"gi",name:"Gibraltar"},{code:"gr",name:"Greece"},{code:"gl",name:"Greenland"},{code:"gd",name:"Grenada"},{code:"gp",name:"Guadeloupe"},{code:"gu",name:"Guam"},{code:"gt",name:"Guatemala"},{code:"gg",name:"Guernsey"},{code:"gn",name:"Guinea"},{code:"gw",name:"Guinea-Bissau"},{code:"gy",name:"Guyana"},{code:"ht",name:"Haiti"},{code:"hm",name:"Heard & McDonald"},{code:"va",name:"Vatican City"},{code:"hn",name:"Honduras"},{code:"hk",name:"Hong Kong"},{code:"hu",name:"Hungary"},{code:"is",name:"Iceland"},{code:"in",name:"India"},{code:"id",name:"Indonesia"},{code:"ir",name:"Iran"},{code:"iq",name:"Iraq"},{code:"ie",name:"Ireland"},{code:"im",name:"Isle of Man"},{code:"il",name:"Israel"},{code:"it",name:"Italy"},{code:"jm",name:"Jamaica"},{code:"jp",name:"Japan"},{code:"je",name:"Jersey"},{code:"jo",name:"Jordan"},{code:"kz",name:"Kazakhstan"},{code:"ke",name:"Kenya"},{code:"ki",name:"Kiribati"},{code:"kp",name:"North Korea"},{code:"kr",name:"South Korea"},{code:"kw",name:"Kuwait"},{code:"kg",name:"Kyrgyzstan"},{code:"la",name:"Laos"},{code:"lv",name:"Latvia"},{code:"lb",name:"Lebanon"},{code:"ls",name:"Lesotho"},{code:"lr",name:"Liberia"},{code:"ly",name:"Libya"},{code:"li",name:"Liechtenstein"},{code:"lt",name:"Lithuania"},{code:"lu",name:"Luxembourg"},{code:"mo",name:"Macao"},{code:"mg",name:"Madagascar"},{code:"mw",name:"Malawi"},{code:"my",name:"Malaysia"},{code:"mv",name:"Maldives"},{code:"ml",name:"Mali"},{code:"mt",name:"Malta"},{code:"mh",name:"Marshall Islands"},{code:"mq",name:"Martinique"},{code:"mr",name:"Mauritania"},{code:"mu",name:"Mauritius"},{code:"yt",name:"Mayotte"},{code:"mx",name:"Mexico"},{code:"fm",name:"Micronesia"},{code:"md",name:"Moldova"},{code:"mc",name:"Monaco"},{code:"mn",name:"Mongolia"},{code:"me",name:"Montenegro"},{code:"ms",name:"Montserrat"},{code:"ma",name:"Morocco"},{code:"mz",name:"Mozambique"},{code:"mm",name:"Myanmar"},{code:"na",name:"Namibia"},{code:"nr",name:"Nauru"},{code:"np",name:"Nepal"},{code:"nl",name:"Netherlands"},{code:"nc",name:"New Caledonia"},{code:"nz",name:"New Zealand"},{code:"ni",name:"Nicaragua"},{code:"ne",name:"Niger"},{code:"ng",name:"Nigeria"},{code:"nu",name:"Niue"},{code:"nf",name:"Norfolk Island"},{code:"mk",name:"North Macedonia"},{code:"mp",name:"N. Mariana Is."},{code:"no",name:"Norway"},{code:"om",name:"Oman"},{code:"pk",name:"Pakistan"},{code:"pw",name:"Palau"},{code:"ps",name:"Palestine"},{code:"pa",name:"Panama"},{code:"pg",name:"Papua New Guinea"},{code:"py",name:"Paraguay"},{code:"pe",name:"Peru"},{code:"ph",name:"Philippines"},{code:"pn",name:"Pitcairn"},{code:"pl",name:"Poland"},{code:"pt",name:"Portugal"},{code:"pr",name:"Puerto Rico"},{code:"qa",name:"Qatar"},{code:"re",name:"Réunion"},{code:"ro",name:"Romania"},{code:"ru",name:"Russia"},{code:"rw",name:"Rwanda"},{code:"bl",name:"St. Barthélemy"},{code:"sh",name:"St. Helena"},{code:"kn",name:"St. Kitts & Nevis"},{code:"lc",name:"St. Lucia"},{code:"mf",name:"St. Martin"},{code:"pm",name:"St. Pierre & Miq."},{code:"vc",name:"St. Vincent & Gren."},{code:"ws",name:"Samoa"},{code:"sm",name:"San Marino"},{code:"st",name:"São Tomé & Príncipe"},{code:"sa",name:"Saudi Arabia"},{code:"sn",name:"Senegal"},{code:"rs",name:"Serbia"},{code:"sc",name:"Seychelles"},{code:"sl",name:"Sierra Leone"},{code:"sg",name:"Singapore"},{code:"sx",name:"Sint Maarten"},{code:"sk",name:"Slovakia"},{code:"si",name:"Slovenia"},{code:"sb",name:"Solomon Islands"},{code:"so",name:"Somalia"},{code:"za",name:"South Africa"},{code:"gs",name:"S. Geo. & S. Sand."},{code:"ss",name:"South Sudan"},{code:"es",name:"Spain"},{code:"lk",name:"Sri Lanka"},{code:"sd",name:"Sudan"},{code:"sr",name:"Suriname"},{code:"sj",name:"Svalbard & Jan Mayen"},{code:"se",name:"Sweden"},{code:"ch",name:"Switzerland"},{code:"sy",name:"Syria"},{code:"tw",name:"Taiwan"},{code:"tj",name:"Tajikistan"},{code:"tz",name:"Tanzania"},{code:"th",name:"Thailand"},{code:"tl",name:"Timor-Leste"},{code:"tg",name:"Togo"},{code:"tk",name:"Tokelau"},{code:"to",name:"Tonga"},{code:"tt",name:"Trinidad & Tobago"},{code:"tn",name:"Tunisia"},{code:"tr",name:"Turkey"},{code:"tm",name:"Turkmenistan"},{code:"tc",name:"Turks & Caicos"},{code:"tv",name:"Tuvalu"},{code:"ug",name:"Uganda"},{code:"ua",name:"Ukraine"},{code:"ae",name:"UAE"},{code:"gb",name:"United Kingdom"},{code:"us",name:"United States"},{code:"uy",name:"Uruguay"},{code:"uz",name:"Uzbekistan"},{code:"vu",name:"Vanuatu"},{code:"ve",name:"Venezuela"},{code:"vn",name:"Vietnam"},{code:"wf",name:"Wallis & Futuna"},{code:"eh",name:"Western Sahara"},{code:"ye",name:"Yemen"},{code:"zm",name:"Zambia"},{code:"zw",name:"Zimbabwe"} ];
+    
+    const track = document.getElementById("flagsTrack");
+    let activeFlag = null;
+    [...countries, ...countries].forEach(c => {
+      const div = document.createElement("div"); div.className = "flag";
+      div.innerHTML = `<img src="https://flagcdn.com/w80/${c.code}.png" alt="${c.name}"><span>${c.name}</span>`;
+      track.appendChild(div);
+      div.addEventListener("mouseenter", () => { track.classList.add("paused"); div.classList.add("show"); });
+      div.addEventListener("mouseleave", () => { if(!activeFlag){ track.classList.remove("paused"); div.classList.remove("show"); } });
+      div.addEventListener("pointerdown", () => {
+        if(/Mobi|Android/i.test(navigator.userAgent)){
+          if(activeFlag && activeFlag!==div) return;
+          const isActive = div.classList.contains("show");
+          if(isActive){ div.classList.remove("show"); track.classList.remove("paused"); activeFlag=null; }
+          else { div.classList.add("show"); track.classList.add("paused"); activeFlag=div; }
+        }
+      });
+    });
+
+    /* 3. TIME & WEATHER LOGIC */
+    function updateTime(zone, tId, dId){
+      const now = new Date();
+      document.getElementById(tId).textContent = now.toLocaleTimeString("en-GB",{hour:"numeric",minute:"2-digit",second:"2-digit",hour12:true,timeZone:zone});
+      document.getElementById(dId).textContent = now.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:zone});
+    }
+    setInterval(()=>{ updateTime("Europe/London","time-uk","date-uk"); updateTime("Asia/Karachi","time-pk","date-pk"); },1000);
+
+    function loadWeather(lat,lon,elId,label){
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+        .then(res=>res.json()).then(data=>{
+          const temp=Math.round(data.current_weather.temperature), code=data.current_weather.weathercode;
+          let icon="☀️";
+          if([1,2,3].includes(code)) icon="⛅"; if([45,48].includes(code)) icon="🌫️";
+          if([51,53,55,61,63,65,80].includes(code)) icon="🌧️"; if([71,73,75,85].includes(code)) icon="❄️";
+          if([95,96,99].includes(code)) icon="⛈️";
+          document.getElementById(elId).textContent=`${label} ${icon} ${temp}°C`;
+        });
+    }
+    loadWeather(52.57,-1.82,"weather-uk","Birmingham");
+    loadWeather(33.69,73.06,"weather-pk","Islamabad");
+
+    /* 4. IMAGE ROTATION */
+    const rotatingImg = document.getElementById('rotatingImg');
+    const images = ["./20250809_120138.jpg", "./CadburyPic.JPG", "./SeaLifePic.JPG"];
+    let idx = 0;
+    setInterval(() => {
+      idx = (idx + 1) % images.length;
+      rotatingImg.src = images[idx];
+    }, 4000);
+
+    /* 5. STORY VIEWER LOGIC */
+    let currentStep = 0, totalPages = 0;
+    function openStory(key) {
+      if (typeof stories === 'undefined') return alert("JS file not found!");
+      const viewport = document.getElementById('bookViewport');
+      viewport.innerHTML = ''; currentStep = 0;
+      const data = stories[key]; if (!data) return;
+      totalPages = data.length;
+
+      data.forEach((p, i) => {
+        const div = document.createElement('div');
+        div.className = 'page'; div.id = 'page-'+i; div.style.zIndex = totalPages-i;
+        div.innerHTML = `<img src="./stories/${key}/${p.img}" onerror="this.src='./favicon.png'"><h2>${p.title}</h2><p>${p.text}</p><div style="margin-top:auto; font-weight:bold; color:#888;">${i+1} / ${totalPages}</div>`;
+        viewport.appendChild(div);
+      });
+
+      // Hide elements
+      document.getElementById('topWrapper').style.display='none';
+      document.getElementById('flagsBar').style.display='none';
+      document.getElementById('mainCard').style.display='none'; 
+      document.getElementById('tripContainer').style.display='none'; 
+      
+      // Show story
+      document.getElementById('pdfViewerSection').style.display='flex'; 
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function nextPage() { if (currentStep < totalPages-1) { document.getElementById('page-'+currentStep).classList.add('flipped'); currentStep++; } }
+    function prevPage() { if (currentStep > 0) { currentStep--; document.getElementById('page-'+currentStep).classList.remove('flipped'); } }
+    
+    function closeStory() { 
+      // Show elements back (Changed flags to flex to fix alignment)
+      document.getElementById('topWrapper').style.display='flex';
+      document.getElementById('flagsBar').style.display='flex'; 
+      document.getElementById('mainCard').style.display='grid'; 
+      document.getElementById('tripContainer').style.display='flex'; 
+      
+      // Hide story
+      document.getElementById('pdfViewerSection').style.display='none'; 
+    }
+  </script>
+</body>
+</html>
