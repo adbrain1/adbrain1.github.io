@@ -13,21 +13,30 @@
       background: rgba(0,0,0,0.05);
     }
     .chat-portal { display: flex; flex-direction: column; height: 100%; }
-    .view-container { max-width: 1100px; }
+    .view-container { max-width: 1100px; margin: 0 auto; }
     .online-indicator { background: rgba(0,0,0,0.3); padding: 8px; border-radius: 5px; margin-bottom: 10px; font-size: 0.85rem; color: #fff; border-left: 4px solid var(--accent); }
     
-    /* Small edited text style */
     .edited-label { font-size: 0.6rem; opacity: 0.7; font-style: italic; margin-left: 5px; color: inherit; display: inline-block; }
     
     .edit-btn { display: inline-block; font-size: 0.65rem; color: #fff; background: #333; cursor: pointer; margin-left: 10px; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; font-weight: bold; border: none; vertical-align: middle; }
     .ts { display: block; margin-top: 6px; font-size: 0.75rem; font-weight: 700; color: #111 !important; }
     
-    .emoji-bar { display: flex; gap: 12px; padding: 10px; background: rgba(255,255,255,0.05); overflow-x: auto; border-top: 1px solid rgba(255,255,255,0.1); }
-    .emoji-item { cursor: pointer; font-size: 1.4rem; }
+    /* Desktop Emoji Bar */
+    .emoji-bar { display: flex; gap: 12px; padding: 10px; background: rgba(255,255,255,0.05); overflow-x: auto; border-top: 1px solid rgba(255,255,255,0.1); white-space: nowrap; }
+    .emoji-item { cursor: pointer; font-size: 1.4rem; flex-shrink: 0; }
     #chatInput { flex: 1; }
     
     .chat-header { display: flex; flex-direction: column; align-items: flex-start; padding-bottom: 10px; }
     .delete-btn { margin-top: 10px; padding: 5px 15px; font-size: 0.8rem; }
+
+    /* Change 1 & 2: Mobile Specific Fixes */
+    @media (max-width: 768px) {
+      .view-container { padding: 5px; margin-left: 5px; margin-right: 5px; width: calc(100% - 10px); }
+      .card { flex-direction: column; width: 100%; }
+      .emoji-bar { justify-content: flex-start; -webkit-overflow-scrolling: touch; padding: 10px 5px; }
+      #messages { padding: 10px; }
+      .msg { max-width: 85%; }
+    }
   </style>
 </head>
 <body>  <button id="hamburgerBtn" class="hamburger">    &#9776;  </button>
@@ -107,7 +116,6 @@
         if(!isInitialLoad) { document.getElementById('sendSound').play().catch(()=>{}); }
       });
 
-      // REAL-TIME EDITING FIX
       db.ref("messages").on("child_changed", (snap) => {
         const key = snap.key;
         const newData = snap.val();
@@ -115,7 +123,6 @@
         if(msgContainer) {
             const textSpan = msgContainer.querySelector('.msg-text-content');
             if(textSpan) textSpan.innerText = newData.text;
-            
             if(!msgContainer.querySelector('.edited-label')) {
                 const small = document.createElement('span');
                 small.className = 'edited-label';
