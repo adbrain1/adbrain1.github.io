@@ -17,56 +17,61 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <style>
-    /* DESKTOP & BASE STYLES */
-    #messages { 
-      height: 600px !important; 
-      max-height: 65vh; 
-      overflow-y: auto; 
-      display: flex; 
-      flex-direction: column; 
-      padding: 15px; 
-      background: rgba(0,0,0,0.05); 
-    }
-    .chat-portal { display: flex; flex-direction: column; height: 100%; }
-    .view-container { max-width: 1100px; margin: 0 auto; }
-    .online-indicator { background: rgba(0,0,0,0.3); padding: 8px; border-radius: 5px; margin-bottom: 10px; font-size: 0.85rem; color: #fff; border-left: 4px solid var(--accent); }
-    
-    /* Small edited text style with spacing */
-    .edited-label { 
-      font-size: 0.6rem; 
-      opacity: 0.7; 
-      font-style: italic; 
-      margin-left: 8px; /* Space from message */
-      color: inherit; 
-      display: inline-block; 
-    }
-    
-    .edit-btn { display: inline-block; font-size: 0.65rem; color: #fff; background: #333; cursor: pointer; margin-left: 10px; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; font-weight: bold; border: none; vertical-align: middle; }
-    .ts { display: block; margin-top: 6px; font-size: 0.75rem; font-weight: 700; color: #111 !important; }
-    .emoji-bar { display: flex; gap: 12px; padding: 10px; background: rgba(255,255,255,0.05); overflow-x: auto; border-top: 1px solid rgba(255,255,255,0.1); }
-    .emoji-item { cursor: pointer; font-size: 1.4rem; }
-    #chatInput { flex: 1; }
-    .chat-header { display: flex; flex-direction: column; align-items: flex-start; padding-bottom: 10px; }
-    .delete-btn { margin-top: 10px; padding: 5px 15px; font-size: 0.8rem; }
+  /* Base Desktop Styles */
+  #messages { height: 600px !important; max-height: 65vh; overflow-y: auto; display: flex; flex-direction: column; padding: 15px; background: rgba(0,0,0,0.05); }
+  .chat-portal { display: flex; flex-direction: column; height: 100%; }
+  .view-container { max-width: 1100px; margin: 0 auto; }
 
-    /* MOBILE VIEW FIXES */
-    @media (max-width: 768px) {
-      body { margin: 0 !important; padding: 0 !important; overflow-x: hidden !important; }
-      .view-container { max-width: 100% !important; width: 100% !important; padding: 0 !important; margin: 0 !important; }
-      .card { margin: 10px !important; width: calc(100% - 20px) !important; box-sizing: border-box !important; }
-      #messages { padding: 10px 10px 10px 15px !important; width: 100% !important; box-sizing: border-box !important; }
-      
-      /* Reduced text size for mobile chats */
-      .msg { max-width: 85% !important; margin-left: 0 !important; word-wrap: break-word !important; font-size: 0.85rem !important; }
-      .edited-label { font-size: 0.55rem !important; margin-left: 5px !important; }
-      
-      .emoji-bar { padding: 10px 5px !important; gap: 10px !important; display: flex !important; overflow-x: auto !important; }
-      .emoji-item { font-size: 1.6rem !important; flex-shrink: 0 !important; }
-      #chatBox div[style*="display:flex"] { padding: 10px !important; gap: 5px !important; width: 100% !important; box-sizing: border-box !important; }
-      #chatInput { width: 65% !important; font-size: 16px !important; }
-      .chat-btn { padding: 10px 12px !important; white-space: nowrap !important; }
+  /* MOBILE FIXES */
+  @media (max-width: 768px) {
+    body { margin: 0; padding: 0; overflow-x: hidden; }
+    
+    .view-container { width: 100% !important; max-width: 100% !important; padding: 0 !important; }
+    .card { margin: 10px !important; width: auto !important; }
+
+    #messages { padding: 10px !important; width: 100% !important; box-sizing: border-box !important; }
+    .msg { 
+        max-width: 90% !important; 
+        width: fit-content !important;
+        font-size: 0.85rem !important; 
     }
-  </style>
+
+    /* THE CHANGE: Targeting the edited label for mobile only */
+    .edited-label {
+        font-size: 0.65rem !important; /* Smaller than the 0.85rem msg text */
+        margin-left: 6px !important;  /* Creates the space between message and (edited) */
+        opacity: 0.7;                  /* Optional: makes it slightly faded for a cleaner look */
+    }
+
+    .emoji-bar { 
+        padding: 5px !important; 
+        gap: 8px !important; 
+        overflow-x: auto; 
+        white-space: nowrap; 
+        display: flex !important;
+    }
+    .emoji-item { font-size: 1.3rem !important; }
+
+    #chatBox div[style*="display:flex"] { 
+        padding: 8px !important; 
+        gap: 5px !important; 
+        width: 100% !important; 
+        box-sizing: border-box !important; 
+    }
+    
+    #chatInput { 
+        flex: 1 !important; 
+        min-width: 0; 
+        font-size: 16px !important; 
+    }
+    
+    .chat-btn { 
+        padding: 10px 15px !important; 
+        font-size: 0.9rem !important;
+        flex-shrink: 0; 
+    }
+  }
+</style>
 </head>
 <body>
   <button id="hamburgerBtn" class="hamburger">&#9776;</button>
@@ -270,3 +275,4 @@
   </script>
 </body>
 </html>
+
