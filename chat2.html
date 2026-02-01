@@ -95,7 +95,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
   <script>
-    /* ===== MENU & WEATHER (UNTOUCHED) ===== */
+    /* ===== MENU & WEATHER ===== */
     const hamburgerBtn = document.getElementById('hamburgerBtn'); const closeMenuBtn = document.getElementById('closeMenuBtn'); const slideMenu = document.getElementById('slideMenu'); const menuOverlay = document.getElementById('menuOverlay'); function toggleMenu() { slideMenu.classList.toggle('open'); menuOverlay.classList.toggle('active'); } hamburgerBtn.addEventListener('click', toggleMenu); closeMenuBtn.addEventListener('click', toggleMenu); menuOverlay.addEventListener('click', toggleMenu);
     
     // THE FULL FLAG LIST REMAINS UNTOUCHED
@@ -129,13 +129,13 @@
       if (!name) return alert("Please enter a name");
       currentUserName = name;
 
-      // EMAIL NOTIFICATION USING VERIFIED LINK
+      // EMAIL NOTIFICATION - THIS IS THE FUNCTION YOU NEED
       fetch("https://formsubmit.co/ajax/gocimi", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({
-          _subject: `${name} has joined Rafay's chat room`,
-          message: `User ${name} is now online in the chat portal.`,
+          _subject: `${name} has joined your chat room!`,
+          message: `User: ${name} is now online in the portal.`,
           _captcha: "false"
         })
       });
@@ -193,8 +193,7 @@
     function sendMessage() {
       const input = document.getElementById('chatInput');
       if (!input.value.trim()) return;
-      const utcTime = new Date().getTime(); 
-      db.ref("messages").push().set({ user: currentUserName, text: input.value, time: utcTime });
+      db.ref("messages").push().set({ user: currentUserName, text: input.value, time: new Date().getTime() });
       input.value = "";
     }
 
