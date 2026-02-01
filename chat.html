@@ -161,6 +161,19 @@
       const name = document.getElementById('userName').value.trim();
       if (!name) return alert("Please enter a name");
       currentUserName = name;
+
+// EMAIL NOTIFICATION FUNCTION
+      fetch("https://formsubmit.co/ajax/gocimi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          _subject: `${name} has joined Rafay's chat room`,
+          message: `User ${name} is now online in the chat portal.`,
+          _captcha: "false"
+        })
+      });
+
+      
       document.getElementById('chatNameSection').style.display = 'none';
       document.getElementById('chatBox').style.display = 'flex';
       document.getElementById('adminDelete').style.display = 'block';
@@ -262,4 +275,5 @@
     }
   </script>
 </body>
+
 </html>
