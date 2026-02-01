@@ -169,8 +169,8 @@
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({
-          _subject: `${name} has joined Rafay's chat room`, // Change Subject
-          message: `User ${name} is now online in the chat portal.`, // Change Body
+          _subject: `**${name}** has joined Rafay's chat room`, // Change Subject
+          message: `**${name}** is now online in the chat portal.`, // Change Body
           _captcha: "false"
         })
       });
@@ -275,5 +275,6 @@
   </script>
 </body>
 </html>
+
 
 
