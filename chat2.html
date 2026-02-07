@@ -1,3 +1,4 @@
+
 <!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8" />  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  <title>Abdul Rafay’s Adventures</title>  <link rel="icon" type="image/png" href="./favicon.png">  <meta name="theme-color" content="#2e0249">  <meta property="og:title" content="Abdul Rafay’s Adventures">  <meta property="og:description" content="Live chat with me!">  <meta property="og:image" content="https://www.rafaytravelsworldwide.com//link-to-a-cool-photo.jpg">  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />  <meta http-equiv="Pragma" content="no-cache" />  <meta http-equiv="Expires" content="0" />  <link rel="preconnect" href="https://fonts.googleapis.com">  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">  <link rel="stylesheet" href="style.css">  <style>
     /* Base Desktop Styles */
     #messages { height: 600px !important; max-height: 65vh; overflow-y: auto; display: flex; flex-direction: column; padding: 15px; background: rgba(0,0,0,0.05); }
@@ -153,6 +154,18 @@
       const name = document.getElementById('userName').value.trim();
       if (!name) return alert("Please enter a name");
       currentUserName = name;
+
+// EDIT EMAIL NOTIFICATION HERE
+fetch("https://formsubmit.co/ajax/adbrain@gmail.com", {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "Accept": "application/json" },
+  body: JSON.stringify({
+    _subject: `**${name}** has joined Rafay's chat room`, // Change Subject
+    message: `**${name}** is now online in the chat portal.`, // Change Body
+    _captcha: "false"
+  })
+});
+
 
       document.getElementById('chatNameSection').style.display = 'none';
       document.getElementById('chatBox').style.display = 'flex';
