@@ -35,6 +35,16 @@
       margin-bottom: 0;
     }
 
+    /* Status Indicators */
+    #statusIndicator {
+      font-size: 0.8rem;
+      color: var(--accent);
+      padding: 5px 15px;
+      font-style: italic;
+      min-height: 25px;
+      background: rgba(0,0,0,0.02);
+    }
+
     /* Buttons & Icons */
     .icon-btn { background: none; border: none; cursor: pointer; padding: 8px; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; border-radius: 50%; }
     .icon-btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.1); }
@@ -93,6 +103,7 @@
     .chat-img { max-width: 250px; border-radius: 8px; margin-top: 5px; border: 2px solid white; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
     .doc-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px; background: white; color: #333; text-decoration: none; border-radius: 8px; margin-top: 5px; font-size: 0.85rem; border: 1px solid #ddd; }
     .seen-indicator { font-size: 0.65rem; color: #777; display: block; margin-top: 4px; font-style: italic; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 2px; }
+    .edited-tag { font-size: 0.7rem; color: #888; margin-left: 5px; font-style: italic; }
     
     /* Recording State */
     .recording-active { animation: pulse-red 1.5s infinite; background: rgba(255,0,0,0.1) !important; }
@@ -188,9 +199,10 @@
             <input type="text" id="userName" class="chat-input" placeholder="Your name...">
             <button class="chat-btn" onclick="startChat()" style="margin-top:10px; width:100%;">Join Chat Room</button>
           </div>
-          <div id="chatBox">
+          <div id="chatBox" style="display:none; flex-direction:column;">
             <div id="onlineStatus" class="online-indicator" style="display:none;">Online: <span id="userList">...</span></div>
             <div id="messages"></div>
+            <div id="statusIndicator"></div>
 
             <div class="emoji-bar">
                 <span class="emoji-item" onclick="pressEmoji('😊')">😊</span>
@@ -225,7 +237,7 @@
                 <svg class="stop-icon" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
               </button>
               
-              <input type="text" id="chatInput" class="chat-input" placeholder="Type a message...">
+              <input type="text" id="chatInput" class="chat-input" placeholder="Type a message..." oninput="updateTypingStatus('typing')">
               <button id="sendBtn" class="chat-btn" onclick="handleSendClick()">Send</button>
             </div>
           </div>
@@ -252,7 +264,7 @@
     const db = firebase.database(); const storage = firebase.storage();
     
     let currentUserName = ""; let isInitialLoad = true; let mediaRecorder; let audioChunks = []; let currentStream = null; let stagedFile = null; let stagedVoiceBlob = null; const MAX_FILE_SIZE_MB = 50;
-    let editingMessageKey = null; let voiceCountdownInterval = null;
+    let editingMessageKey = null; let voiceCountdownInterval = null; let typingTimeout;
 
     /* DUAL ALERTS */
     function sendDualAlert(name) {
@@ -281,20 +293,55 @@
        document.getElementById('chatBox').style.display = 'flex';
        document.getElementById('adminDelete').style.display = 'block';
        document.getElementById('onlineStatus').style.display = 'block';
-       
-       // Focus the input to open the keyboard on mobile/tablet
-       const input = document.getElementById('chatInput');
-       input.focus();
+
+       // AUTO-OPEN KEYBOARD ON MOBILE/TABLET
+       // We trigger this immediately within the user click event to bypass mobile browser restrictions
+       const chatInput = document.getElementById('chatInput');
+       setTimeout(() => {
+           chatInput.focus();
+           // Optional: Smooth scroll to input for small screens
+           chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+       }, 300);
 
        const onlineRef = db.ref('online_users/' + name); onlineRef.set(true); onlineRef.onDisconnect().remove();
+       
        db.ref('online_users').on('value', (snap) => { const users = snap.val() ? Object.keys(snap.val()) : []; document.getElementById('userList').innerText = users.join(", "); });
-      db.ref("messages").on("child_added", (snap) => {
+       
+       // REAL-TIME MESSAGE HANDLERS
+       db.ref("messages").on("child_added", (snap) => {
          const data = snap.val();
          appendMessage(data.user, data.text, data.user === currentUserName, data.time, snap.key, data.fileUrl, data.fileType, data.seenBy, data.edited);
          if(data.user !== currentUserName) db.ref(`messages/${snap.key}/seenBy/${currentUserName}`).set(new Date().getTime());
          if(!isInitialLoad) document.getElementById('sendSound').play().catch(()=>{});
        });
-      db.ref("messages").once("value", () => { isInitialLoad = false; });
+
+       db.ref("messages").on("child_changed", (snap) => {
+          const data = snap.val();
+          updateMessageUI(snap.key, data);
+       });
+
+       // REAL-TIME TYPING/RECORDING HANDLER
+       db.ref("typing_status").on("value", (snap) => {
+          const statuses = snap.val() || {};
+          let displayStr = "";
+          Object.keys(statuses).forEach(user => {
+             if(user !== currentUserName && statuses[user]) {
+                displayStr += `${user} is ${statuses[user]}... `;
+             }
+          });
+          document.getElementById('statusIndicator').innerText = displayStr;
+       });
+
+       db.ref("messages").once("value", () => { isInitialLoad = false; });
+    }
+
+    function updateTypingStatus(status) {
+       if(!currentUserName) return;
+       db.ref(`typing_status/${currentUserName}`).set(status);
+       clearTimeout(typingTimeout);
+       typingTimeout = setTimeout(() => {
+          db.ref(`typing_status/${currentUserName}`).remove();
+       }, 3000);
     }
 
     function stageFile(input) {
@@ -318,6 +365,7 @@
            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
            mediaRecorder.onstop = () => {
              clearInterval(voiceCountdownInterval);
+             db.ref(`typing_status/${currentUserName}`).remove();
              if(currentStream) { currentStream.getTracks().forEach(track => track.stop()); currentStream = null; }
              stagedVoiceBlob = new Blob(audioChunks, { type: 'audio/webm' });
              stagedFile = null;
@@ -327,12 +375,14 @@
            };
 
            mediaRecorder.start();
+           updateTypingStatus('recording voice');
            btn.classList.add('recording-active');
            input.disabled = true;
            input.placeholder = `Recording... ${timeLeft}s remaining`;
 
            voiceCountdownInterval = setInterval(() => {
               timeLeft--;
+              updateTypingStatus('recording voice');
               input.placeholder = `Recording... ${timeLeft}s remaining`;
               if(timeLeft <= 0) {
                   mediaRecorder.stop();
@@ -368,6 +418,7 @@
        const input = document.getElementById('chatInput');
        const text = input.value.trim();
        if (!text && !stagedFile && !stagedVoiceBlob) return;
+       db.ref(`typing_status/${currentUserName}`).remove();
        let fileUrl = null; let fileType = null;
        if(stagedFile || stagedVoiceBlob) {
          document.getElementById('uploadSpinner').style.display = 'flex';
@@ -391,27 +442,57 @@
     function cancelEdit() { editingMessageKey = null; const input = document.getElementById('chatInput'); const sendBtn = document.getElementById('sendBtn'); input.value = ""; sendBtn.innerText = "Send"; sendBtn.style.background = ""; }
 
     function appendMessage(user, text, isMe, time, key, fileUrl, fileType, seenBy, edited) {
+       const box = document.getElementById('messages');
+       if(box.querySelector(`[data-key="${key}"]`)) return;
+
        let fullTimeStr = "";
        if(time) { const date = new Date(time); fullTimeStr = date.toLocaleDateString([], { day:'numeric', month:'short' }) + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }); }
+       
        const div = document.createElement('div');
        div.className = isMe ? 'msg me' : 'msg';
        div.setAttribute('data-key', key);
-       if(isMe && !fileUrl) { div.addEventListener('dblclick', () => enterEditMode(key, text)); }
-       let mediaHtml = "";
-       if(fileUrl) {
-         if(fileType === "image") mediaHtml = `<img src="${fileUrl}" class="chat-img" onclick="window.open('${fileUrl}')">`;
-         else if(fileType === "voice") mediaHtml = `<div class="voice-msg"><audio controls src="${fileUrl}"></audio></div>`;
-         else mediaHtml = `<a href="${fileUrl}" target="_blank" class="doc-link">📄 Download File</a>`;
-       }
-       div.innerHTML = `<strong>${user}</strong><br><span class="msg-text">${mediaHtml}<br><span class="msg-text-content">${text}</span></span>
-                        ${edited ? '<span class="edited-tag">(edited)</span>' : ''}
-                        <span class="ts">${fullTimeStr}</span><span class="seen-list"></span>`;
-       const box = document.getElementById('messages'); box.appendChild(div); box.scrollTop = box.scrollHeight;
-       updateSeenDisplay(div, {user, seenBy});
+       
+       renderInnerMessage(div, user, text, isMe, fullTimeStr, fileUrl, fileType, seenBy, edited);
+       box.appendChild(div);
+       box.scrollTop = box.scrollHeight;
     }
 
-    function updateSeenDisplay(element, data) { const seenList = element.querySelector('.seen-list'); if(currentUserName === "Adnan" && data.user === "Adnan" && data.seenBy) { const names = Object.keys(data.seenBy).filter(n => n !== "Adnan").map(n => { const time = new Date(data.seenBy[n]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); return `${n} (${time})`; }); if(names.length > 0) seenList.innerHTML = `<span class="seen-indicator">Seen by: ${names.join(", ")}</span>`; } }
-    function pressEmoji(emoji) { const i = document.getElementById('chatInput'); i.value += emoji; }
+    function renderInnerMessage(div, user, text, isMe, fullTimeStr, fileUrl, fileType, seenBy, edited) {
+        let mediaHtml = "";
+        if(fileUrl) {
+            if(fileType === "image") mediaHtml = `<img src="${fileUrl}" class="chat-img" onclick="window.open('${fileUrl}')">`;
+            else if(fileType === "voice") mediaHtml = `<div class="voice-msg"><audio controls src="${fileUrl}"></audio></div>`;
+            else mediaHtml = `<a href="${fileUrl}" target="_blank" class="doc-link">📄 Download File</a>`;
+        }
+        div.innerHTML = `<strong>${user}</strong><br><span class="msg-text">${mediaHtml}<br><span class="msg-text-content">${text}</span></span>
+                        ${edited ? '<span class="edited-tag">(edited)</span>' : ''}
+                        <span class="ts">${fullTimeStr}</span><span class="seen-list"></span>`;
+        if(isMe && !fileUrl) { div.ondblclick = () => enterEditMode(div.getAttribute('data-key'), text); }
+        updateSeenDisplay(div, {user, seenBy});
+    }
+
+    function updateMessageUI(key, data) {
+        const div = document.querySelector(`[data-key="${key}"]`);
+        if(!div) return;
+        const isMe = data.user === currentUserName;
+        const date = new Date(data.time);
+        const fullTimeStr = date.toLocaleDateString([], { day:'numeric', month:'short' }) + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+        renderInnerMessage(div, data.user, data.text, isMe, fullTimeStr, data.fileUrl, data.fileType, data.seenBy, data.edited);
+    }
+
+    function updateSeenDisplay(element, data) { 
+        const seenList = element.querySelector('.seen-list'); 
+        if(currentUserName === "Adnan" && data.user === "Adnan" && data.seenBy) { 
+            const names = Object.keys(data.seenBy).filter(n => n !== "Adnan").map(n => { 
+                const time = new Date(data.seenBy[n]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }); 
+                return `${n} (${time})`; 
+            }); 
+            if(names.length > 0) seenList.innerHTML = `<span class="seen-indicator">Seen by: ${names.join(", ")}</span>`; 
+        } 
+    }
+    
+    function pressEmoji(emoji) { const i = document.getElementById('chatInput'); i.value += emoji; updateTypingStatus('typing'); }
+    function clearHistory() { if(confirm("Are you sure?")) { db.ref("messages").remove(); document.getElementById('messages').innerHTML = ""; } }
   </script>
 </body>
 </html>
