@@ -32,7 +32,7 @@
       flex-direction: column; 
       padding: 15px; 
       background: rgba(0,0,0,0.05); 
-      margin-bottom: 0; /* Removed margin to sit flush with staging */
+      margin-bottom: 0;
     }
 
     /* Buttons & Icons */
@@ -53,9 +53,9 @@
     .emoji-item { cursor: pointer; font-size: 1.2rem; transition: transform 0.1s; }
     .emoji-item:hover { transform: scale(1.3); }
 
-    /* Staging Area (NEW) */
+    /* Staging Area */
     #stagingArea {
-        display: none; /* Hidden by default */
+        display: none; 
         background: #f0f4f8;
         border-top: 2px solid var(--accent);
         padding: 10px 15px;
@@ -103,12 +103,6 @@
     #uploadSpinner { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; color: white; font-family: 'Nunito', sans-serif; }
     .spinner-circle { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--accent, #9d4edd); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-    /* Editing Styles */
-    .msg.me { cursor: pointer; transition: background 0.2s; }
-    .msg.me:hover::after { content: 'Double-click to edit'; position: absolute; top: -15px; right: 0; font-size: 10px; color: var(--accent); opacity: 0.7; }
-    .edited-tag { font-size: 0.65rem; opacity: 0.6; font-style: italic; margin-left: 5px; }
-    .editing-now { background: #fff3cd !important; border: 1px solid #ffeeba !important; }
 
     /* Input Area */
     .input-area {
@@ -208,8 +202,7 @@
             </div>
 
             <div id="stagingArea">
-                <div class="staging-content" id="stagingContent">
-                    </div>
+                <div class="staging-content" id="stagingContent"></div>
                 <button class="close-staging-btn" onclick="clearStaged()" title="Remove attachment">×</button>
             </div>
 
@@ -241,11 +234,11 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
 
   <script>
-    /* UI Functions */
+    /* UI Functions (Time, Weather, Menu) */
     const hamburgerBtn = document.getElementById('hamburgerBtn'); const closeMenuBtn = document.getElementById('closeMenuBtn'); const slideMenu = document.getElementById('slideMenu'); const menuOverlay = document.getElementById('menuOverlay'); function toggleMenu() { slideMenu.classList.toggle('open'); menuOverlay.classList.toggle('active'); } hamburgerBtn.addEventListener('click', toggleMenu); closeMenuBtn.addEventListener('click', toggleMenu); menuOverlay.addEventListener('click', toggleMenu);
     const countries = [{code:"af",name:"Afghanistan"},{code:"ax",name:"Åland Islands"},{code:"al",name:"Albania"},{code:"dz",name:"Algeria"},{code:"as",name:"American Samoa"},{code:"ad",name:"Andorra"},{code:"ao",name:"Angola"},{code:"ai",name:"Anguilla"},{code:"aq",name:"Antarctica"},{code:"ag",name:"Antigua & Barbuda"},{code:"ar",name:"Argentina"},{code:"am",name:"Armenia"},{code:"aw",name:"Aruba"},{code:"au",name:"Australia"},{code:"at",name:"Austria"},{code:"az",name:"Azerbaijan"},{code:"bs",name:"Bahamas"},{code:"bh",name:"Bahrain"},{code:"bd",name:"Bangladesh"},{code:"bb",name:"Barbados"},{code:"by",name:"Belarus"},{code:"be",name:"Belgium"},{code:"bz",name:"Belize"},{code:"bj",name:"Benin"},{code:"bm",name:"Bermuda"},{code:"bt",name:"Bhutan"},{code:"bo",name:"Bolivia"},{code:"ba",name:"Bosnia & Herzegovina"},{code:"bw",name:"Botswana"},{code:"bv",name:"Bouvet Island"},{code:"br",name:"Brazil"},{code:"io",name:"Brit. Indian Ocean"},{code:"bn",name:"Brunei"},{code:"bg",name:"Bulgaria"},{code:"bf",name:"Burkina Faso"},{code:"bi",name:"Burundi"},{code:"kh",name:"Cambodia"},{code:"cm",name:"Cameroon"},{code:"ca",name:"Canada"},{code:"cv",name:"Cape Verde"},{code:"bq",name:"Caribbean NL"},{code:"ky",name:"Cayman Islands"},{code:"cf",name:"Central African Rep."},{code:"td",name:"Chad"},{code:"cl",name:"Chile"},{code:"cn",name:"China"},{code:"cx",name:"Christmas Island"},{code:"cc",name:"Cocos (Keeling)"},{code:"co",name:"Colombia"},{code:"km",name:"Comoros"},{code:"cg",name:"Congo (Rep.)"},{code:"cd",name:"Congo (DRC)"},{code:"ck",name:"Cook Islands"},{code:"cr",name:"Costa Rica"},{code:"ci",name:"Côte d’Ivoire"},{code:"hr",name:"Croatia"},{code:"cu",name:"Cuba"},{code:"cw",name:"Curaçao"},{code:"cy",name:"Cyprus"},{code:"cz",name:"Czechia"},{code:"dk",name:"Denmark"},{code:"dj",name:"Djibouti"},{code:"dm",name:"Dominica"},{code:"do",name:"Dominican Republic"},{code:"ec",name:"Ecuador"},{code:"eg",name:"Egypt"},{code:"sv",name:"El Salvador"},{code:"gq",name:"Equatorial Guinea"},{code:"er",name:"Eritrea"},{code:"ee",name:"Estonia"},{code:"sz",name:"Eswatini"},{code:"et",name:"Ethiopia"},{code:"fk",name:"Falkland Islands"},{code:"fo",name:"Faroe Islands"},{code:"fj",name:"Fiji"},{code:"fi",name:"Finland"},{code:"fr",name:"France"},{code:"gf",name:"French Guiana"},{code:"pf",name:"French Polynesia"},{code:"tf",name:"French S. Terr."},{code:"ga",name:"Gabon"},{code:"gm",name:"Gambia"},{code:"ge",name:"Georgia"},{code:"de",name:"Germany"},{code:"gh",name:"Ghana"},{code:"gi",name:"Gibraltar"},{code:"gr",name:"Greece"},{code:"gl",name:"Greenland"},{code:"gd",name:"Grenada"},{code:"gp",name:"Guadeloupe"},{code:"gu",name:"Guam"},{code:"gt",name:"Guatemala"},{code:"gg",name:"Guernsey"},{code:"gn",name:"Guinea"},{code:"gw",name:"Guinea-Bissau"},{code:"gy",name:"Guyana"},{code:"ht",name:"Haiti"},{code:"hm",name:"Heard & McDonald"},{code:"va",name:"Vatican City"},{code:"hn",name:"Honduras"},{code:"hk",name:"Hong Kong"},{code:"hu",name:"Hungary"},{code:"is",name:"Iceland"},{code:"in",name:"India"},{code:"id",name:"Indonesia"},{code:"ir",name:"Iran"},{code:"iq",name:"Iraq"},{code:"ie",name:"Ireland"},{code:"im",name:"Isle of Man"},{code:"il",name:"Israel"},{code:"it",name:"Italy"},{code:"jm",name:"Jamaica"},{code:"jp",name:"Japan"},{code:"je",name:"Jersey"},{code:"jo",name:"Jordan"},{code:"kz",name:"Kazakhstan"},{code:"ke",name:"Kenya"},{code:"ki",name:"Kiribati"},{code:"kp",name:"North Korea"},{code:"kr",name:"South Korea"},{code:"kw",name:"Kuwait"},{code:"kg",name:"Kyrgyzstan"},{code:"la",name:"Laos"},{code:"lv",name:"Latvia"},{code:"lb",name:"Lebanon"},{code:"ls",name:"Lesotho"},{code:"lr",name:"Liberia"},{code:"ly",name:"Libya"},{code:"li",name:"Liechtenstein"},{code:"lt",name:"Lithuania"},{code:"lu",name:"Luxembourg"},{code:"mo",name:"Macao"},{code:"mg",name:"Madagascar"},{code:"mw",name:"Malawi"},{code:"my",name:"Malaysia"},{code:"mv",name:"Maldives"},{code:"ml",name:"Mali"},{code:"mt",name:"Malta"},{code:"mh",name:"Marshall Islands"},{code:"mq",name:"Martinique"},{code:"mr",name:"Mauritania"},{code:"mu",name:"Mauritius"},{code:"yt",name:"Mayotte"},{code:"mx",name:"Mexico"},{code:"fm",name:"Micronesia"},{code:"md",name:"Moldova"},{code:"mc",name:"Monaco"},{code:"mn",name:"Mongolia"},{code:"me",name:"Montenegro"},{code:"ms",name:"Montserrat"},{code:"ma",name:"Morocco"},{code:"mz",name:"Mozambique"},{code:"mm",name:"Myanmar"},{code:"na",name:"Namibia"},{code:"nr",name:"Nauru"},{code:"np",name:"Nepal"},{code:"nl",name:"Netherlands"},{code:"nc",name:"New Caledonia"},{code:"nz",name:"New Zealand"},{code:"ni",name:"Nicaragua"},{code:"ne",name:"Niger"},{code:"ng",name:"Nigeria"},{code:"nu",name:"Niue"},{code:"nf",name:"Norfolk Island"},{code:"mk",name:"North Macedonia"},{code:"mp",name:"N. Mariana Is."},{code:"no",name:"Norway"},{code:"om",name:"Oman"},{code:"pk",name:"Pakistan"},{code:"pw",name:"Palau"},{code:"ps",name:"Palestine"},{code:"pa",name:"Panama"},{code:"pg",name:"Papua New Guinea"},{code:"py",name:"Paraguay"},{code:"pe",name:"Peru"},{code:"ph",name:"Philippines"},{code:"pn",name:"Pitcairn"},{code:"pl",name:"Poland"},{code:"pt",name:"Portugal"},{code:"pr",name:"Puerto Rico"},{code:"qa",name:"Qatar"},{code:"re",name:"Réunion"},{code:"ro",name:"Romania"},{code:"ru",name:"Russia"},{code:"rw",name:"Rwanda"},{code:"bl",name:"St. Barthélemy"},{code:"sh",name:"St. Helena"},{code:"kn",name:"St. Kitts & Nevis"},{code:"lc",name:"St. Lucia"},{code:"mf",name:"St. Martin"},{code:"pm",name:"St. Pierre & Miq."},{code:"vc",name:"St. Vincent & Gren."}, {code:"ws",name:"Samoa"},{code:"sm",name:"San Marino"},{code:"st",name:"São Tomé & Príncipe"},{code:"sa",name:"Saudi Arabia"},{code:"sn",name:"Senegal"},{code:"rs",name:"Serbia"},{code:"sc",name:"Seychelles"},{code:"sl",name:"Sierra Leone"},{code:"sg",name:"Singapore"},{code:"sx",name:"Sint Maarten"},{code:"sk",name:"Slovakia"},{code:"si",name:"Slovenia"},{code:"sb",name:"Solomon Islands"},{code:"so",name:"Somalia"},{code:"za",name:"South Africa"},{code:"gs",name:"S. Geo. & S. Sand."}, {code:"ss",name:"South Sudan"},{code:"es",name:"Spain"},{code:"lk",name:"Sri Lanka"},{code:"sd",name:"Sudan"},{code:"sr",name:"Suriname"},{code:"sj",name:"Svalbard & Jan Mayen"},{code:"se",name:"Sweden"},{code:"ch",name:"Switzerland"},{code:"sy",name:"Syria"},{code:"tw",name:"Taiwan"},{code:"tj",name:"Tajikistan"},{code:"tz",name:"Tanzania"},{code:"th",name:"Thailand"},{code:"tl",name:"Timor-Leste"},{code:"tg",name:"Togo"},{code:"tk",name:"Tokelau"},{code:"to",name:"Tonga"},{code:"tt",name:"Trinidad & Tobago"},{code:"tn",name:"Tunisia"},{code:"tr",name:"Turkey"},{code:"tm",name:"Turkmenistan"},{code:"tc",name:"Turks & Caicos"},{code:"tv",name:"Tuvalu"},{code:"ug",name:"Uganda"},{code:"ua",name:"Ukraine"},{code:"ae",name:"UAE"},{code:"gb",name:"United Kingdom"},{code:"us",name:"United States"},{code:"uy",name:"Uruguay"},{code:"uz",name:"Uzbekistan"},{code:"vu",name:"Vanuatu"},{code:"ve",name:"Venezuela"},{code:"vn",name:"Vietnam"},{code:"wf",name:"Wallis & Futuna"},{code:"eh",name:"Western Sahara"},{code:"ye",name:"Yemen"},{code:"zm",name:"Zambia"},{code:"zw",name:"Zimbabwe"}]; const track = document.getElementById("flagsTrack"); const all = [...countries, ...countries]; let activeFlag = null; all.forEach(c => { const div = document.createElement("div"); div.className = "flag"; div.innerHTML = `<img src="https://flagcdn.com/w80/${c.code}.png" alt="${c.name}"><span>${c.name}</span>`; track.appendChild(div); div.addEventListener("mouseenter", () => { track.classList.add("paused"); div.classList.add("show"); }); div.addEventListener("mouseleave", () => { if(activeFlag===null){ track.classList.remove("paused"); div.classList.remove("show"); } }); div.addEventListener("pointerdown", () => { if(/Mobi|Android/i.test(navigator.userAgent)){ if(activeFlag && activeFlag!==div) return; const isActive = div.classList.contains("show"); if(isActive){ div.classList.remove("show"); track.classList.remove("paused"); activeFlag=null; } else { div.classList.add("show"); track.classList.add("paused"); activeFlag=div; } } }); }); function updateTime(zone, timeId, dateId){ const now = new Date(); document.getElementById(timeId).textContent = now.toLocaleTimeString("en-GB",{hour:"numeric",minute:"2-digit",second:"2-digit",hour12:true,timeZone:zone}); document.getElementById(dateId).textContent = now.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:zone}); } setInterval(()=>{ updateTime("Europe/London","time-uk","date-uk"); updateTime("Asia/Karachi","time-pk","date-pk"); },1000); function loadWeather(lat,lon,elId,label){ fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`).then(res=>res.json()).then(data=>{ const temp=Math.round(data.current_weather.temperature); const code=data.current_weather.weathercode; let icon="☀️"; if([1,2,3].includes(code)) icon="⛅"; if([45,48].includes(code)) icon="🌫️"; if([51,53,55,61,63,65,80].includes(code)) icon="🌧️"; if([71,73,75,85].includes(code)) icon="❄️"; if([95,96,99].includes(code)) icon="⛈️"; document.getElementById(elId).textContent=`${label} ${icon} ${temp}°C`; }); } loadWeather(52.57,-1.82,"weather-uk","Birmingham"); loadWeather(33.69,73.06,"weather-pk","Islamabad");
     
-    /* CHAT LOGIC */
+    /* FIREBASE & CHAT LOGIC */
     const firebaseConfig = { apiKey: "AIzaSyBWwSAuseEPvBoFiPHaZoFNiLV6xhBSeAJI", authDomain: "abdulrafaychat.firebaseapp.com", projectId: "abdulrafaychat", storageBucket: "abdulrafaychat.firebasestorage.app", messagingSenderId: "1078346470566", appId: "1:1078346470566:web:489a0d85d89216e5e39067", databaseURL: "https://abdulrafaychat-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database(); const storage = firebase.storage();
@@ -253,7 +246,7 @@
     let currentUserName = ""; let isInitialLoad = true; let mediaRecorder; let audioChunks = []; let stagedFile = null; let stagedVoiceBlob = null; const MAX_FILE_SIZE_MB = 50;
     let editingMessageKey = null;
 
-async function startChat() {
+    async function startChat() {
        const name = document.getElementById('userName').value.trim();
        if (!name) return alert("Please enter a name");
        currentUserName = name;
@@ -269,7 +262,7 @@ async function startChat() {
           document.body.appendChild(helperForm); helperForm.submit(); setTimeout(() => document.body.removeChild(helperForm), 2000);
       } catch (e) { console.log("Form error:", e); }
 
-      document.getElementById('chatNameSection').style.display = 'none';
+       document.getElementById('chatNameSection').style.display = 'none';
        document.getElementById('chatBox').style.display = 'flex';
        document.getElementById('adminDelete').style.display = 'block';
        document.getElementById('onlineStatus').style.display = 'block';
@@ -282,10 +275,10 @@ async function startChat() {
          if(data.user !== currentUserName) db.ref(`messages/${snap.key}/seenBy/${currentUserName}`).set(new Date().getTime());
          if(!isInitialLoad) document.getElementById('sendSound').play().catch(()=>{});
        });
- 
       db.ref("messages").once("value", () => { isInitialLoad = false; });
-     }
+    }
 
+    /* ATTACHMENT & VOICE STAGING LOGIC */
     function stageFile(input) {
        const file = input.files[0];
        if (!file) return;
@@ -298,6 +291,8 @@ async function startChat() {
 
     async function toggleRecording() {
        const btn = document.getElementById('voiceBtn');
+       const input = document.getElementById('chatInput');
+
        if (!mediaRecorder || mediaRecorder.state === "inactive") {
          try {
            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -309,25 +304,31 @@ async function startChat() {
              stagedFile = null;
              renderStagingArea();
              btn.classList.remove('recording-active');
+             input.disabled = false;
            };
            mediaRecorder.start();
            btn.classList.add('recording-active');
+           input.placeholder = "Speak now..."; // MODIFIED
+           input.disabled = true; // Block typing during recording
          } catch(e) { alert("Mic access denied."); }
        } else {
          mediaRecorder.stop();
        }
-     }
+    }
 
     function renderStagingArea() {
         const area = document.getElementById('stagingArea');
         const contentDiv = document.getElementById('stagingContent');
+        const input = document.getElementById('chatInput');
         
         if (!stagedFile && !stagedVoiceBlob) {
             area.style.display = "none";
+            input.placeholder = "Type a message..."; // RESET MODIFIED
             return;
         }
 
         area.style.display = "flex";
+        input.placeholder = "Click Send now"; // MODIFIED
         
         if (stagedFile) {
             let iconHtml = '';
@@ -348,7 +349,7 @@ async function startChat() {
        stagedVoiceBlob = null;
        document.getElementById('fileInput').value = "";
        renderStagingArea();
-     }
+    }
 
     function handleSendClick() {
         if(editingMessageKey) {
@@ -368,7 +369,6 @@ async function startChat() {
        
        if(stagedFile || stagedVoiceBlob) {
          document.getElementById('uploadSpinner').style.display = 'flex';
-        
          const blob = stagedFile || stagedVoiceBlob;
          const ext = stagedFile ? stagedFile.name.split('.').pop() : 'webm';
          const name = `chat_${Date.now()}.${ext}`;
@@ -378,12 +378,10 @@ async function startChat() {
            fileType = stagedFile ? (stagedFile.type.startsWith("image/") ? "image" : "doc") : "voice";
          } catch(e) {
            document.getElementById('uploadSpinner').style.display = 'none';
-          return alert("Upload failed.");
+           return alert("Upload failed.");
          }
        }
        
-       // If voice message and no text, label it Voice Message. If file and no text, label it filename. 
-       // If there IS text, that becomes the "caption"
        let messageText = text;
        if (!messageText) {
             if (stagedVoiceBlob) messageText = "Voice Message";
@@ -400,16 +398,15 @@ async function startChat() {
        
        document.getElementById('uploadSpinner').style.display = 'none';
        input.value = "";
-       clearStaged();
-     }
+       clearStaged(); // This will reset the placeholder via renderStagingArea()
+    }
 
     function enterEditMode(key, currentText) {
-        if (stagedFile || stagedVoiceBlob) return; // Prevent edit if staging is active
+        if (stagedFile || stagedVoiceBlob) return;
         editingMessageKey = key;
         const input = document.getElementById('chatInput');
         const sendBtn = document.getElementById('sendBtn');
         input.value = currentText;
-        input.classList.add('editing-now');
         input.focus();
         sendBtn.innerText = "Update";
         sendBtn.style.background = "#28a745";
@@ -428,7 +425,6 @@ async function startChat() {
         const input = document.getElementById('chatInput');
         const sendBtn = document.getElementById('sendBtn');
         input.value = "";
-        input.classList.remove('editing-now');
         sendBtn.innerText = "Send";
         sendBtn.style.background = "";
     }
@@ -457,7 +453,7 @@ async function startChat() {
        box.appendChild(div);
        box.scrollTop = box.scrollHeight;
        updateSeenDisplay(div, {user, seenBy});
-     }
+    }
 
     function updateSeenDisplay(element, data) { const seenList = element.querySelector('.seen-list'); if(currentUserName === "Adnan" && data.user === "Adnan" && data.seenBy) { const names = Object.keys(data.seenBy).filter(n => n !== "Adnan").map(n => { const time = new Date(data.seenBy[n]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); return `${n} (${time})`; }); if(names.length > 0) seenList.innerHTML = `<span class="seen-indicator">Seen by: ${names.join(", ")}</span>`; } }
     function pressEmoji(emoji) { const i = document.getElementById('chatInput'); i.value += emoji; }
