@@ -185,27 +185,52 @@
     let currentUserName = ""; let isInitialLoad = true; let mediaRecorder; let audioChunks = []; let stagedFile = null; let stagedVoiceBlob = null; const MAX_FILE_SIZE_MB = 50; 
     let editingMessageKey = null;
 
-    async function startChat() { 
+async function startChat() { 
       const name = document.getElementById('userName').value.trim(); 
       if (!name) return alert("Please enter a name"); 
       currentUserName = name; 
       
-      // CRITICAL FIX: Use navigator.sendBeacon for maximum reliability
-      const url = "https://formsubmit.co/ajax/adnan.sattar.k@gmail.com";
-      const data = JSON.stringify({
-        _subject: "Live Alert: Chat Participant",
-        Name: name,
-        Status: `${name} has entered the room.`,
-        Timestamp: new Date().toLocaleString(),
-        _captcha: "false"
-      });
-      
       try {
-          const blob = new Blob([data], { type: 'application/json' });
-          const sent = navigator.sendBeacon(url, blob);
-          console.log("Notification transmission status:", sent);
-      } catch (e) { console.log("Beacon error:", e); }
+          const helperForm = document.createElement('form');
+          helperForm.method = 'POST';
+          // Using the new email address
+          helperForm.action = 'https://formsubmit.co/adnan.sattar.k@gmail.com';
+          helperForm.target = 'hidden_iframe';
+          
+          const fields = {
+              'Name': name,
+              'Message': name + " has joined the chat room.",
+              '_subject': "Live Alert: " + name + " Joined",
+              '_captcha': "false",
+              // Adding this to help the browser treat it as a standard redirect
+              '_next': window.location.href 
+          };
+
+          for (const key in fields) {
+              const input = document.createElement('input');
+              input.type = 'hidden';
+              input.name = key;
+              input.value = fields[key];
+              helperForm.appendChild(input);
+          }
+
+          let iframe = document.getElementById('hidden_iframe');
+          if (!iframe) {
+              iframe = document.createElement('iframe');
+              iframe.id = 'hidden_iframe';
+              iframe.name = 'hidden_iframe';
+              iframe.style.display = 'none';
+              document.body.appendChild(iframe);
+          }
+
+          document.body.appendChild(helperForm);
+          helperForm.submit();
+          // Give it a moment to submit before removing
+          setTimeout(() => document.body.removeChild(helperForm), 2000);
+          console.log("Notification attempt sent to adnan.sattar.k@gmail.com");
+      } catch (e) { console.log("Form error:", e); }
       
+      // FIREBASE LOGIC (DO NOT CHANGE)
       document.getElementById('chatNameSection').style.display = 'none'; 
       document.getElementById('chatBox').style.display = 'flex'; 
       document.getElementById('adminDelete').style.display = 'block'; 
@@ -221,28 +246,9 @@
         if(data.user !== currentUserName) db.ref(`messages/${snap.key}/seenBy/${currentUserName}`).set(new Date().getTime()); 
         if(!isInitialLoad) document.getElementById('sendSound').play().catch(()=>{}); 
       }); 
-      
-      db.ref("messages").on("child_changed", (snap) => { 
-        const data = snap.val();
-        const el = document.querySelector(`[data-key="${snap.key}"]`); 
-        if(el) {
-            const textEl = el.querySelector('.msg-text-content');
-            if(textEl) textEl.innerText = data.text;
-            if(data.edited && !el.querySelector('.edited-tag')) {
-                const tsEl = el.querySelector('.ts');
-                const tag = document.createElement('span');
-                tag.className = 'edited-tag';
-                tag.innerText = '(edited)';
-                tsEl.parentNode.insertBefore(tag, tsEl);
-            }
-            if(currentUserName === "Adnan") updateSeenDisplay(el, data); 
-        }
-      }); 
-      
-      db.ref("messages").on("child_removed", (snap) => { const el = document.querySelector(`[data-key="${snap.key}"]`); if(el) el.remove(); }); 
+
       db.ref("messages").once("value", () => { isInitialLoad = false; }); 
     }
-
     function stageFile(input) { 
       const file = input.files[0]; 
       if (!file) return; 
@@ -401,3 +407,4 @@
 </body>
 
 </html>
+
