@@ -255,23 +255,49 @@
     let editingMessageKey = null; let voiceCountdownInterval = null;
 
     /* DUAL ALERTS */
-    function sendDualAlert(name) {
-       const subject = `${name} just joined the Chatroom!`;
-       const msg = `${name} has logged into the chat adventure.`;
-       const fsForm = document.createElement('form');
-       fsForm.method = 'POST'; fsForm.target = 'hidden_frame'; fsForm.action = 'https://formsubmit.co/adbrain@gmail.com';
-       const fsData = { 'Name': name, 'Message': msg, '_subject': subject, '_captcha': 'false' };
-       for (const k in fsData) { const i = document.createElement('input'); i.type='hidden'; i.name=k; i.value=fsData[k]; fsForm.appendChild(i); }
-       document.body.appendChild(fsForm);
-       fsForm.submit();
-       setTimeout(() => { if(fsForm.parentNode) document.body.removeChild(fsForm); }, 3000);
-       fetch("https://api.web3forms.com/submit", {
-           method: "POST",
-           headers: { "Content-Type": "application/json", "Accept": "application/json" },
-           body: JSON.stringify({ access_key: "af13a3a2-e6db-46cb-b7c4-ce71875cdd94", name: name, subject: subject, message: msg })
-       }).catch(e => console.log("Alert sent."));
-    }
+function sendDualAlert(name) {
+   // 1. Get UK specific time and date
+   const ukTime = new Date().toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Europe/London" });
+   const ukDate = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/London" });
 
+   // 2. Set your custom Subject and Message
+   const subject = `${name} just joined Rafay's Chatroom`;
+   const msg = `${name} joined Rafay's Chatroom at ${ukTime} UK time on ${ukDate} UK date.`;
+
+   // 3. FormSubmit logic (Hidden Form)
+   const fsForm = document.createElement('form');
+   fsForm.method = 'POST'; 
+   fsForm.target = 'hidden_frame'; 
+   fsForm.action = 'https://formsubmit.co/adbrain@gmail.com';
+   
+   const fsData = { 
+       'Status': 'New Joiner', 
+       'Details': msg, // This puts your bold-style sentence into the email body
+       '_subject': subject, 
+       '_captcha': 'false' 
+   };
+
+   for (const k in fsData) { 
+       const i = document.createElement('input'); 
+       i.type='hidden'; i.name=k; i.value=fsData[k]; 
+       fsForm.appendChild(i); 
+   }
+   document.body.appendChild(fsForm);
+   fsForm.submit();
+   setTimeout(() => { if(fsForm.parentNode) document.body.removeChild(fsForm); }, 3000);
+
+   // 4. Web3Forms logic
+   fetch("https://api.web3forms.com/submit", {
+       method: "POST",
+       headers: { "Content-Type": "application/json", "Accept": "application/json" },
+       body: JSON.stringify({ 
+           access_key: "af13a3a2-e6db-46cb-b7c4-ce71875cdd94", 
+           name: "Rafay Chat System", 
+           subject: subject, 
+           message: msg 
+       })
+   }).catch(e => console.log("Alert sent."));
+}
     async function startChat() {
        const name = document.getElementById('userName').value.trim();
        if (!name) return alert("Please enter a name");
@@ -409,4 +435,5 @@
     function pressEmoji(emoji) { const i = document.getElementById('chatInput'); i.value += emoji; }
   </script>
 </body>
+
 </html>
