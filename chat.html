@@ -252,7 +252,7 @@
     const db = firebase.database(); const storage = firebase.storage();
     
     let currentUserName = ""; let isInitialLoad = true; let mediaRecorder; let audioChunks = []; let currentStream = null; let stagedFile = null; let stagedVoiceBlob = null; const MAX_FILE_SIZE_MB = 50;
-    let editingMessageKey = null;
+    let editingMessageKey = null; let voiceCountdownInterval = null;
 
     /* DUAL ALERTS */
     function sendDualAlert(name) {
@@ -269,7 +269,7 @@
            method: "POST",
            headers: { "Content-Type": "application/json", "Accept": "application/json" },
            body: JSON.stringify({ access_key: "af13a3a2-e6db-46cb-b7c4-ce71875cdd94", name: name, subject: subject, message: msg })
-       }).catch(e => console.log("Alert process completed."));
+       }).catch(e => console.log("Alert sent."));
     }
 
     async function startChat() {
@@ -308,8 +308,11 @@
            currentStream = stream;
            mediaRecorder = new MediaRecorder(stream);
            audioChunks = [];
+           let timeLeft = 20;
+
            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
            mediaRecorder.onstop = () => {
+             clearInterval(voiceCountdownInterval);
              if(currentStream) { currentStream.getTracks().forEach(track => track.stop()); currentStream = null; }
              stagedVoiceBlob = new Blob(audioChunks, { type: 'audio/webm' });
              stagedFile = null;
@@ -317,10 +320,20 @@
              btn.classList.remove('recording-active');
              input.disabled = false;
            };
+
            mediaRecorder.start();
            btn.classList.add('recording-active');
-           input.placeholder = "Recording... Press Stop to preview";
            input.disabled = true;
+           input.placeholder = `Recording... ${timeLeft}s remaining`;
+
+           voiceCountdownInterval = setInterval(() => {
+              timeLeft--;
+              input.placeholder = `Recording... ${timeLeft}s remaining`;
+              if(timeLeft <= 0) {
+                  mediaRecorder.stop();
+              }
+           }, 1000);
+
          } catch(e) { alert("Mic access denied."); }
        } else { mediaRecorder.stop(); }
     }
@@ -331,11 +344,13 @@
         const input = document.getElementById('chatInput');
         if (!stagedFile && !stagedVoiceBlob) { area.style.display = "none"; input.placeholder = "Type a message..."; return; }
         area.style.display = "flex";
-        input.placeholder = "Listen & Send →";
+        
         if (stagedFile) {
+            input.placeholder = "Send now →";
             let iconHtml = stagedFile.type.startsWith('image/') ? `<img src="${URL.createObjectURL(stagedFile)}" class="staging-preview-img">` : `<div class="staging-icon">📄</div>`;
             contentDiv.innerHTML = `${iconHtml} <span>${stagedFile.name}</span>`;
         } else if (stagedVoiceBlob) {
+            input.placeholder = "Listen & Send →";
             const previewUrl = URL.createObjectURL(stagedVoiceBlob);
             contentDiv.innerHTML = `<div class="staging-icon">🎤</div> <audio controls class="voice-preview-player" src="${previewUrl}"></audio>`;
         }
