@@ -25,13 +25,13 @@
     .icon-btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.1); }
     .icon-btn svg { width: 24px; height: 24px; fill: var(--accent); }
     
-    .emoji-bar { 
-      display: flex; 
-      justify-content: space-between; 
-      padding: 12px 15px; 
-      background: rgba(0,0,0,0.05); 
-      width: 100%; 
-      border-bottom: 1px solid rgba(0,0,0,0.1);
+    .emoji-bar {
+       display: flex;
+       justify-content: space-between;
+       padding: 12px 15px;
+       background: rgba(0,0,0,0.05);
+       width: 100%;
+       border-bottom: 1px solid rgba(0,0,0,0.1);
     }
     .emoji-item { cursor: pointer; font-size: 1.2rem; transition: transform 0.1s; }
     .emoji-item:hover { transform: scale(1.3); }
@@ -42,9 +42,21 @@
     .chat-img { max-width: 250px; border-radius: 8px; margin-top: 5px; border: 2px solid white; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
     .doc-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px; background: white; color: #333; text-decoration: none; border-radius: 8px; margin-top: 5px; font-size: 0.85rem; border: 1px solid #ddd; }
     .seen-indicator { font-size: 0.65rem; color: #777; display: block; margin-top: 4px; font-style: italic; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 2px; }
+    
+    /* RECORDING STATE STYLES */
     .recording-active { animation: pulse-red 1.5s infinite; background: rgba(255,0,0,0.1) !important; }
+    /* This ensures any visible SVG inside the active button turns red */
     .recording-active svg { fill: #ff4444 !important; }
+    
     @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); } }
+
+    /* ICON TOGGLE LOGIC */
+    /* By default, hide the stop icon */
+    #voiceBtn .stop-icon { display: none; }
+    
+    /* When recording is active, hide mic, show stop */
+    #voiceBtn.recording-active .mic-icon { display: none; }
+    #voiceBtn.recording-active .stop-icon { display: block; }
 
     /* Spinner Styling */
     #uploadSpinner { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; color: white; font-family: 'Nunito', sans-serif; }
@@ -98,7 +110,7 @@
     <a href="about.html" class="menu-item">About Me</a>
   </div>
   <div class="flags-bar"><div class="flags-track" id="flagsTrack"></div></div>
-  
+
   <div class="top-wrapper" style="display:flex; justify-content: space-around;">
     <div class="top-info">
       <span class="location-text">Where I now live</span>
@@ -152,7 +164,8 @@
               <input type="file" id="fileInput" style="display:none;" onchange="stageFile(this)">
               
               <button id="voiceBtn" class="icon-btn" onclick="toggleRecording()" title="Record Voice">
-                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                <svg class="mic-icon" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                <svg class="stop-icon" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
               </button>
               
               <input type="text" id="chatInput" class="chat-input" placeholder="Type a message..." oninput="if(stagedFile || stagedVoiceBlob) clearStaged()">
@@ -176,21 +189,21 @@
     /* UI Functions */
     const hamburgerBtn = document.getElementById('hamburgerBtn'); const closeMenuBtn = document.getElementById('closeMenuBtn'); const slideMenu = document.getElementById('slideMenu'); const menuOverlay = document.getElementById('menuOverlay'); function toggleMenu() { slideMenu.classList.toggle('open'); menuOverlay.classList.toggle('active'); } hamburgerBtn.addEventListener('click', toggleMenu); closeMenuBtn.addEventListener('click', toggleMenu); menuOverlay.addEventListener('click', toggleMenu);
     const countries = [{code:"af",name:"Afghanistan"},{code:"ax",name:"Åland Islands"},{code:"al",name:"Albania"},{code:"dz",name:"Algeria"},{code:"as",name:"American Samoa"},{code:"ad",name:"Andorra"},{code:"ao",name:"Angola"},{code:"ai",name:"Anguilla"},{code:"aq",name:"Antarctica"},{code:"ag",name:"Antigua & Barbuda"},{code:"ar",name:"Argentina"},{code:"am",name:"Armenia"},{code:"aw",name:"Aruba"},{code:"au",name:"Australia"},{code:"at",name:"Austria"},{code:"az",name:"Azerbaijan"},{code:"bs",name:"Bahamas"},{code:"bh",name:"Bahrain"},{code:"bd",name:"Bangladesh"},{code:"bb",name:"Barbados"},{code:"by",name:"Belarus"},{code:"be",name:"Belgium"},{code:"bz",name:"Belize"},{code:"bj",name:"Benin"},{code:"bm",name:"Bermuda"},{code:"bt",name:"Bhutan"},{code:"bo",name:"Bolivia"},{code:"ba",name:"Bosnia & Herzegovina"},{code:"bw",name:"Botswana"},{code:"bv",name:"Bouvet Island"},{code:"br",name:"Brazil"},{code:"io",name:"Brit. Indian Ocean"},{code:"bn",name:"Brunei"},{code:"bg",name:"Bulgaria"},{code:"bf",name:"Burkina Faso"},{code:"bi",name:"Burundi"},{code:"kh",name:"Cambodia"},{code:"cm",name:"Cameroon"},{code:"ca",name:"Canada"},{code:"cv",name:"Cape Verde"},{code:"bq",name:"Caribbean NL"},{code:"ky",name:"Cayman Islands"},{code:"cf",name:"Central African Rep."},{code:"td",name:"Chad"},{code:"cl",name:"Chile"},{code:"cn",name:"China"},{code:"cx",name:"Christmas Island"},{code:"cc",name:"Cocos (Keeling)"},{code:"co",name:"Colombia"},{code:"km",name:"Comoros"},{code:"cg",name:"Congo (Rep.)"},{code:"cd",name:"Congo (DRC)"},{code:"ck",name:"Cook Islands"},{code:"cr",name:"Costa Rica"},{code:"ci",name:"Côte d’Ivoire"},{code:"hr",name:"Croatia"},{code:"cu",name:"Cuba"},{code:"cw",name:"Curaçao"},{code:"cy",name:"Cyprus"},{code:"cz",name:"Czechia"},{code:"dk",name:"Denmark"},{code:"dj",name:"Djibouti"},{code:"dm",name:"Dominica"},{code:"do",name:"Dominican Republic"},{code:"ec",name:"Ecuador"},{code:"eg",name:"Egypt"},{code:"sv",name:"El Salvador"},{code:"gq",name:"Equatorial Guinea"},{code:"er",name:"Eritrea"},{code:"ee",name:"Estonia"},{code:"sz",name:"Eswatini"},{code:"et",name:"Ethiopia"},{code:"fk",name:"Falkland Islands"},{code:"fo",name:"Faroe Islands"},{code:"fj",name:"Fiji"},{code:"fi",name:"Finland"},{code:"fr",name:"France"},{code:"gf",name:"French Guiana"},{code:"pf",name:"French Polynesia"},{code:"tf",name:"French S. Terr."},{code:"ga",name:"Gabon"},{code:"gm",name:"Gambia"},{code:"ge",name:"Georgia"},{code:"de",name:"Germany"},{code:"gh",name:"Ghana"},{code:"gi",name:"Gibraltar"},{code:"gr",name:"Greece"},{code:"gl",name:"Greenland"},{code:"gd",name:"Grenada"},{code:"gp",name:"Guadeloupe"},{code:"gu",name:"Guam"},{code:"gt",name:"Guatemala"},{code:"gg",name:"Guernsey"},{code:"gn",name:"Guinea"},{code:"gw",name:"Guinea-Bissau"},{code:"gy",name:"Guyana"},{code:"ht",name:"Haiti"},{code:"hm",name:"Heard & McDonald"},{code:"va",name:"Vatican City"},{code:"hn",name:"Honduras"},{code:"hk",name:"Hong Kong"},{code:"hu",name:"Hungary"},{code:"is",name:"Iceland"},{code:"in",name:"India"},{code:"id",name:"Indonesia"},{code:"ir",name:"Iran"},{code:"iq",name:"Iraq"},{code:"ie",name:"Ireland"},{code:"im",name:"Isle of Man"},{code:"il",name:"Israel"},{code:"it",name:"Italy"},{code:"jm",name:"Jamaica"},{code:"jp",name:"Japan"},{code:"je",name:"Jersey"},{code:"jo",name:"Jordan"},{code:"kz",name:"Kazakhstan"},{code:"ke",name:"Kenya"},{code:"ki",name:"Kiribati"},{code:"kp",name:"North Korea"},{code:"kr",name:"South Korea"},{code:"kw",name:"Kuwait"},{code:"kg",name:"Kyrgyzstan"},{code:"la",name:"Laos"},{code:"lv",name:"Latvia"},{code:"lb",name:"Lebanon"},{code:"ls",name:"Lesotho"},{code:"lr",name:"Liberia"},{code:"ly",name:"Libya"},{code:"li",name:"Liechtenstein"},{code:"lt",name:"Lithuania"},{code:"lu",name:"Luxembourg"},{code:"mo",name:"Macao"},{code:"mg",name:"Madagascar"},{code:"mw",name:"Malawi"},{code:"my",name:"Malaysia"},{code:"mv",name:"Maldives"},{code:"ml",name:"Mali"},{code:"mt",name:"Malta"},{code:"mh",name:"Marshall Islands"},{code:"mq",name:"Martinique"},{code:"mr",name:"Mauritania"},{code:"mu",name:"Mauritius"},{code:"yt",name:"Mayotte"},{code:"mx",name:"Mexico"},{code:"fm",name:"Micronesia"},{code:"md",name:"Moldova"},{code:"mc",name:"Monaco"},{code:"mn",name:"Mongolia"},{code:"me",name:"Montenegro"},{code:"ms",name:"Montserrat"},{code:"ma",name:"Morocco"},{code:"mz",name:"Mozambique"},{code:"mm",name:"Myanmar"},{code:"na",name:"Namibia"},{code:"nr",name:"Nauru"},{code:"np",name:"Nepal"},{code:"nl",name:"Netherlands"},{code:"nc",name:"New Caledonia"},{code:"nz",name:"New Zealand"},{code:"ni",name:"Nicaragua"},{code:"ne",name:"Niger"},{code:"ng",name:"Nigeria"},{code:"nu",name:"Niue"},{code:"nf",name:"Norfolk Island"},{code:"mk",name:"North Macedonia"},{code:"mp",name:"N. Mariana Is."},{code:"no",name:"Norway"},{code:"om",name:"Oman"},{code:"pk",name:"Pakistan"},{code:"pw",name:"Palau"},{code:"ps",name:"Palestine"},{code:"pa",name:"Panama"},{code:"pg",name:"Papua New Guinea"},{code:"py",name:"Paraguay"},{code:"pe",name:"Peru"},{code:"ph",name:"Philippines"},{code:"pn",name:"Pitcairn"},{code:"pl",name:"Poland"},{code:"pt",name:"Portugal"},{code:"pr",name:"Puerto Rico"},{code:"qa",name:"Qatar"},{code:"re",name:"Réunion"},{code:"ro",name:"Romania"},{code:"ru",name:"Russia"},{code:"rw",name:"Rwanda"},{code:"bl",name:"St. Barthélemy"},{code:"sh",name:"St. Helena"},{code:"kn",name:"St. Kitts & Nevis"},{code:"lc",name:"St. Lucia"},{code:"mf",name:"St. Martin"},{code:"pm",name:"St. Pierre & Miq."},{code:"vc",name:"St. Vincent & Gren."}, {code:"ws",name:"Samoa"},{code:"sm",name:"San Marino"},{code:"st",name:"São Tomé & Príncipe"},{code:"sa",name:"Saudi Arabia"},{code:"sn",name:"Senegal"},{code:"rs",name:"Serbia"},{code:"sc",name:"Seychelles"},{code:"sl",name:"Sierra Leone"},{code:"sg",name:"Singapore"},{code:"sx",name:"Sint Maarten"},{code:"sk",name:"Slovakia"},{code:"si",name:"Slovenia"},{code:"sb",name:"Solomon Islands"},{code:"so",name:"Somalia"},{code:"za",name:"South Africa"},{code:"gs",name:"S. Geo. & S. Sand."}, {code:"ss",name:"South Sudan"},{code:"es",name:"Spain"},{code:"lk",name:"Sri Lanka"},{code:"sd",name:"Sudan"},{code:"sr",name:"Suriname"},{code:"sj",name:"Svalbard & Jan Mayen"},{code:"se",name:"Sweden"},{code:"ch",name:"Switzerland"},{code:"sy",name:"Syria"},{code:"tw",name:"Taiwan"},{code:"tj",name:"Tajikistan"},{code:"tz",name:"Tanzania"},{code:"th",name:"Thailand"},{code:"tl",name:"Timor-Leste"},{code:"tg",name:"Togo"},{code:"tk",name:"Tokelau"},{code:"to",name:"Tonga"},{code:"tt",name:"Trinidad & Tobago"},{code:"tn",name:"Tunisia"},{code:"tr",name:"Turkey"},{code:"tm",name:"Turkmenistan"},{code:"tc",name:"Turks & Caicos"},{code:"tv",name:"Tuvalu"},{code:"ug",name:"Uganda"},{code:"ua",name:"Ukraine"},{code:"ae",name:"UAE"},{code:"gb",name:"United Kingdom"},{code:"us",name:"United States"},{code:"uy",name:"Uruguay"},{code:"uz",name:"Uzbekistan"},{code:"vu",name:"Vanuatu"},{code:"ve",name:"Venezuela"},{code:"vn",name:"Vietnam"},{code:"wf",name:"Wallis & Futuna"},{code:"eh",name:"Western Sahara"},{code:"ye",name:"Yemen"},{code:"zm",name:"Zambia"},{code:"zw",name:"Zimbabwe"}]; const track = document.getElementById("flagsTrack"); const all = [...countries, ...countries]; let activeFlag = null; all.forEach(c => { const div = document.createElement("div"); div.className = "flag"; div.innerHTML = `<img src="https://flagcdn.com/w80/${c.code}.png" alt="${c.name}"><span>${c.name}</span>`; track.appendChild(div); div.addEventListener("mouseenter", () => { track.classList.add("paused"); div.classList.add("show"); }); div.addEventListener("mouseleave", () => { if(activeFlag===null){ track.classList.remove("paused"); div.classList.remove("show"); } }); div.addEventListener("pointerdown", () => { if(/Mobi|Android/i.test(navigator.userAgent)){ if(activeFlag && activeFlag!==div) return; const isActive = div.classList.contains("show"); if(isActive){ div.classList.remove("show"); track.classList.remove("paused"); activeFlag=null; } else { div.classList.add("show"); track.classList.add("paused"); activeFlag=div; } } }); }); function updateTime(zone, timeId, dateId){ const now = new Date(); document.getElementById(timeId).textContent = now.toLocaleTimeString("en-GB",{hour:"numeric",minute:"2-digit",second:"2-digit",hour12:true,timeZone:zone}); document.getElementById(dateId).textContent = now.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:zone}); } setInterval(()=>{ updateTime("Europe/London","time-uk","date-uk"); updateTime("Asia/Karachi","time-pk","date-pk"); },1000); function loadWeather(lat,lon,elId,label){ fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`).then(res=>res.json()).then(data=>{ const temp=Math.round(data.current_weather.temperature); const code=data.current_weather.weathercode; let icon="☀️"; if([1,2,3].includes(code)) icon="⛅"; if([45,48].includes(code)) icon="🌫️"; if([51,53,55,61,63,65,80].includes(code)) icon="🌧️"; if([71,73,75,85].includes(code)) icon="❄️"; if([95,96,99].includes(code)) icon="⛈️"; document.getElementById(elId).textContent=`${label} ${icon} ${temp}°C`; }); } loadWeather(52.57,-1.82,"weather-uk","Birmingham"); loadWeather(33.69,73.06,"weather-pk","Islamabad");
-
+    
     /* CHAT LOGIC */
     const firebaseConfig = { apiKey: "AIzaSyBWwSAuseEPvBoFiPHaZoFNiLV6xhBSeAJI", authDomain: "abdulrafaychat.firebaseapp.com", projectId: "abdulrafaychat", storageBucket: "abdulrafaychat.firebasestorage.app", messagingSenderId: "1078346470566", appId: "1:1078346470566:web:489a0d85d89216e5e39067", databaseURL: "https://abdulrafaychat-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database(); const storage = firebase.storage();
     
-    let currentUserName = ""; let isInitialLoad = true; let mediaRecorder; let audioChunks = []; let stagedFile = null; let stagedVoiceBlob = null; const MAX_FILE_SIZE_MB = 50; 
+    let currentUserName = ""; let isInitialLoad = true; let mediaRecorder; let audioChunks = []; let stagedFile = null; let stagedVoiceBlob = null; const MAX_FILE_SIZE_MB = 50;
     let editingMessageKey = null;
 
-async function startChat() { 
-      const name = document.getElementById('userName').value.trim(); 
-      if (!name) return alert("Please enter a name"); 
-      currentUserName = name; 
-      
-      try {
+async function startChat() {
+       const name = document.getElementById('userName').value.trim();
+       if (!name) return alert("Please enter a name");
+       currentUserName = name;
+       
+       try {
           const helperForm = document.createElement('form');
           helperForm.method = 'POST';
           // Using the new email address
@@ -203,8 +216,8 @@ async function startChat() {
               '_subject': "**" + name + "** just joined Rafay's chatroom",
               '_captcha': "false",
               // Adding this to help the browser treat it as a standard redirect
-              '_next': window.location.href 
-          };
+              '_next': window.location.href
+           };
 
           for (const key in fields) {
               const input = document.createElement('input');
@@ -229,79 +242,79 @@ async function startChat() {
           setTimeout(() => document.body.removeChild(helperForm), 2000);
           console.log("Notification attempt sent to adnan.sattar.k@gmail.com");
       } catch (e) { console.log("Form error:", e); }
-      
+
       // FIREBASE LOGIC (DO NOT CHANGE)
-      document.getElementById('chatNameSection').style.display = 'none'; 
-      document.getElementById('chatBox').style.display = 'flex'; 
-      document.getElementById('adminDelete').style.display = 'block'; 
-      document.getElementById('onlineStatus').style.display = 'block'; 
-      
-      const onlineRef = db.ref('online_users/' + name); onlineRef.set(true); onlineRef.onDisconnect().remove(); 
-      
-      db.ref('online_users').on('value', (snap) => { const users = snap.val() ? Object.keys(snap.val()) : []; document.getElementById('userList').innerText = users.join(", "); });
-      
-      db.ref("messages").on("child_added", (snap) => { 
-        const data = snap.val(); 
-        appendMessage(data.user, data.text, data.user === currentUserName, data.time, snap.key, data.fileUrl, data.fileType, data.seenBy, data.edited); 
-        if(data.user !== currentUserName) db.ref(`messages/${snap.key}/seenBy/${currentUserName}`).set(new Date().getTime()); 
-        if(!isInitialLoad) document.getElementById('sendSound').play().catch(()=>{}); 
-      }); 
+      document.getElementById('chatNameSection').style.display = 'none';
+       document.getElementById('chatBox').style.display = 'flex';
+       document.getElementById('adminDelete').style.display = 'block';
+       document.getElementById('onlineStatus').style.display = 'block';
+       
+       const onlineRef = db.ref('online_users/' + name); onlineRef.set(true); onlineRef.onDisconnect().remove();
+       
+       db.ref('online_users').on('value', (snap) => { const users = snap.val() ? Object.keys(snap.val()) : []; document.getElementById('userList').innerText = users.join(", "); });
+       
+      db.ref("messages").on("child_added", (snap) => {
+         const data = snap.val();
+         appendMessage(data.user, data.text, data.user === currentUserName, data.time, snap.key, data.fileUrl, data.fileType, data.seenBy, data.edited);
+         if(data.user !== currentUserName) db.ref(`messages/${snap.key}/seenBy/${currentUserName}`).set(new Date().getTime());
+         if(!isInitialLoad) document.getElementById('sendSound').play().catch(()=>{});
+       });
+ 
+      db.ref("messages").once("value", () => { isInitialLoad = false; });
+     }
 
-      db.ref("messages").once("value", () => { isInitialLoad = false; }); 
+    function stageFile(input) {
+       const file = input.files[0];
+       if (!file) return;
+       if (file.size / (1024 * 1024) > MAX_FILE_SIZE_MB) return alert(`Limit is ${MAX_FILE_SIZE_MB}MB`);
+       
+       stagedFile = file;
+       stagedVoiceBlob = null;
+       updateInputForStaged(`File: ${file.name}`);
     }
 
-    function stageFile(input) { 
-      const file = input.files[0]; 
-      if (!file) return; 
-      if (file.size / (1024 * 1024) > MAX_FILE_SIZE_MB) return alert(`Limit is ${MAX_FILE_SIZE_MB}MB`); 
-      
-      stagedFile = file; 
-      stagedVoiceBlob = null; 
-      updateInputForStaged(`File: ${file.name}`);
-    }
-
-    async function toggleRecording() { 
-      const btn = document.getElementById('voiceBtn'); 
-      if (!mediaRecorder || mediaRecorder.state === "inactive") { 
-        try { 
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
-          mediaRecorder = new MediaRecorder(stream); 
-          audioChunks = []; 
-          mediaRecorder.ondataavailable = e => audioChunks.push(e.data); 
-          mediaRecorder.onstop = () => { 
-            stagedVoiceBlob = new Blob(audioChunks, { type: 'audio/webm' }); 
-            stagedFile = null; 
-            updateInputForStaged("Voice Recording Ready 🎤");
-            btn.classList.remove('recording-active'); 
-          }; 
-          mediaRecorder.start(); 
-          btn.classList.add('recording-active'); 
-        } catch(e) { alert("Mic access denied."); } 
-      } else { 
-        mediaRecorder.stop(); 
-      } 
-    }
+    async function toggleRecording() {
+       const btn = document.getElementById('voiceBtn');
+       if (!mediaRecorder || mediaRecorder.state === "inactive") {
+         try {
+           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+           mediaRecorder = new MediaRecorder(stream);
+           audioChunks = [];
+           mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+           mediaRecorder.onstop = () => {
+             stagedVoiceBlob = new Blob(audioChunks, { type: 'audio/webm' });
+             stagedFile = null;
+             updateInputForStaged("Voice Recording Ready 🎤");
+             btn.classList.remove('recording-active');
+           };
+           mediaRecorder.start();
+           btn.classList.add('recording-active');
+         } catch(e) { alert("Mic access denied."); }
+       } else {
+         mediaRecorder.stop();
+       }
+     }
 
     function updateInputForStaged(label) {
       const input = document.getElementById('chatInput');
       const cancelBtn = document.getElementById('cancelStaged');
       input.value = label;
       input.classList.add('staged-mode');
-      input.readOnly = true; 
-      cancelBtn.style.display = "block";
+      input.readOnly = true;
+       cancelBtn.style.display = "block";
     }
 
-    function clearStaged() { 
-      stagedFile = null; 
-      stagedVoiceBlob = null; 
-      const input = document.getElementById('chatInput');
-      const cancelBtn = document.getElementById('cancelStaged');
-      input.value = ""; 
-      input.classList.remove('staged-mode');
-      input.readOnly = false;
-      cancelBtn.style.display = "none";
-      document.getElementById('fileInput').value = ""; 
-    }
+    function clearStaged() {
+       stagedFile = null;
+       stagedVoiceBlob = null;
+       const input = document.getElementById('chatInput');
+       const cancelBtn = document.getElementById('cancelStaged');
+       input.value = "";
+       input.classList.remove('staged-mode');
+       input.readOnly = false;
+       cancelBtn.style.display = "none";
+       document.getElementById('fileInput').value = "";
+     }
 
     function handleSendClick() {
         if(editingMessageKey) {
@@ -311,42 +324,42 @@ async function startChat() {
         }
     }
 
-    async function sendMessage() { 
-      const input = document.getElementById('chatInput'); 
-      const text = (stagedFile || stagedVoiceBlob) ? "" : input.value.trim(); 
-      if (!text && !stagedFile && !stagedVoiceBlob) return; 
-      
-      let fileUrl = null; let fileType = null; 
-      
-      if(stagedFile || stagedVoiceBlob) { 
-        // Show Spinner
+    async function sendMessage() {
+       const input = document.getElementById('chatInput');
+       const text = (stagedFile || stagedVoiceBlob) ? "" : input.value.trim();
+       if (!text && !stagedFile && !stagedVoiceBlob) return;
+       
+       let fileUrl = null; let fileType = null;
+       
+       if(stagedFile || stagedVoiceBlob) {
+         // Show Spinner
         document.getElementById('uploadSpinner').style.display = 'flex';
         
-        const blob = stagedFile || stagedVoiceBlob; 
-        const ext = stagedFile ? stagedFile.name.split('.').pop() : 'webm'; 
-        const name = `chat_${Date.now()}.${ext}`; 
-        try { 
-          const snap = await storage.ref(`chat_files/${name}`).put(blob); 
-          fileUrl = await snap.ref.getDownloadURL(); 
-          fileType = stagedFile ? (stagedFile.type.startsWith("image/") ? "image" : "doc") : "voice"; 
-        } catch(e) { 
-          document.getElementById('uploadSpinner').style.display = 'none';
-          return alert("Upload failed."); 
-        } 
-      } 
-      
-      db.ref("messages").push().set({ 
-        user: currentUserName, 
-        text: text || (stagedFile ? stagedFile.name : "Voice Message"), 
-        time: new Date().getTime(), 
-        fileUrl: fileUrl, 
-        fileType: fileType 
-      }); 
-      
-      // Hide Spinner and Reset
-      document.getElementById('uploadSpinner').style.display = 'none';
-      clearStaged(); 
-    }
+         const blob = stagedFile || stagedVoiceBlob;
+         const ext = stagedFile ? stagedFile.name.split('.').pop() : 'webm';
+         const name = `chat_${Date.now()}.${ext}`;
+         try {
+           const snap = await storage.ref(`chat_files/${name}`).put(blob);
+           fileUrl = await snap.ref.getDownloadURL();
+           fileType = stagedFile ? (stagedFile.type.startsWith("image/") ? "image" : "doc") : "voice";
+         } catch(e) {
+           document.getElementById('uploadSpinner').style.display = 'none';
+          return alert("Upload failed.");
+         }
+       }
+       
+       db.ref("messages").push().set({
+         user: currentUserName,
+         text: text || (stagedFile ? stagedFile.name : "Voice Message"),
+         time: new Date().getTime(),
+         fileUrl: fileUrl,
+         fileType: fileType
+       });
+       
+       // Hide Spinner and Reset
+       document.getElementById('uploadSpinner').style.display = 'none';
+       clearStaged();
+     }
 
     function enterEditMode(key, currentText) {
         if (stagedFile || stagedVoiceBlob) return;
@@ -378,36 +391,34 @@ async function startChat() {
         sendBtn.style.background = "";
     }
 
-    function appendMessage(user, text, isMe, time, key, fileUrl, fileType, seenBy, edited) { 
-      let fullTimeStr = ""; 
-      if(time) { const date = new Date(time); fullTimeStr = date.toLocaleDateString([], { day:'numeric', month:'short' }) + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }); } 
-      
-      const div = document.createElement('div'); 
-      div.className = isMe ? 'msg me' : 'msg'; 
-      div.setAttribute('data-key', key); 
-      if(isMe && !fileUrl) { div.addEventListener('dblclick', () => enterEditMode(key, text)); }
+    function appendMessage(user, text, isMe, time, key, fileUrl, fileType, seenBy, edited) {
+       let fullTimeStr = "";
+       if(time) { const date = new Date(time); fullTimeStr = date.toLocaleDateString([], { day:'numeric', month:'short' }) + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }); }
+       
+       const div = document.createElement('div');
+       div.className = isMe ? 'msg me' : 'msg';
+       div.setAttribute('data-key', key);
+       if(isMe && !fileUrl) { div.addEventListener('dblclick', () => enterEditMode(key, text)); }
 
-      let mediaHtml = ""; 
-      if(fileUrl) { 
-        if(fileType === "image") mediaHtml = `<img src="${fileUrl}" class="chat-img" onclick="window.open('${fileUrl}')">`; 
-        else if(fileType === "voice") mediaHtml = `<div class="voice-msg"><audio controls src="${fileUrl}"></audio></div>`; 
-        else mediaHtml = `<a href="${fileUrl}" target="_blank" class="doc-link">📄 ${text}</a>`; 
-      } 
-      
-      div.innerHTML = `<strong>${user}</strong><br><span class="msg-text">${mediaHtml}<br><span class="msg-text-content">${text}</span></span>
-                       ${edited ? '<span class="edited-tag">(edited)</span>' : ''}
-                       <span class="ts">${fullTimeStr}</span><span class="seen-list"></span>`; 
-      
-      const box = document.getElementById('messages'); 
-      box.appendChild(div); 
-      box.scrollTop = box.scrollHeight; 
-      updateSeenDisplay(div, {user, seenBy}); 
-    }
+       let mediaHtml = "";
+       if(fileUrl) {
+         if(fileType === "image") mediaHtml = `<img src="${fileUrl}" class="chat-img" onclick="window.open('${fileUrl}')">`;
+         else if(fileType === "voice") mediaHtml = `<div class="voice-msg"><audio controls src="${fileUrl}"></audio></div>`;
+         else mediaHtml = `<a href="${fileUrl}" target="_blank" class="doc-link">📄 ${text}</a>`;
+       }
+       
+       div.innerHTML = `<strong>${user}</strong><br><span class="msg-text">${mediaHtml}<br><span class="msg-text-content">${text}</span></span>
+                        ${edited ? '<span class="edited-tag">(edited)</span>' : ''}
+                        <span class="ts">${fullTimeStr}</span><span class="seen-list"></span>`;
+       
+       const box = document.getElementById('messages');
+       box.appendChild(div);
+       box.scrollTop = box.scrollHeight;
+       updateSeenDisplay(div, {user, seenBy});
+     }
 
     function updateSeenDisplay(element, data) { const seenList = element.querySelector('.seen-list'); if(currentUserName === "Adnan" && data.user === "Adnan" && data.seenBy) { const names = Object.keys(data.seenBy).filter(n => n !== "Adnan").map(n => { const time = new Date(data.seenBy[n]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); return `${n} (${time})`; }); if(names.length > 0) seenList.innerHTML = `<span class="seen-indicator">Seen by: ${names.join(", ")}</span>`; } }
-    function pressEmoji(emoji) { const i = document.getElementById('chatInput'); if(stagedFile || stagedVoiceBlob) return; i.value += emoji; i.focus(); }
-    function clearHistory() { if (prompt("Admin Password:") === "71797179" && confirm("Delete ALL?")) db.ref("messages").remove(); }
+    function pressEmoji(emoji) { const i = document.getElementById('chatInput'); if(stagedFile || stagedVoiceBlob) return; i.value += emoji; }
   </script>
 </body>
 </html>
-
