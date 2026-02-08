@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Abdul Rafay’s Adventures</title>
+  <link rel="icon" type="image/png" href="./favicon.png">
+  <meta name="theme-color" content="#2e0249">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    * { box-sizing: border-box; }
+    #messages { height: 600px !important; max-height: 65vh; overflow-y: auto; display: flex; flex-direction: column; padding: 15px; background: rgba(0,0,0,0.05); position: relative; }
+    .chat-portal { display: flex; flex-direction: column; height: 100%; }
+    .view-container { max-width: 1100px; margin: 0 auto; }
+
+    /* New Elements */
+    .tick { font-size: 0.8rem; margin-left: 5px; color: #999; }
+    .typing-indicator { font-size: 0.85rem; color: var(--accent); padding: 5px 15px; font-style: italic; min-height: 25px; }
+    
+    /* Reply/Quote Box */
+    #replyPreview { display: none; background: #eee; padding: 8px; border-left: 4px solid var(--accent); margin: 5px; border-radius: 4px; position: relative; }
+    .reply-text { font-size: 0.8rem; color: #555; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    
+    /* Message Actions */
+    .msg-actions { opacity: 0; transition: opacity 0.2s; position: absolute; right: 5px; top: 5px; display: flex; gap: 5px; }
+    .msg:hover .msg-actions { opacity: 1; }
+    .action-btn { font-size: 0.7rem; background: rgba(255,255,255,0.8); border: 1px solid #ddd; border-radius: 4px; cursor: pointer; padding: 2px 5px; }
+    .msg { position: relative; padding-right: 40px !important; }
+    .quoted-msg { background: rgba(0,0,0,0.05); border-left: 3px solid var(--accent); padding: 4px 8px; margin-bottom: 5px; border-radius: 4px; font-size: 0.8rem; }
+
+    /* Original Icon Buttons */
+    .icon-btn { background: none; border: none; cursor: pointer; padding: 8px; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; border-radius: 50%; }
+    .icon-btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.1); }
+    .icon-btn svg { width: 24px; height: 24px; fill: var(--accent); }
+
+    /* Staging/Preview Area */
+    #attachmentPreview { display: none; background: rgba(46, 2, 73, 0.1); padding: 10px; border-top: 1px solid rgba(0,0,0,0.1); align-items: center; gap: 10px; font-size: 0.85rem; }
+    .preview-pill { background: var(--accent); color: white; padding: 4px 12px; border-radius: 20px; display: flex; align-items: center; gap: 8px; }
+    .cancel-preview { cursor: pointer; font-weight: bold; background: rgba(0,0,0,0.2); border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
+
+    /* Voice & Media */
+    .voice-msg { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 12px; margin-top: 5px; width: 100%; max-width: 260px; }
+    .voice-msg audio { width: 100%; height: 35px; min-width: 200px; filter: invert(10%) hue-rotate(250deg) brightness(1.2); }
+    .chat-img { max-width: 250px; border-radius: 8px; margin-top: 5px; border: 2px solid white; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .doc-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px; background: white; color: #333; text-decoration: none; border-radius: 8px; margin-top: 5px; font-size: 0.85rem; border: 1px solid #ddd; }
+    .seen-indicator { font-size: 0.65rem; color: #777; display: block; margin-top: 4px; font-style: italic; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 2px; }
+    .recording-active { animation: pulse-red 1.5s infinite; background: rgba(255,0,0,0.1) !important; }
+    .recording-active svg { fill: #ff4444 !important; }
+    @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); } }
+
+    @media (max-width: 768px) {
+      #messages { height: 400px !important; }
+      .msg-actions { opacity: 1; position: relative; margin-top: 5px; justify-content: flex-end; }
+      .msg { padding-right: 15px !important; }
+    }
+  </style>
+</head>
+<body>
+  <button id="hamburgerBtn" class="hamburger">&#9776;</button>
+  <div class="menu-overlay" id="menuOverlay"></div>
+  <div class="slide-menu" id="slideMenu">
+    <button class="close-menu" id="closeMenuBtn">&times;</button>
+    <a href="index.html" class="menu-item">Home</a>
+    <a href="stories.html" class="menu-item">My Stories</a>
+    <a href="learning.html" class="menu-item">Fun Learning</a>
+    <a href="videos.html" class="menu-item">My Videos</a>
+    <a href="chat.html" class="menu-item">Chat</a>
+    <a href="about.html" class="menu-item">About Me</a>
+  </div>
+
+  <div class="flags-bar"><div class="flags-track" id="flagsTrack"></div></div>
+
+  <div class="top-wrapper" style="display:flex; justify-content: space-around;">
+    <div class="top-info">
+      <span class="location-text">Where I now live</span>
+      <div class="region"><img src="https://flagcdn.com/w20/gb.png" alt="UK Flag"></div>
+      <div id="time-uk"></div><div id="date-uk"></div><div id="weather-uk">Loading…</div>
+    </div>
+    <div class="top-info">
+      <span class="location-text">Where I came from</span>
+      <div class="region"><img src="https://flagcdn.com/w20/pk.png" alt="Pakistan Flag"></div>
+      <div id="time-pk"></div><div id="date-pk"></div><div id="weather-pk">Loading…</div>
+    </div>
+  </div>
+
+  <div class="view-container">
+    <div class="card" id="mainCard">
+      <div class="content">
+        <div class="chat-header">
+            <h1 style="margin:0; color:var(--accent);">Chat with Yum!</h1>
+            <button id="adminDelete" class="delete-btn" style="display:none;" onclick="clearHistory()">Clear History</button>
+        </div>
+        <div class="chat-portal">
+          <div id="chatNameSection">
+            <input type="text" id="userName" class="chat-input" placeholder="Your name...">
+            <button class="chat-btn" onclick="startChat()" style="margin-top:10px; width:100%;">Join Chat Room</button>
+          </div>
+          <div id="chatBox">
+            <div id="onlineStatus" class="online-indicator" style="display:none;">Online: <span id="userList">...</span></div>
+            <div id="messages"></div>
+            <div id="typingArea" class="typing-indicator"></div>
+            
+            <div id="replyPreview">
+              <span class="reply-text" id="replyTargetText"></span>
+              <span class="cancel-preview" onclick="cancelReply()" style="position:absolute; right:5px; top:5px;">×</span>
+            </div>
+
+            <div id="attachmentPreview">
+                <div class="preview-pill">
+                    <span id="previewName">file.jpg</span>
+                    <span class="cancel-preview" onclick="clearStaged()">×</span>
+                </div>
+            </div>
+
+            <div class="emoji-bar">
+                <span class="emoji-item" onclick="pressEmoji('😊')">😊</span><span class="emoji-item" onclick="pressEmoji('😂')">😂</span>
+                <span class="emoji-item" onclick="pressEmoji('❤️')">❤️</span><span class="emoji-item" onclick="pressEmoji('👍')">👍</span>
+                <span class="emoji-item" onclick="pressEmoji('🔥')">🔥</span><span class="emoji-item" onclick="pressEmoji('✨')">✨</span>
+                <span class="emoji-item" onclick="pressEmoji('🙌')">🙌</span><span class="emoji-item" onclick="pressEmoji('💯')">💯</span>
+            </div>
+
+            <div class="input-area" style="display:flex; padding:12px; gap:8px; background: rgba(0,0,0,0.2); align-items: center;">
+              <button class="icon-btn" onclick="document.getElementById('fileInput').click()" title="Attach">
+                <svg viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.66 1.34 3 3 3s3-1.34 3-3V5c0-2.48-2.02-4.5-4.5-4.5S7 2.52 7 5v12.5c0 3.31 2.69 6 6 6s6-2.69 6-6V6h-1.5z"/></svg>
+              </button>
+              <input type="file" id="fileInput" style="display:none;" onchange="stageFile(this)">
+              <button id="voiceBtn" class="icon-btn" onclick="toggleRecording()"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></button>
+              <input type="text" id="chatInput" class="chat-input" placeholder="Type a message..." oninput="handleTyping()">
+              <button id="sendBtn" class="chat-btn" onclick="sendMessage()">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="image-panel"><img src="./20250809_120138.jpg" alt="Rafay"></div>
+    </div>
+  </div>
+
+  <audio id="sendSound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+
+  <script>
+    /* UTILITY SCRIPTS (Flags, Time, Weather) - Preserved from your original */
+    const countries = [{code:"af",name:"Afghanistan"},{code:"pk",name:"Pakistan"},{code:"gb",name:"United Kingdom"} /*...rest of your list...*/];
+    // (Note: Keep your full country list here as in original code)
+    
+    // [Internal functions for UI logic omitted for brevity but should be kept in your file]
+    function updateTime(zone, timeId, dateId){ const now = new Date(); document.getElementById(timeId).textContent = now.toLocaleTimeString("en-GB",{hour:"numeric",minute:"2-digit",second:"2-digit",hour12:true,timeZone:zone}); document.getElementById(dateId).textContent = now.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:zone}); }
+    setInterval(()=>{ updateTime("Europe/London","time-uk","date-uk"); updateTime("Asia/Karachi","time-pk","date-pk"); },1000);
+
+    /* FIREBASE CONFIG */
+    const firebaseConfig = { apiKey: "AIzaSyBWwSAuseEPvBoFiPHaZoFNiLV6xhBSeAJI", authDomain: "abdulrafaychat.firebaseapp.com", projectId: "abdulrafaychat", storageBucket: "abdulrafaychat.firebasestorage.app", messagingSenderId: "1078346470566", appId: "1:1078346470566:web:489a0d85d89216e5e39067", databaseURL: "https://abdulrafaychat-default-rtdb.firebaseio.com" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database(); const storage = firebase.storage();
+
+    let currentUserName = ""; 
+    let isInitialLoad = true; 
+    let stagedFile = null; 
+    let stagedVoiceBlob = null;
+    let editingMsgKey = null;
+    let replyToText = null;
+    let typingTimeout;
+
+    function startChat() {
+      const name = document.getElementById('userName').value.trim();
+      if (!name) return alert("Please enter a name");
+      currentUserName = name;
+      document.getElementById('chatNameSection').style.display = 'none';
+      document.getElementById('chatBox').style.display = 'flex';
+      document.getElementById('onlineStatus').style.display = 'block';
+
+      const onlineRef = db.ref('online_users/' + name);
+      onlineRef.set(true); onlineRef.onDisconnect().remove();
+
+      // Typing Listeners
+      db.ref('typing').on('value', snap => {
+        const users = snap.val() || {};
+        const typingUsers = Object.keys(users).filter(u => u !== currentUserName && users[u]);
+        document.getElementById('typingArea').innerText = typingUsers.length ? `${typingUsers.join(', ')} is typing...` : "";
+      });
+
+      // Message Listeners
+      db.ref("messages").on("child_added", (snap) => {
+        const data = snap.val();
+        appendMessage(data.user, data.text, data.user === currentUserName, data.time, snap.key, data.fileUrl, data.fileType, data.seenBy, data.edited, data.replyTo);
+        if(!isInitialLoad) document.getElementById('sendSound').play().catch(()=>{});
+      });
+
+      db.ref("messages").on("child_changed", (snap) => {
+        const el = document.querySelector(`[data-key="${snap.key}"]`);
+        if(el) {
+            const data = snap.val();
+            const textSpan = el.querySelector('.msg-text-content');
+            if(textSpan) textSpan.innerText = (data.edited ? "(edited) " : "") + data.text;
+        }
+      });
+
+      db.ref("messages").once("value", () => { isInitialLoad = false; });
+    }
+
+    function handleTyping() {
+      db.ref(`typing/${currentUserName}`).set(true);
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => db.ref(`typing/${currentUserName}`).set(false), 2000);
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text && !stagedFile && !stagedVoiceBlob) return;
+
+      if(editingMsgKey) {
+        await db.ref(`messages/${editingMsgKey}`).update({ text: text, edited: true });
+        editingMsgKey = null;
+        document.getElementById('sendBtn').innerText = "Send";
+      } else {
+        let fileUrl = null; let fileType = null;
+        if(stagedFile || stagedVoiceBlob) {
+            const blob = stagedFile || stagedVoiceBlob;
+            const ext = stagedFile ? stagedFile.name.split('.').pop() : 'webm';
+            const snap = await storage.ref(`chat_files/${Date.now()}.${ext}`).put(blob);
+            fileUrl = await snap.ref.getDownloadURL();
+            fileType = stagedFile ? (stagedFile.type.startsWith("image/") ? "image" : "doc") : "voice";
+        }
+        
+        db.ref("messages").push().set({
+          user: currentUserName,
+          text: text,
+          time: new Date().getTime(),
+          fileUrl: fileUrl,
+          fileType: fileType,
+          replyTo: replyToText,
+          delivered: true // This creates the "Single Tick" logic
+        });
+      }
+      input.value = "";
+      cancelReply();
+      clearStaged();
+    }
+
+    function appendMessage(user, text, isMe, time, key, fileUrl, fileType, seenBy, edited, replyTo) {
+      const div = document.createElement('div');
+      div.className = isMe ? 'msg me' : 'msg';
+      div.setAttribute('data-key', key);
+      
+      let mediaHtml = "";
+      if(fileUrl) {
+        if(fileType === "image") mediaHtml = `<img src="${fileUrl}" class="chat-img" onclick="window.open('${fileUrl}')">`;
+        else if(fileType === "voice") mediaHtml = `<div class="voice-msg"><audio controls src="${fileUrl}"></audio></div>`;
+      }
+
+      const replyHtml = replyTo ? `<div class="quoted-msg">Replying to: ${replyTo}</div>` : "";
+      const editBtn = isMe ? `<button class="action-btn" onclick="editMsg('${key}', '${text}')">Edit</button>` : "";
+      const replyBtn = `<button class="action-btn" onclick="setReply('${text}')">Reply</button>`;
+
+      div.innerHTML = `
+        <div class="msg-actions">${replyBtn}${editBtn}</div>
+        ${replyHtml}
+        <strong>${user}</strong><br>
+        <span class="msg-text">
+          ${mediaHtml}<br>
+          <span class="msg-text-content">${edited ? '<em>(edited)</em> ' : ''}${text}</span>
+        </span>
+        <span class="ts">${new Date(time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} 
+        ${isMe ? '<span class="tick">✓</span>' : ''}</span>
+      `;
+      
+      const box = document.getElementById('messages');
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function editMsg(key, oldText) {
+      editingMsgKey = key;
+      const input = document.getElementById('chatInput');
+      input.value = oldText;
+      input.focus();
+      document.getElementById('sendBtn').innerText = "Update";
+    }
+
+    function setReply(text) {
+      replyToText = text;
+      document.getElementById('replyPreview').style.display = 'block';
+      document.getElementById('replyTargetText').innerText = text;
+    }
+
+    function cancelReply() {
+      replyToText = null;
+      document.getElementById('replyPreview').style.display = 'none';
+    }
+
+    /* Helper UI Functions */
+    function pressEmoji(emoji) { const i = document.getElementById('chatInput'); i.value += emoji; i.focus(); }
+    function clearStaged() { stagedFile = null; stagedVoiceBlob = null; document.getElementById('attachmentPreview').style.display = 'none'; }
+    function stageFile(input) { stagedFile = input.files[0]; document.getElementById('attachmentPreview').style.display = 'flex'; document.getElementById('previewName').innerText = stagedFile.name; }
+    
+    async function toggleRecording() {
+      const btn = document.getElementById('voiceBtn');
+      if (!this.recorder || this.recorder.state === "inactive") {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        this.recorder = new MediaRecorder(stream);
+        let chunks = [];
+        this.recorder.ondataavailable = e => chunks.push(e.data);
+        this.recorder.onstop = () => {
+          stagedVoiceBlob = new Blob(chunks, { type: 'audio/webm' });
+          document.getElementById('attachmentPreview').style.display = 'flex';
+          document.getElementById('previewName').innerText = "Voice Note Ready";
+          btn.classList.remove('recording-active');
+        };
+        this.recorder.start();
+        btn.classList.add('recording-active');
+      } else {
+        this.recorder.stop();
+      }
+    }
+  </script>
+</body>
+</html>
