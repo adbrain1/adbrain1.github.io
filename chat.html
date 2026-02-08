@@ -256,47 +256,56 @@
 
     /* DUAL ALERTS */
 function sendDualAlert(name) {
-   // 1. Get UK specific time and date
-   const ukTime = new Date().toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Europe/London" });
-   const ukDate = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/London" });
+   // 1. Generate UK Timestamp (Does not affect any other functions)
+   const ukTime = new Date().toLocaleTimeString("en-GB", { 
+       hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Europe/London" 
+   });
+   const ukDate = new Date().toLocaleDateString("en-GB", { 
+       day: "numeric", month: "long", year: "numeric", timeZone: "Europe/London" 
+   });
 
-   // 2. Set your custom Subject and Message
+   // 2. Define the Custom Subject and Body
    const subject = `${name} just joined Rafay's Chatroom`;
    const msg = `${name} joined Rafay's Chatroom at ${ukTime} UK time on ${ukDate} UK date.`;
 
-   // 3. FormSubmit logic (Hidden Form)
-   const fsForm = document.createElement('form');
-   fsForm.method = 'POST'; 
-   fsForm.target = 'hidden_frame'; 
-   fsForm.action = 'https://formsubmit.co/adbrain@gmail.com';
-   
-   const fsData = { 
-       'Status': 'New Joiner', 
-       'Details': msg, // This puts your bold-style sentence into the email body
-       '_subject': subject, 
-       '_captcha': 'false' 
-   };
+   // 3. Primary/Fallback 1: FormSubmit (Hidden Form Method)
+   try {
+       const fsForm = document.createElement('form');
+       fsForm.method = 'POST'; 
+       fsForm.target = 'hidden_frame'; 
+       fsForm.action = 'https://formsubmit.co/adbrain@gmail.com';
+       
+       const fsData = { 
+           'Activity': msg, 
+           '_subject': subject, 
+           '_captcha': 'false' 
+       };
 
-   for (const k in fsData) { 
-       const i = document.createElement('input'); 
-       i.type='hidden'; i.name=k; i.value=fsData[k]; 
-       fsForm.appendChild(i); 
+       for (const k in fsData) { 
+           const i = document.createElement('input'); 
+           i.type='hidden'; i.name=k; i.value=fsData[k]; 
+           fsForm.appendChild(i); 
+       }
+       document.body.appendChild(fsForm);
+       fsForm.submit();
+       // Cleanup form from DOM after submission
+       setTimeout(() => { if(fsForm.parentNode) document.body.removeChild(fsForm); }, 3000);
+   } catch(e) {
+       console.error("FormSubmit attempt failed", e);
    }
-   document.body.appendChild(fsForm);
-   fsForm.submit();
-   setTimeout(() => { if(fsForm.parentNode) document.body.removeChild(fsForm); }, 3000);
 
-   // 4. Web3Forms logic
+   // 4. Primary/Fallback 2: Web3Forms (API Method)
+   // Using .catch ensures that if the API is down, it won't crash the Join Chat process
    fetch("https://api.web3forms.com/submit", {
        method: "POST",
        headers: { "Content-Type": "application/json", "Accept": "application/json" },
        body: JSON.stringify({ 
            access_key: "af13a3a2-e6db-46cb-b7c4-ce71875cdd94", 
-           name: "Rafay Chat System", 
+           name: "Chat Notification", 
            subject: subject, 
            message: msg 
        })
-   }).catch(e => console.log("Alert sent."));
+   }).catch(e => console.log("Web3Forms alert failed, but chat continues."));
 }
     async function startChat() {
        const name = document.getElementById('userName').value.trim();
@@ -437,3 +446,4 @@ function sendDualAlert(name) {
 </body>
 
 </html>
+
