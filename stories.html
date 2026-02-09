@@ -1,7 +1,5 @@
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -23,7 +21,10 @@
     
     <link rel="stylesheet" href="style.css">
 
-<style>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <style>
         #storyEditorSection {
             display: none; flex-direction: column; width: 100%; max-width: 900px;
             margin: 100px auto 20px auto; background: #fff; border-radius: 15px;
@@ -38,7 +39,6 @@
         .save-status { font-size: 0.7rem; color: #666; margin-left: auto; font-style: italic; }
         @media (max-width: 768px) { #storyEditorSection { margin-top: 110px; width: 95%; } }
     </style>
-
 </head>
 
 <body>
@@ -98,7 +98,7 @@
             <iframe src="" id="pdfFrame"></iframe>
         </div>
 
-<div id="storyEditorSection">
+        <div id="storyEditorSection">
             <div class="editor-header">
                 <h2>✍️ My Adventure Story</h2>
                 <button class="back-btn" onclick="closeEditor()" style="background:#ff4757; border:none; color:white; padding:5px 15px; border-radius:20px; cursor:pointer; font-weight:bold;">Close & Save</button>
@@ -126,9 +126,8 @@
         </div>
 
         <div class="trip-container" style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+            <button id="writerBtn" onclick="openEditor()" style="background-color: #ffd700; color: #2e0249; font-family: 'Fredoka', sans-serif; font-weight: 600; padding: 15px 40px; border-radius: 50px; text-decoration: none; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #2e0249; cursor: pointer; transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">✍️ Write your own story</button>
             
-	<button id="writerBtn" onclick="openEditor()" style="background-color: #ffd700; color: #2e0249; font-family: 'Fredoka', sans-serif; font-weight: 600; padding: 15px 40px; border-radius: 50px; text-decoration: none; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #2e0249; cursor: pointer; transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">✍️ Write your own story</button>
-
             <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
                 <div class="trip-btn" onclick="openPDF('https://drive.google.com/file/d/1oc-7tPnLPH2MIOmf_r4ytFFv0feTwR5O/preview', 'Trips to LEGOLAND')">
                     <span class="btn-id">A1</span>
@@ -149,22 +148,13 @@
     <script>
         /* ===== PDF VIEWER LOGIC ===== */
         function openPDF(url, title) {
-            const mainCard = document.getElementById('mainCard');
-            const pdfSection = document.getElementById('pdfViewerSection');
-            const pdfFrame = document.getElementById('pdfFrame');
-            const pdfTitle = document.getElementById('pdfTitle');
-            const tripBtns = document.querySelector('.trip-container');
-            const flagsBar = document.getElementById('flagsBar');
-            const topWrapper = document.getElementById('topWrapper');
-
-            pdfFrame.src = url;
-            pdfTitle.textContent = title;
-            
-            mainCard.style.display = 'none';
-            tripBtns.style.display = 'none';
-            pdfSection.style.display = 'flex';
-            flagsBar.style.display = 'none';
-            topWrapper.style.display = 'none';
+            document.getElementById('mainCard').style.display = 'none';
+            document.querySelector('.trip-container').style.display = 'none';
+            document.getElementById('pdfViewerSection').style.display = 'flex';
+            document.getElementById('flagsBar').style.display = 'none';
+            document.getElementById('topWrapper').style.display = 'none';
+            document.getElementById('pdfFrame').src = url;
+            document.getElementById('pdfTitle').textContent = title;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -198,7 +188,6 @@
             document.getElementById(timeId).textContent = now.toLocaleTimeString("en-GB",{hour:"numeric",minute:"2-digit",second:"2-digit",hour12:true,timeZone:zone});
             document.getElementById(dateId).textContent = now.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:zone});
         }
-        
         setInterval(() => { 
             updateTime("Europe/London","time-uk","date-uk"); 
             updateTime("Asia/Karachi","time-pk","date-pk"); 
@@ -216,43 +205,24 @@
         loadWeather(33.69, 73.06, "weather-pk", "Islamabad");
 
         /* ===== FLAGS LIST & ANIMATION ===== */
-        const countries = [
-            {code:"af",name:"Afghanistan"},{code:"al",name:"Albania"},{code:"dz",name:"Algeria"},{code:"as",name:"American Samoa"},{code:"ad",name:"Andorra"},{code:"ao",name:"Angola"},{code:"ai",name:"Anguilla"},{code:"aq",name:"Antarctica"},{code:"ag",name:"Antigua & Barbuda"},{code:"ar",name:"Argentina"},{code:"am",name:"Armenia"},{code:"au",name:"Australia"},{code:"at",name:"Austria"},{code:"az",name:"Azerbaijan"},{code:"bs",name:"Bahamas"},{code:"bh",name:"Bahrain"},{code:"bd",name:"Bangladesh"},{code:"bb",name:"Barbados"},{code:"be",name:"Belgium"},{code:"bz",name:"Belize"},{code:"bm",name:"Bermuda"},{code:"bt",name:"Bhutan"},{code:"bo",name:"Bolivia"},{code:"ba",name:"Bosnia & Herzegovina"},{code:"bw",name:"Botswana"},{code:"br",name:"Brazil"},{code:"bn",name:"Brunei"},{code:"bg",name:"Bulgaria"},{code:"bf",name:"Burkina Faso"},{code:"bi",name:"Burundi"},{code:"kh",name:"Cambodia"},{code:"cm",name:"Cameroon"},{code:"ca",name:"Canada"},{code:"cv",name:"Cape Verde"},{code:"ky",name:"Cayman Islands"},{code:"cf",name:"Central African Rep."},{code:"td",name:"Chad"},{code:"cl",name:"Chile"},{code:"cn",name:"China"},{code:"co",name:"Colombia"},{code:"km",name:"Comoros"},{code:"cg",name:"Congo"},{code:"ck",name:"Cook Islands"},{code:"cr",name:"Costa Rica"},{code:"hr",name:"Croatia"},{code:"cu",name:"Cuba"},{code:"cy",name:"Cyprus"},{code:"cz",name:"Czechia"},{code:"dk",name:"Denmark"},{code:"dj",name:"Djibouti"},{code:"dm",name:"Dominica"},{code:"do",name:"Dominican Rep."},{code:"ec",name:"Ecuador"},{code:"eg",name:"Egypt"},{code:"sv",name:"El Salvador"},{code:"ee",name:"Estonia"},{code:"et",name:"Ethiopia"},{code:"fj",name:"Fiji"},{code:"fi",name:"Finland"},{code:"fr",name:"France"},{code:"ga",name:"Gabon"},{code:"gm",name:"Gambia"},{code:"ge",name:"Georgia"},{code:"de",name:"Germany"},{code:"gh",name:"Ghana"},{code:"gi",name:"Gibraltar"},{code:"gr",name:"Greece"},{code:"gl",name:"Greenland"},{code:"gd",name:"Grenada"},{code:"gu",name:"Guam"},{code:"gt",name:"Guatemala"},{code:"gn",name:"Guinea"},{code:"gy",name:"Guyana"},{code:"ht",name:"Haiti"},{code:"hn",name:"Honduras"},{code:"hk",name:"Hong Kong"},{code:"hu",name:"Hungary"},{code:"is",name:"Iceland"},{code:"in",name:"India"},{code:"id",name:"Indonesia"},{code:"ir",name:"Iran"},{code:"iq",name:"Iraq"},{code:"ie",name:"Ireland"},{code:"il",name:"Israel"},{code:"it",name:"Italy"},{code:"jm",name:"Jamaica"},{code:"jp",name:"Japan"},{code:"jo",name:"Jordan"},{code:"kz",name:"Kazakhstan"},{code:"ke",name:"Kenya"},{code:"ki",name:"Kiribati"},{code:"kp",name:"North Korea"},{code:"kr",name:"South Korea"},{code:"kw",name:"Kuwait"},{code:"kg",name:"Kyrgyzstan"},{code:"la",name:"Laos"},{code:"lv",name:"Latvia"},{code:"lb",name:"Lebanon"},{code:"ls",name:"Lesotho"},{code:"lr",name:"Liberia"},{code:"ly",name:"Libya"},{code:"lt",name:"Lithuania"},{code:"lu",name:"Luxembourg"},{code:"mo",name:"Macao"},{code:"mg",name:"Madagascar"},{code:"mw",name:"Malawi"},{code:"my",name:"Malaysia"},{code:"mv",name:"Maldives"},{code:"ml",name:"Mali"},{code:"mt",name:"Malta"},{code:"mx",name:"Mexico"},{code:"md",name:"Moldova"},{code:"mc",name:"Monaco"},{code:"mn",name:"Mongolia"},{code:"ma",name:"Morocco"},{code:"mz",name:"Mozambique"},{code:"mm",name:"Myanmar"},{code:"na",name:"Namibia"},{code:"np",name:"Nepal"},{code:"nl",name:"Netherlands"},{code:"nz",name:"New Zealand"},{code:"ni",name:"Nicaragua"},{code:"ne",name:"Niger"},{code:"ng",name:"Nigeria"},{code:"no",name:"Norway"},{code:"om",name:"Oman"},{code:"pk",name:"Pakistan"},{code:"pw",name:"Palau"},{code:"pa",name:"Panama"},{code:"pg",name:"Papua New Guinea"},{code:"py",name:"Paraguay"},{code:"pe",name:"Peru"},{code:"ph",name:"Philippines"},{code:"pl",name:"Poland"},{code:"pt",name:"Portugal"},{code:"pr",name:"Puerto Rico"},{code:"qa",name:"Qatar"},{code:"ro",name:"Romania"},{code:"ru",name:"Russia"},{code:"rw",name:"Rwanda"},{code:"sa",name:"Saudi Arabia"},{code:"sn",name:"Senegal"},{code:"rs",name:"Serbia"},{code:"sg",name:"Singapore"},{code:"sk",name:"Slovakia"},{code:"si",name:"Slovenia"},{code:"so",name:"Somalia"},{code:"za",name:"South Africa"},{code:"es",name:"Spain"},{code:"lk",name:"Sri Lanka"},{code:"sd",name:"Sudan"},{code:"se",name:"Sweden"},{code:"ch",name:"Switzerland"},{code:"sy",name:"Syria"},{code:"tw",name:"Taiwan"},{code:"tj",name:"Tajikistan"},{code:"tz",name:"Tanzania"},{code:"th",name:"Thailand"},{code:"tg",name:"Togo"},{code:"to",name:"Tonga"},{code:"tr",name:"Turkey"},{code:"ua",name:"Ukraine"},{code:"ae",name:"UAE"},{code:"gb",name:"United Kingdom"},{code:"us",name:"United States"},{code:"uy",name:"Uruguay"},{code:"uz",name:"Uzbekistan"},{code:"vu",name:"Vanuatu"},{code:"ve",name:"Venezuela"},{code:"vn",name:"Vietnam"},{code:"ye",name:"Yemen"},{code:"zm",name:"Zambia"},{code:"zw",name:"Zimbabwe"}
-        ];
-        
+        const countries = [{code:"gb",name:"UK"},{code:"pk",name:"Pakistan"},{code:"us",name:"USA"},{code:"ca",name:"Canada"},{code:"au",name:"Australia"},{code:"de",name:"Germany"},{code:"fr",name:"France"},{code:"it",name:"Italy"}];
         const track = document.getElementById("flagsTrack");
-        const all = [...countries, ...countries];
-        let activeFlag = null;
-
-        all.forEach(c => {
+        [...countries, ...countries, ...countries].forEach(c => {
             const div = document.createElement("div");
             div.className = "flag";
             div.innerHTML = `<img src="https://flagcdn.com/w80/${c.code}.png" alt="${c.name}"><span>${c.name}</span>`;
             track.appendChild(div);
-            
-            div.addEventListener("mouseenter", () => { track.classList.add("paused"); div.classList.add("show"); });
-            div.addEventListener("mouseleave", () => { if(activeFlag===null){ track.classList.remove("paused"); div.classList.remove("show"); } });
-            div.addEventListener("pointerdown", () => {
-                if(/Mobi|Android/i.test(navigator.userAgent)){
-                    if(activeFlag && activeFlag!==div) return;
-                    const isActive = div.classList.contains("show");
-                    if(isActive){ div.classList.remove("show"); track.classList.remove("paused"); activeFlag=null; }
-                    else { div.classList.add("show"); track.classList.add("paused"); activeFlag=div; }
-                }
-            });
         });
 
         /* ===== PHOTO ROTATION LOGIC ===== */
         const images = ["./LegoMainPage.jpg", "CadburyPic.JPG", "SeaLifePic.JPG"];
         let currentIndex = 0;
-        const rotatingImg = document.getElementById('rotatingImg');
-        
         setInterval(() => {
             currentIndex = (currentIndex + 1) % images.length;
-            rotatingImg.src = images[currentIndex];
+            document.getElementById('rotatingImg').src = images[currentIndex];
         }, 3000);
-   
-/* ===== FIREBASE & EDITOR BRAINS ===== */
+
+        /* ===== FIREBASE & EDITOR LOGIC (Autosave Fixed) ===== */
         const firebaseConfig = {
             apiKey: "AIzaSyBWwSAuseEPvBoFiPHaZoFNiLV6xhBSeAJI",
             authDomain: "abdulrafaychat.firebaseapp.com",
@@ -262,12 +232,12 @@
             appId: "1:1078346470566:web:489a0d85d89216e5e39067",
             databaseURL: "https://abdulrafaychat-default-rtdb.firebaseio.com"
         };
-        // We check if firebase is already there to avoid errors
+
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
         let userId = localStorage.getItem("myStoryId") || ("writer_" + Date.now());
         localStorage.setItem("myStoryId", userId);
-        
+
         const editorCanvas = document.getElementById("editorCanvas");
         const saveStatus = document.getElementById("saveStatus");
         let typingTimer;
@@ -296,6 +266,7 @@
             editorCanvas.focus();
         }
 
+        // Autosave trigger
         editorCanvas.addEventListener('input', () => {
             saveStatus.textContent = "Writing...";
             clearTimeout(typingTimer);
@@ -315,9 +286,6 @@
                 if (data && data.content) { editorCanvas.innerHTML = data.content; }
             });
         }
-
-
-
- </script>
+    </script>
 </body>
 </html>
