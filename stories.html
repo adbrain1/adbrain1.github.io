@@ -231,7 +231,7 @@
             });
         });
 
-        /* ===== PHOTO ROTATION LOGIC (Correct Filenames Restored) ===== */
+        /* ===== PHOTO ROTATION LOGIC ===== */
         const images = ["./LegoMainPage.jpg", "CadburyPic.JPG", "SeaLifePic.JPG"];
         let currentIndex = 0;
         setInterval(() => {
@@ -239,7 +239,7 @@
             document.getElementById('rotatingImg').src = images[currentIndex];
         }, 3000);
 
-        /* ===== FIREBASE & EDITOR BRAINS ===== */
+        /* ===== FIREBASE & EDITOR BRAINS (SHARED MODE) ===== */
         const firebaseConfig = {
             apiKey: "AIzaSyBWwSAuseEPvBoFiPHaZoFNiLV6xhBSeAJI",
             authDomain: "abdulrafaychat.firebaseapp.com",
@@ -252,12 +252,16 @@
 
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
-        let userId = localStorage.getItem("myStoryId") || ("writer_" + Date.now());
-        localStorage.setItem("myStoryId", userId);
+        
+        // FIXED USER ID FOR SHARED STORY
+        const storyId = "shared_adventure_story";
 
         const editorCanvas = document.getElementById("editorCanvas");
         const saveStatus = document.getElementById("saveStatus");
         let typingTimer;
+
+        // Auto-load as soon as the scripts run
+        loadStory();
 
         function openEditor() {
             document.getElementById('mainCard').style.display = 'none';
@@ -266,7 +270,7 @@
             document.getElementById('topWrapper').style.display = 'none';
             document.getElementById('storyEditorSection').style.display = 'flex';
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            loadStory();
+            loadStory(); // Double check load when opening
         }
 
         function closeEditor() {
@@ -290,14 +294,14 @@
         });
 
         function saveStory() {
-            db.ref('stories/' + userId).set({
+            db.ref('stories/' + storyId).set({
                 content: editorCanvas.innerHTML,
                 lastUpdated: firebase.database.ServerValue.TIMESTAMP
             }).then(() => { saveStatus.textContent = "Saved ✓"; });
         }
 
         function loadStory() {
-            db.ref('stories/' + userId).once('value').then((snapshot) => {
+            db.ref('stories/' + storyId).once('value').then((snapshot) => {
                 const data = snapshot.val();
                 if (data && data.content) { editorCanvas.innerHTML = data.content; }
             });
