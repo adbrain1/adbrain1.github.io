@@ -1,5 +1,7 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -20,6 +22,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="style.css">
+
+<style>
+        #storyEditorSection {
+            display: none; flex-direction: column; width: 100%; max-width: 900px;
+            margin: 100px auto 20px auto; background: #fff; border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; border: 2px solid #2e0249;
+        }
+        .editor-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #2e0249; color: white; }
+        .editor-header h2 { margin: 0; font-family: 'Fredoka', sans-serif; font-size: 1.2rem; }
+        .editor-toolbar { background: #f8f9fa; padding: 10px; border-bottom: 2px solid #eee; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .editor-btn { background: white; border: 1px solid #ddd; border-radius: 5px; padding: 6px 10px; cursor: pointer; font-family: 'Fredoka', sans-serif; font-size: 0.85rem; }
+        #editorCanvas { flex: 1; padding: 25px; min-height: 500px; outline: none; background: white !important; color: #222 !important; font-family: 'Nunito', sans-serif; font-size: 1.2rem; text-align: left; }
+        #editorCanvas:empty:before { content: "Start writing..."; color: #bbb; }
+        .save-status { font-size: 0.7rem; color: #666; margin-left: auto; font-style: italic; }
+        @media (max-width: 768px) { #storyEditorSection { margin-top: 110px; width: 95%; } }
+    </style>
+
 </head>
 
 <body>
@@ -79,17 +98,36 @@
             <iframe src="" id="pdfFrame"></iframe>
         </div>
 
+<div id="storyEditorSection">
+            <div class="editor-header">
+                <h2>✍️ My Adventure Story</h2>
+                <button class="back-btn" onclick="closeEditor()" style="background:#ff4757; border:none; color:white; padding:5px 15px; border-radius:20px; cursor:pointer; font-weight:bold;">Close & Save</button>
+            </div>
+            <div class="editor-toolbar">
+                <button class="editor-btn" onclick="formatText('undo')">↩️ Undo</button>
+                <button class="editor-btn" onclick="formatText('bold')"><b>B</b></button>
+                <button class="editor-btn" onclick="formatText('italic')"><i>I</i></button>
+                <button class="editor-btn" onclick="formatText('underline')"><u>U</u></button>
+                <button class="editor-btn" onclick="formatText('justifyLeft')">Left</button>
+                <button class="editor-btn" onclick="formatText('justifyCenter')">Center</button>
+                <button class="editor-btn" onclick="formatText('justifyRight')">Right</button>
+                <select class="editor-btn" onchange="formatText('fontSize', this.value); this.selectedIndex=0;">
+                    <option value="" selected disabled>Size</option>
+                    <option value="3">Small</option>
+                    <option value="5">Normal</option>
+                    <option value="7">Huge</option>
+                </select>
+                <input type="color" onchange="formatText('foreColor', this.value)" style="width:30px; height:30px; border:none; cursor:pointer;">
+                <button class="editor-btn" onclick="formatText('hiliteColor', 'yellow')" style="background:yellow;">🖍️</button>
+                <button class="editor-btn" onclick="formatText('removeFormat')">🧹 Clear</button>
+                <span id="saveStatus" class="save-status">Ready</span>
+            </div>
+            <div id="editorCanvas" contenteditable="true" spellcheck="true"></div>
+        </div>
+
         <div class="trip-container" style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
             
-            <a href="https://1drv.ms/w/c/a50c8365a7d8796c/IQBMZQeJKKBVRZBBXVYd9rWnAZCzEU56l4gGv9Ve4mBI_xI?e=WhnqQl" 
-               target="_blank" 
-               rel="noopener noreferrer" 
-               id="writerBtn" 
-               style="background-color: #ffd700; color: #2e0249; font-family: 'Fredoka', sans-serif; font-weight: 600; padding: 15px 40px; border-radius: 50px; text-decoration: none; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #2e0249; display: inline-flex; align-items: center; transition: transform 0.2s ease; width: fit-content; margin-bottom: 5px;" 
-               onmouseover="this.style.transform='scale(1.05)'" 
-               onmouseout="this.style.transform='scale(1)'">
-                ✍️ Write your own story
-            </a>
+	<button id="writerBtn" onclick="openEditor()" style="background-color: #ffd700; color: #2e0249; font-family: 'Fredoka', sans-serif; font-weight: 600; padding: 15px 40px; border-radius: 50px; text-decoration: none; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #2e0249; cursor: pointer; transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">✍️ Write your own story</button>
 
             <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
                 <div class="trip-btn" onclick="openPDF('https://drive.google.com/file/d/1oc-7tPnLPH2MIOmf_r4ytFFv0feTwR5O/preview', 'Trips to LEGOLAND')">
@@ -213,6 +251,73 @@
             currentIndex = (currentIndex + 1) % images.length;
             rotatingImg.src = images[currentIndex];
         }, 3000);
-    </script>
+   
+/* ===== FIREBASE & EDITOR BRAINS ===== */
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWwSAuseEPvBoFiPHaZoFNiLV6xhBSeAJI",
+            authDomain: "abdulrafaychat.firebaseapp.com",
+            projectId: "abdulrafaychat",
+            storageBucket: "abdulrafaychat.firebasestorage.app",
+            messagingSenderId: "1078346470566",
+            appId: "1:1078346470566:web:489a0d85d89216e5e39067",
+            databaseURL: "https://abdulrafaychat-default-rtdb.firebaseio.com"
+        };
+        // We check if firebase is already there to avoid errors
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.database();
+        let userId = localStorage.getItem("myStoryId") || ("writer_" + Date.now());
+        localStorage.setItem("myStoryId", userId);
+        
+        const editorCanvas = document.getElementById("editorCanvas");
+        const saveStatus = document.getElementById("saveStatus");
+        let typingTimer;
+
+        function openEditor() {
+            document.getElementById('mainCard').style.display = 'none';
+            document.querySelector('.trip-container').style.display = 'none';
+            document.getElementById('flagsBar').style.display = 'none';
+            document.getElementById('topWrapper').style.display = 'none';
+            document.getElementById('storyEditorSection').style.display = 'flex';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            loadStory();
+        }
+
+        function closeEditor() {
+            saveStory();
+            document.getElementById('mainCard').style.display = 'grid';
+            document.querySelector('.trip-container').style.display = 'flex';
+            document.getElementById('flagsBar').style.display = 'flex';
+            document.getElementById('topWrapper').style.display = 'flex';
+            document.getElementById('storyEditorSection').style.display = 'none';
+        }
+
+        function formatText(command, value = null) {
+            document.execCommand(command, false, value);
+            editorCanvas.focus();
+        }
+
+        editorCanvas.addEventListener('input', () => {
+            saveStatus.textContent = "Writing...";
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(saveStory, 1500); 
+        });
+
+        function saveStory() {
+            db.ref('stories/' + userId).set({
+                content: editorCanvas.innerHTML,
+                lastUpdated: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => { saveStatus.textContent = "Saved ✓"; });
+        }
+
+        function loadStory() {
+            db.ref('stories/' + userId).once('value').then((snapshot) => {
+                const data = snapshot.val();
+                if (data && data.content) { editorCanvas.innerHTML = data.content; }
+            });
+        }
+
+
+
+ </script>
 </body>
 </html>
