@@ -365,6 +365,9 @@
        document.getElementById('onlineStatus').style.display = 'block';
        const onlineRef = db.ref('online_users/' + name); onlineRef.set(true); onlineRef.onDisconnect().remove();
        
+       // FIX: Clean up typing status if user disconnects suddenly
+       db.ref('typing_status/' + currentUserName).onDisconnect().remove();
+
        db.ref('online_users').on('value', (snap) => { const users = snap.val() ? Object.keys(snap.val()) : []; document.getElementById('userList').innerText = users.join(", "); });
        
        // REAL-TIME MESSAGE HANDLERS
@@ -400,8 +403,8 @@
        db.ref(`typing_status/${currentUserName}`).set(status);
        clearTimeout(typingTimeout);
        typingTimeout = setTimeout(() => {
-          db.ref(`typing_status/${currentUserName}`).remove();
-       }, 3000);
+          if(currentUserName) db.ref(`typing_status/${currentUserName}`).remove();
+       }, 3500);
     }
 
     function stageFile(input) {
