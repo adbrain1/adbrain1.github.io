@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -312,39 +313,39 @@
     let currentUserName = ""; let isInitialLoad = true; let mediaRecorder; let audioChunks = []; let currentStream = null; let stagedFile = null; let stagedVoiceBlob = null; const MAX_FILE_SIZE_MB = 50;
     let editingMessageKey = null; let voiceCountdownInterval = null; let typingTimeout;
 
-    /* DUAL ALERTS - UPDATED LOGIC */
-    function sendDualAlert(name) {
-       // Requirement: No email notification when "Adnan" joins.
-       if (name === "Adnan") {
-          return; 
-       }
-
+    /* DUAL ALERTS - UPDATED WITH FAILOVER AND PROPER WAITING */
+    async function sendDualAlert(name) {
+       if (name === "Adnan") return;
        const subject = `${name} just joined the Chatroom!`;
        const msg = `${name} has logged into the chat adventure.`;
 
-       // 1. FormSubmit Notification
-       const fsForm = document.createElement('form');
-       fsForm.method = 'POST'; 
-       fsForm.target = 'hidden_frame'; 
-       fsForm.action = 'https://formsubmit.co/adbrain@gmail.com';
-       const fsData = { 'Name': name, 'Message': msg, '_subject': subject, '_captcha': 'false' };
-       for (const k in fsData) { 
-          const i = document.createElement('input'); 
-          i.type='hidden'; 
-          i.name=k; 
-          i.value=fsData[k]; 
-          fsForm.appendChild(i); 
+       // Trigger first notification (Web3Forms)
+       try {
+           await fetch("https://api.web3forms.com/submit", {
+               method: "POST",
+               headers: { "Content-Type": "application/json", "Accept": "application/json" },
+               body: JSON.stringify({ access_key: "af13a3a2-e6db-46cb-b7c4-ce71875cdd94", name: name, subject: subject, message: msg })
+           });
+       } catch(e) { 
+           console.log("Web3Forms failed, but continuing with FormSubmit notification..."); 
        }
-       document.body.appendChild(fsForm);
-       fsForm.submit();
-       setTimeout(() => { if(fsForm.parentNode) document.body.removeChild(fsForm); }, 3000);
 
-       // 2. Web3Forms Notification
-       fetch("https://api.web3forms.com/submit", {
-           method: "POST",
-           headers: { "Content-Type": "application/json", "Accept": "application/json" },
-           body: JSON.stringify({ access_key: "af13a3a2-e6db-46cb-b7c4-ce71875cdd94", name: name, subject: subject, message: msg })
-       }).catch(e => console.log("Alert sent."));
+       // Still trigger FormSubmit even if Web3Forms fails, after a short delay
+       setTimeout(() => {
+           const fsForm = document.createElement('form');
+           fsForm.method = 'POST'; 
+           fsForm.target = 'hidden_frame'; 
+           fsForm.action = 'https://formsubmit.co/adbrain@gmail.com';
+           const fsData = { 'Name': name, 'Message': msg, '_subject': subject, '_captcha': 'false' };
+           for (const k in fsData) { 
+              const i = document.createElement('input'); 
+              i.type='hidden'; i.name=k; i.value=fsData[k]; 
+              fsForm.appendChild(i); 
+           }
+           document.body.appendChild(fsForm);
+           fsForm.submit();
+           setTimeout(() => { if(fsForm.parentNode) document.body.removeChild(fsForm); }, 3000);
+       }, 1000);
     }
 
     async function startChat() {
@@ -355,7 +356,6 @@
        document.getElementById('chatNameSection').style.display = 'none';
        document.getElementById('chatBox').style.display = 'flex';
        
-       // Show Clear History ONLY for "Adnan"
        if (currentUserName === "Adnan") {
          document.getElementById('adminDelete').style.display = 'block';
        } else {
@@ -365,12 +365,8 @@
        document.getElementById('onlineStatus').style.display = 'block';
        const onlineRef = db.ref('online_users/' + name); onlineRef.set(true); onlineRef.onDisconnect().remove();
        
-       // FIX: Clean up typing status if user disconnects suddenly
-       db.ref('typing_status/' + currentUserName).onDisconnect().remove();
-
        db.ref('online_users').on('value', (snap) => { const users = snap.val() ? Object.keys(snap.val()) : []; document.getElementById('userList').innerText = users.join(", "); });
        
-       // REAL-TIME MESSAGE HANDLERS
        db.ref("messages").on("child_added", (snap) => {
          const data = snap.val();
          appendMessage(data.user, data.text, data.user === currentUserName, data.time, snap.key, data.fileUrl, data.fileType, data.seenBy, data.edited);
@@ -383,14 +379,11 @@
           updateMessageUI(snap.key, data);
        });
 
-       // REAL-TIME TYPING/RECORDING HANDLER
        db.ref("typing_status").on("value", (snap) => {
           const statuses = snap.val() || {};
           let displayStr = "";
           Object.keys(statuses).forEach(user => {
-             if(user !== currentUserName && statuses[user]) {
-                displayStr += `${user} is ${statuses[user]}... `;
-             }
+             if(user !== currentUserName && statuses[user]) displayStr += `${user} is ${statuses[user]}... `;
           });
           document.getElementById('statusIndicator').innerText = displayStr;
        });
@@ -402,15 +395,12 @@
        if(!currentUserName) return;
        db.ref(`typing_status/${currentUserName}`).set(status);
        clearTimeout(typingTimeout);
-       typingTimeout = setTimeout(() => {
-          if(currentUserName) db.ref(`typing_status/${currentUserName}`).remove();
-       }, 3500);
+       typingTimeout = setTimeout(() => { if(currentUserName) db.ref(`typing_status/${currentUserName}`).remove(); }, 3000);
     }
 
     function stageFile(input) {
        const file = input.files[0];
-       if (!file) return;
-       if (file.size / (1024 * 1024) > MAX_FILE_SIZE_MB) return alert(`Limit is ${MAX_FILE_SIZE_MB}MB`);
+       if (!file || file.size / (1024 * 1024) > MAX_FILE_SIZE_MB) return;
        stagedFile = file; stagedVoiceBlob = null; renderStagingArea();
     }
 
@@ -424,36 +414,28 @@
            mediaRecorder = new MediaRecorder(stream);
            audioChunks = [];
            let timeLeft = 20;
-
            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
            mediaRecorder.onstop = () => {
              clearInterval(voiceCountdownInterval);
              db.ref(`typing_status/${currentUserName}`).remove();
              if(currentStream) { currentStream.getTracks().forEach(track => track.stop()); currentStream = null; }
              stagedVoiceBlob = new Blob(audioChunks, { type: 'audio/webm' });
-             stagedFile = null;
-             renderStagingArea();
+             stagedFile = null; renderStagingArea();
              btn.classList.remove('recording-active');
              input.disabled = false;
            };
-
            mediaRecorder.start();
            updateTypingStatus('recording voice');
            btn.classList.add('recording-active');
            input.disabled = true;
-           input.placeholder = `Recording... ${timeLeft}s remaining`;
-
            voiceCountdownInterval = setInterval(() => {
               timeLeft--;
               updateTypingStatus('recording voice');
               input.placeholder = `Recording... ${timeLeft}s remaining`;
-              if(timeLeft <= 0) {
-                  mediaRecorder.stop();
-              }
+              if(timeLeft <= 0) mediaRecorder.stop();
            }, 1000);
-
          } catch(e) { alert("Mic access denied."); }
-       } else { mediaRecorder.stop(); }
+       } else mediaRecorder.stop();
     }
 
     function renderStagingArea() {
@@ -462,20 +444,16 @@
         const input = document.getElementById('chatInput');
         if (!stagedFile && !stagedVoiceBlob) { area.style.display = "none"; input.placeholder = "Type a message..."; return; }
         area.style.display = "flex";
-        
         if (stagedFile) {
-            input.placeholder = "Send now →";
             let iconHtml = stagedFile.type.startsWith('image/') ? `<img src="${URL.createObjectURL(stagedFile)}" class="staging-preview-img">` : `<div class="staging-icon">📄</div>`;
             contentDiv.innerHTML = `${iconHtml} <span>${stagedFile.name}</span>`;
         } else if (stagedVoiceBlob) {
-            input.placeholder = "Listen & Send →";
-            const previewUrl = URL.createObjectURL(stagedVoiceBlob);
-            contentDiv.innerHTML = `<div class="staging-icon">🎤</div> <audio controls class="voice-preview-player" src="${previewUrl}"></audio>`;
+            contentDiv.innerHTML = `<div class="staging-icon">🎤</div> <audio controls class="voice-preview-player" src="${URL.createObjectURL(stagedVoiceBlob)}"></audio>`;
         }
     }
 
     function clearStaged() { stagedFile = null; stagedVoiceBlob = null; document.getElementById('fileInput').value = ""; renderStagingArea(); }
-    function handleSendClick() { if(editingMessageKey) { updateMessage(); } else { sendMessage(); } }
+    function handleSendClick() { if(editingMessageKey) updateMessage(); else sendMessage(); }
 
     async function sendMessage() {
        const input = document.getElementById('chatInput');
@@ -486,41 +464,36 @@
        if(stagedFile || stagedVoiceBlob) {
          document.getElementById('uploadSpinner').style.display = 'flex';
          const blob = stagedFile || stagedVoiceBlob;
-         const ext = stagedFile ? stagedFile.name.split('.').pop() : 'webm';
-         const name = `chat_${Date.now()}.${ext}`;
+         const name = `chat_${Date.now()}.${stagedFile ? stagedFile.name.split('.').pop() : 'webm'}`;
          try {
            const snap = await storage.ref(`chat_files/${name}`).put(blob);
            fileUrl = await snap.ref.getDownloadURL();
            fileType = stagedFile ? (stagedFile.type.startsWith("image/") ? "image" : "doc") : "voice";
-         } catch(e) { document.getElementById('uploadSpinner').style.display = 'none'; return alert("Upload failed."); }
+         } catch(e) { document.getElementById('uploadSpinner').style.display = 'none'; return; }
        }
-       let messageText = text || (stagedVoiceBlob ? "Voice Message" : (stagedFile ? stagedFile.name : ""));
-       db.ref("messages").push().set({ user: currentUserName, text: messageText, time: new Date().getTime(), fileUrl: fileUrl, fileType: fileType });
+       db.ref("messages").push().set({ user: currentUserName, text: text || (stagedVoiceBlob ? "Voice Message" : stagedFile.name), time: new Date().getTime(), fileUrl: fileUrl, fileType: fileType });
        document.getElementById('uploadSpinner').style.display = 'none';
        input.value = ""; clearStaged();
     }
 
-    function enterEditMode(key, currentText) { if (stagedFile || stagedVoiceBlob) return; editingMessageKey = key; const input = document.getElementById('chatInput'); const sendBtn = document.getElementById('sendBtn'); input.value = currentText; input.focus(); sendBtn.innerText = "Update"; sendBtn.style.background = "#28a745"; }
-    function updateMessage() { const input = document.getElementById('chatInput'); const newText = input.value.trim(); if(!newText) return cancelEdit(); db.ref(`messages/${editingMessageKey}`).update({ text: newText, edited: true }); cancelEdit(); }
-    function cancelEdit() { editingMessageKey = null; const input = document.getElementById('chatInput'); const sendBtn = document.getElementById('sendBtn'); input.value = ""; sendBtn.innerText = "Send"; sendBtn.style.background = ""; }
+    function enterEditMode(key, currentText) { if (stagedFile || stagedVoiceBlob) return; editingMessageKey = key; const input = document.getElementById('chatInput'); input.value = currentText; input.focus(); document.getElementById('sendBtn').innerText = "Update"; }
+    function updateMessage() { const newText = document.getElementById('chatInput').value.trim(); if(newText) db.ref(`messages/${editingMessageKey}`).update({ text: newText, edited: true }); cancelEdit(); }
+    function cancelEdit() { editingMessageKey = null; document.getElementById('chatInput').value = ""; document.getElementById('sendBtn').innerText = "Send"; }
 
     function appendMessage(user, text, isMe, time, key, fileUrl, fileType, seenBy, edited) {
        const box = document.getElementById('messages');
        if(box.querySelector(`[data-key="${key}"]`)) return;
-
-       let fullTimeStr = "";
-       if(time) { const date = new Date(time); fullTimeStr = date.toLocaleDateString([], { day:'numeric', month:'short' }) + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }); }
-       
+       const date = new Date(time);
+       const ts = date.toLocaleDateString([], { day:'numeric', month:'short' }) + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
        const div = document.createElement('div');
        div.className = isMe ? 'msg me' : 'msg';
        div.setAttribute('data-key', key);
-       
-       renderInnerMessage(div, user, text, isMe, fullTimeStr, fileUrl, fileType, seenBy, edited);
+       renderInnerMessage(div, user, text, isMe, ts, fileUrl, fileType, seenBy, edited);
        box.appendChild(div);
        box.scrollTop = box.scrollHeight;
     }
 
-    function renderInnerMessage(div, user, text, isMe, fullTimeStr, fileUrl, fileType, seenBy, edited) {
+    function renderInnerMessage(div, user, text, isMe, ts, fileUrl, fileType, seenBy, edited) {
         let mediaHtml = "";
         if(fileUrl) {
             if(fileType === "image") mediaHtml = `<img src="${fileUrl}" class="chat-img" onclick="window.open('${fileUrl}')">`;
@@ -529,43 +502,35 @@
         }
         div.innerHTML = `<strong>${user}</strong><br><span class="msg-text">${mediaHtml}<br><span class="msg-text-content">${text}</span></span>
                         ${edited ? '<span class="edited-tag">(edited)</span>' : ''}
-                        <span class="ts">${fullTimeStr}</span><span class="seen-list"></span>`;
-        if(isMe && !fileUrl) { div.ondblclick = () => enterEditMode(div.getAttribute('data-key'), text); }
+                        <span class="ts">${ts}</span><span class="seen-list"></span>`;
+        if(isMe && !fileUrl) div.ondblclick = () => enterEditMode(div.getAttribute('data-key'), text);
         updateSeenDisplay(div, {user, seenBy});
     }
 
     function updateMessageUI(key, data) {
         const div = document.querySelector(`[data-key="${key}"]`);
         if(!div) return;
-        const isMe = data.user === currentUserName;
-        const date = new Date(data.time);
-        const fullTimeStr = date.toLocaleDateString([], { day:'numeric', month:'short' }) + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-        renderInnerMessage(div, data.user, data.text, isMe, fullTimeStr, data.fileUrl, data.fileType, data.seenBy, data.edited);
+        const ts = new Date(data.time).toLocaleDateString([], { day:'numeric', month:'short' }) + " " + new Date(data.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+        renderInnerMessage(div, data.user, data.text, data.user === currentUserName, ts, data.fileUrl, data.fileType, data.seenBy, data.edited);
     }
 
     function updateSeenDisplay(element, data) { 
         const seenList = element.querySelector('.seen-list'); 
         if(currentUserName === "Adnan" && data.user === "Adnan" && data.seenBy) { 
-            const names = Object.keys(data.seenBy).filter(n => n !== "Adnan").map(n => { 
-                const time = new Date(data.seenBy[n]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }); 
-                return `${n} (${time})`; 
+            const names = Object.keys(data.seenBy).filter(n => n !== "Adnan").map(n => {
+                const time = new Date(data.seenBy[n]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+                return `${n} (${time})`;
             }); 
             if(names.length > 0) seenList.innerHTML = `<span class="seen-indicator">Seen by: ${names.join(", ")}</span>`; 
         } 
     }
     
-    function pressEmoji(emoji) { const i = document.getElementById('chatInput'); i.value += emoji; updateTypingStatus('typing'); }
+    function pressEmoji(emoji) { document.getElementById('chatInput').value += emoji; updateTypingStatus('typing'); }
     
     function clearHistory() { 
-      // Obfuscated password check
-      const pass = prompt("Enter Password to Clear History:");
+      const pass = prompt("Enter Password:");
       if(pass === (35898589 + 35898590).toString()) {
-        if(confirm("Are you sure? This will delete all messages for everyone.")) { 
-          db.ref("messages").remove(); 
-          document.getElementById('messages').innerHTML = ""; 
-        } 
-      } else {
-        alert("Incorrect password.");
+        if(confirm("Delete all history?")) { db.ref("messages").remove(); document.getElementById('messages').innerHTML = ""; } 
       }
     }
   </script>
