@@ -131,28 +131,15 @@
         z-index: 2;
     }
 
-    /* MOBILE ADJUSTMENTS */
-    @media (max-width: 768px) {
-      /* Center Login Section */
+@media (max-width: 768px) {
       #chatNameSection {
           display: flex;
           flex-direction: column;
           align-items: center;
           width: 100%;
       }
-
-      /* Chat Header Spacing */
-      .chat-header {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 10px;
-          padding-bottom: 10px;
-      }
       
-      /* Base Mobile Settings */
-      body { margin: 0; padding: 0; overflow-x: hidden; width: 100vw; position: relative; }
-      .top-wrapper { flex-direction: column !important; align-items: center; gap: 10px; padding: 10px; width: 100%; }
+      body { margin: 0; padding: 0; overflow-x: hidden; width: 100vw; position: relative; }      .top-wrapper { flex-direction: column !important; align-items: center; gap: 10px; padding: 10px; width: 100%; }
       .top-info { width: 95%; text-align: center; }
       .view-container { width: 100% !important; padding: 0 !important; margin: 0 !important; overflow-x: hidden; }
       .card { margin: 8px !important; width: calc(100% - 16px) !important; display: flex !important; flex-direction: column !important; border-radius: 12px; overflow: hidden; }
@@ -169,29 +156,12 @@
           overflow-x: hidden; 
       }
       
-      /* Message Bubbles - Wider and Larger Text */
-      .msg { 
-          max-width: 92% !important; 
-          font-size: 0.9rem !important; 
-          margin-bottom: 10px !important; 
-          word-wrap: break-word; 
-          overflow-wrap: break-word; 
-      }
-
+      .msg { max-width: 85% !important; font-size: 0.85rem !important; margin-bottom: 8px !important; word-wrap: break-word; overflow-wrap: break-word; }
       .chat-header h1 { font-size: 1.2rem !important; text-align: center; padding: 10px; }
       .voice-msg { max-width: 100%; }
       .voice-msg audio { min-width: 160px; width: 100%; }
       
       .voice-preview-player { max-width: 140px; }
-
-      /* Emoji Bar Scrolling */
-      .emoji-bar {
-          overflow-x: auto;
-          white-space: nowrap;
-          justify-content: flex-start;
-          gap: 15px;
-          -webkit-overflow-scrolling: touch;
-      }
 
       .input-area {
           flex-wrap: wrap !important; 
@@ -269,10 +239,11 @@
         </div>
         <div class="chat-portal">
           
-          <div id="chatNameSection">
-            <input type="text" id="userName" class="chat-input" placeholder="Your name..." style="width: 90%; max-width: 300px;">
-            <button class="chat-btn" onclick="startChat()" style="margin-top:10px; width: 90%; max-width: 300px;">Join Chat Room</button>
-          </div>
+<div id="chatNameSection">
+  <input type="text" id="userName" class="chat-input" placeholder="Your name..." style="width: 90%; max-width: 300px;">
+  <button class="chat-btn" onclick="startChat()" style="margin-top:10px; width: 90%; max-width: 300px;">Join Chat Room</button>
+</div>
+
 
           <div id="chatBox" style="display:none; flex-direction:column;">
             <div id="onlineStatus" class="online-indicator" style="display:none;">Online: <span id="userList">...</span></div>
@@ -341,17 +312,34 @@
     let currentUserName = ""; let isInitialLoad = true; let mediaRecorder; let audioChunks = []; let currentStream = null; let stagedFile = null; let stagedVoiceBlob = null; const MAX_FILE_SIZE_MB = 50;
     let editingMessageKey = null; let voiceCountdownInterval = null; let typingTimeout;
 
-    /* DUAL ALERTS */
+    /* DUAL ALERTS - UPDATED LOGIC */
     function sendDualAlert(name) {
+       // Requirement: No email notification when "Adnan" joins.
+       if (name === "Adnan") {
+          return; 
+       }
+
        const subject = `${name} just joined the Chatroom!`;
        const msg = `${name} has logged into the chat adventure.`;
+
+       // 1. FormSubmit Notification
        const fsForm = document.createElement('form');
-       fsForm.method = 'POST'; fsForm.target = 'hidden_frame'; fsForm.action = 'https://formsubmit.co/adbrain@gmail.com';
+       fsForm.method = 'POST'; 
+       fsForm.target = 'hidden_frame'; 
+       fsForm.action = 'https://formsubmit.co/adbrain@gmail.com';
        const fsData = { 'Name': name, 'Message': msg, '_subject': subject, '_captcha': 'false' };
-       for (const k in fsData) { const i = document.createElement('input'); i.type='hidden'; i.name=k; i.value=fsData[k]; fsForm.appendChild(i); }
+       for (const k in fsData) { 
+          const i = document.createElement('input'); 
+          i.type='hidden'; 
+          i.name=k; 
+          i.value=fsData[k]; 
+          fsForm.appendChild(i); 
+       }
        document.body.appendChild(fsForm);
        fsForm.submit();
        setTimeout(() => { if(fsForm.parentNode) document.body.removeChild(fsForm); }, 3000);
+
+       // 2. Web3Forms Notification
        fetch("https://api.web3forms.com/submit", {
            method: "POST",
            headers: { "Content-Type": "application/json", "Accept": "application/json" },
