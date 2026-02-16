@@ -400,6 +400,13 @@
           updateMessageUI(snap.key, data);
        });
 
+       // *** NEW: Listener for message removal ***
+       db.ref("messages").on("child_removed", (snap) => {
+         const key = snap.key;
+         const el = document.querySelector(`div[data-key="${key}"]`);
+         if(el) el.remove();
+       });
+
        // REAL-TIME TYPING/RECORDING HANDLER
        db.ref("typing_status").on("value", (snap) => {
           const statuses = snap.val() || {};
