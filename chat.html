@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,13 +45,20 @@
       background: rgba(0,0,0,0.02);
     }
 
-    /* Last Seen Styling */
-    #lastSeenInfo {
+    /* UPDATED Last Seen Styling */
+#lastSeenInfo {
         font-size: 0.75rem;
-        color: #666;
-        padding: 5px 15px; /* Increased padding slightly for multi-line */
-        margin-top: -5px;
-        line-height: 1.4; /* Better spacing for multiple lines */
+        background: linear-gradient(135deg, #2e0249, #4a0e78);
+        color: #e0e0e0;
+        padding: 6px 15px; /* Slightly increased left padding for better look */
+        text-align: left;   /* Now aligned to the left */
+        border-bottom: 2px solid #9d4edd;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        line-height: 1.4;
+        display: flex;      /* Added for better alignment of items */
+        flex-wrap: wrap;    /* Ensures names wrap nicely if there are many */
+        align-items: center;
+        gap: 5px;           /* Space between the names and dividers */
     }
 
     /* Buttons & Icons */
@@ -413,9 +419,26 @@ function startChat() {
       }
     });
 
+// ADD THIS: This listens for updates (like when someone 'sees' a message)
+    // 1. Listen for Updates (Seen receipts/Edits)
+    db.ref("messages").on("child_changed", (snap) => {
+        updateMessageUI(snap.key, snap.val());
+    });
+
+    // 2. Listen for Deletions (Real-time removal)
+    db.ref("messages").on("child_removed", (snap) => {
+        const deletedDiv = document.querySelector(`[data-key="${snap.key}"]`);
+        if (deletedDiv) {
+            deletedDiv.remove(); 
+        }
+    });
+
     db.ref("messages").once("value", () => { isInitialLoad = false; });
-}
-    // UPDATED: Function to handle Last Seen Display logic for multiple users
+} // This bracket now correctly closes startChat()
+
+
+
+// UPDATED: Function to handle Last Seen Display with Priority & Compact Layout
     function handleLastSeenDisplay() {
         db.ref('last_seen').once('value', (snap) => {
             const lastSeens = snap.val() || {};
@@ -423,42 +446,45 @@ function startChat() {
             let seenEntries = [];
 
             Object.keys(lastSeens).forEach(user => {
-                // Check if currently online (using global variable)
                 const isOnline = currentOnlineUsers.includes(user);
                 
-                // Do not show self, and do not show if they are currently online
                 if(!isOnline && user !== currentUserName) {
                     const timestamp = lastSeens[user];
                     const date = new Date(timestamp);
-                    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-                    const dateStr = date.toLocaleDateString([], { day: 'numeric', month: 'short' });
                     
-                    // Prioritize "Abdulrafay" (case insensitive)
+                    // CHECK: Is the timestamp older than 24 hours?
+                    const isOver24h = (Date.now() - timestamp) > (24 * 60 * 60 * 1000);
+                    
+                    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+                    const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                    
                     const isPriority = user.toLowerCase().includes("abdulrafay");
+                    
+                    // Logic: Use Date only if over 24h
+                    let userHtml = isOver24h ? `${user}: ${dateStr} ${timeStr}` : `${user}: ${timeStr}`;
+
+                    if(isPriority) {
+                        userHtml = `<span style="color: #ffd700; font-weight: bold; padding: 2px 6px; border: 1px solid #ffd700; border-radius: 4px; background: rgba(0,0,0,0.3); display:inline-block;">⭐ ${userHtml}</span>`;
+                    }
 
                     seenEntries.push({
-                        name: user,
                         isPriority: isPriority,
                         timestamp: timestamp,
-                        text: `${user} was last seen: ${dateStr} at ${timeStr}`
+                        html: userHtml
                     });
                 }
             });
 
-            // Sorting Logic: 
-            // 1. "Abdulrafay" first
-            // 2. Then sort by timestamp (newest first)
             seenEntries.sort((a, b) => {
                 if (a.isPriority && !b.isPriority) return -1;
                 if (!a.isPriority && b.isPriority) return 1;
                 return b.timestamp - a.timestamp; 
             });
 
-            // Display
             if (seenEntries.length > 0) {
-                // Join all entries with a line break
-                displayEl.innerHTML = seenEntries.map(e => e.text).join('<br>');
-                displayEl.style.display = 'block';
+                displayEl.innerHTML = seenEntries.map(e => e.html).join(' <span style="color:rgba(255,255,255,0.3); margin:0 5px;">|</span> ');
+                displayEl.style.display = 'flex';
+		displayEl.style.flexWrap = 'wrap'; // Changed to flex to support the left alignment
             } else {
                 displayEl.innerHTML = '';
                 displayEl.style.display = 'none';
@@ -605,26 +631,40 @@ function startChat() {
                         ${edited ? '<span class="edited-tag">(edited)</span>' : ''}
                         <span class="ts">${fullTimeStr}</span><span class="seen-list"></span>`;
         if(isMe && !fileUrl) { div.ondblclick = () => enterEditMode(div.getAttribute('data-key'), text); }
-        updateSeenDisplay(div, {user, seenBy});
+        updateSeenDisplay(div, {user: user, seenBy: seenBy});
     }
 
     function updateMessageUI(key, data) {
         const div = document.querySelector(`[data-key="${key}"]`);
         if(!div) return;
+        
         const isMe = data.user === currentUserName;
         const date = new Date(data.time);
         const fullTimeStr = date.toLocaleDateString([], { day:'numeric', month:'short' }) + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+        
+        // This re-renders the message content including the new "Seen by" list
         renderInnerMessage(div, data.user, data.text, isMe, fullTimeStr, data.fileUrl, data.fileType, data.seenBy, data.edited);
     }
 
     function updateSeenDisplay(element, data) { 
         const seenList = element.querySelector('.seen-list'); 
-        if(currentUserName === "Adnan" && data.user === "Adnan" && data.seenBy) { 
-            const names = Object.keys(data.seenBy).filter(n => n !== "Adnan").map(n => { 
-                const time = new Date(data.seenBy[n]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }); 
-                return `${n} (${time})`; 
-            }); 
-            if(names.length > 0) seenList.innerHTML = `<span class="seen-indicator">Seen by: ${names.join(", ")}</span>`; 
+        if(!seenList) return;
+
+        // Reset the display
+        seenList.innerHTML = '';
+
+        // LOGIC: If I am the one who sent this message, show me who has seen it
+        if(data.user === currentUserName && data.seenBy) { 
+            const names = Object.keys(data.seenBy)
+                .filter(n => n !== currentUserName) // Don't show my own name in the "seen" list
+                .map(n => { 
+                    const time = new Date(data.seenBy[n]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }); 
+                    return `${n} (${time})`; 
+                }); 
+
+            if(names.length > 0) {
+                seenList.innerHTML = `<span class="seen-indicator">Seen by: ${names.join(", ")}</span>`; 
+            } 
         } 
     }
     
