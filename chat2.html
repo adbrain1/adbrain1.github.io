@@ -352,17 +352,14 @@ function startChat() {
     if (!name) return alert("Please enter a name");
 
     currentUserName = name;
-    
-    // 1. Remember the name for next time
     localStorage.setItem('savedChatName', name);
 
-    // 2. Email Notification (Only once per session)
+    // Email Alert Logic
     if (!sessionStorage.getItem('notifiedThisSession')) {
         sendDualAlert(name); 
         sessionStorage.setItem('notifiedThisSession', 'true');
     }
 
-    // 3. UI Transitions
     document.getElementById('chatNameSection').style.display = 'none';
     document.getElementById('chatBox').style.display = 'flex';
     
@@ -374,15 +371,17 @@ function startChat() {
 
     document.getElementById('onlineStatus').style.display = 'block';
     
-    // 4. Connect to Database (No Auth needed now)
+    // --- DATABASE CONNECTIONS (RESTORING ALL FUNCTIONS) ---
+    
     const onlineRef = db.ref('online_users/' + name); 
     const lastSeenRef = db.ref('last_seen/' + name);
+    
     onlineRef.set(true); 
     onlineRef.onDisconnect().remove();
     lastSeenRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
     lastSeenRef.remove();
 
-    // 5. Listeners
+    // 1. Restore Online User List
     db.ref('online_users').on('value', (snap) => { 
         const val = snap.val();
         currentOnlineUsers = val ? Object.keys(val) : []; 
@@ -390,10 +389,24 @@ function startChat() {
         handleLastSeenDisplay();
     });
 
+    // 2. Restore Typing Indicator Display
+    db.ref("typing_status").on("value", (snap) => {
+       const statuses = snap.val() || {};
+       let displayStr = "";
+       Object.keys(statuses).forEach(user => {
+          if(user !== currentUserName && statuses[user]) {
+             displayStr += `${user} is ${statuses[user]}... `;
+          }
+       });
+       document.getElementById('statusIndicator').innerText = displayStr;
+    });
+
+    // 3. Restore Message Loading
     db.ref("messages").on("child_added", (snap) => {
       const data = snap.val();
       appendMessage(data.user, data.text, data.user === currentUserName, data.time, snap.key, data.fileUrl, data.fileType, data.seenBy, data.edited);
       if(data.user !== currentUserName) db.ref(`messages/${snap.key}/seenBy/${currentUserName}`).set(new Date().getTime());
+      
       if(!isInitialLoad) {
           const sound = document.getElementById('sendSound');
           if(sound) sound.play().catch(()=>{});
@@ -402,7 +415,6 @@ function startChat() {
 
     db.ref("messages").once("value", () => { isInitialLoad = false; });
 }
-
     // UPDATED: Function to handle Last Seen Display logic for multiple users
     function handleLastSeenDisplay() {
         db.ref('last_seen').once('value', (snap) => {
@@ -455,13 +467,19 @@ function startChat() {
     }
 
     function updateTypingStatus(status) {
-       if(!currentUserName) return;
-       db.ref(`typing_status/${currentUserName}`).set(status);
-       clearTimeout(typingTimeout);
-       typingTimeout = setTimeout(() => {
-          db.ref(`typing_status/${currentUserName}`).remove();
-       }, 3000);
-    }
+    if(!currentUserName) return;
+
+    // This sends the "typing..." signal to Firebase
+    db.ref("typing_status/" + currentUserName).set(status);
+
+    // This clears the old timer
+    clearTimeout(typingTimeout);
+
+    // This waits 2 seconds of no typing, then removes the status
+    typingTimeout = setTimeout(() => {
+        db.ref("typing_status/" + currentUserName).remove();
+    }, 2000);
+}
 
     function stageFile(input) {
        const file = input.files[0];
