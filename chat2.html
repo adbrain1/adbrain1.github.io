@@ -629,6 +629,9 @@ window.onload = function() {
     const rememberedName = localStorage.getItem('savedChatName');
     if (rememberedName) {
         document.getElementById('userName').value = rememberedName;
+        
+        // This line is the "auto-click" mechanism
+        startChat(); 
     }
 };
   </script>
