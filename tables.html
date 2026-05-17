@@ -83,7 +83,7 @@
       
       <div id="quizContent" style="display:none">
         <div id="dotContainer" class="dot-container"></div>
-        <div id="timerDisplay" class="math-timer">10</div>
+        <div id="timerDisplay" class="math-timer">6</div>
         <div id="question" class="math-question">...</div>
         <div id="optionsGrid" class="options-grid"></div>
         <div id="feedback" style="margin-top:20px; font-weight:bold; min-height:45px; font-size:1.5rem;"></div>
@@ -148,7 +148,7 @@
     let timerObj, timeLeft, currentTable, currentNum, qCount, totalScore, startTime, finalTime, bossHP;
     let finalRank = "";
     let isReviewing = false;
-    let activeTables = [8, 9]; // Default tables
+    let activeTables = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // Default tables
 
     function toggleMenu() {
       const menu = document.getElementById('slideMenu');
@@ -248,7 +248,7 @@
     }
 
     function startTimer(correctVal) {
-      clearInterval(timerObj); timeLeft = 10;
+      clearInterval(timerObj); timeLeft = 6;
       document.getElementById('timerDisplay').innerText = timeLeft;
       timerObj = setInterval(() => {
         timeLeft--;
