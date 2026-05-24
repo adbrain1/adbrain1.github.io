@@ -627,6 +627,46 @@
     /* ─── Hidden helpers ─── */
     .hidden { display: none !important; }
 
+    /* ─── Family status bar (everyone except Abdulrafay) ─── */
+    .family-bar {
+      flex: 0 0 auto;
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--text-secondary);
+      padding: 6px 12px;
+      font-size: 11.5px;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .family-bar::-webkit-scrollbar { display: none; }
+    .family-bar.show { display: flex; }
+    html[data-theme="dark"] .family-bar { background: rgba(255, 255, 255, 0.04); }
+    .family-bar .fb-label {
+      flex-shrink: 0; font-weight: 600;
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+    .family-bar .fb-pill {
+      flex-shrink: 0;
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: var(--bg-bubble-other);
+      cursor: pointer;
+    }
+    .family-bar .fb-pill:active { opacity: 0.7; }
+    .family-bar .fb-pill .dot-on {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #4caf50;
+    }
+    .family-bar .fb-pill .fb-name { font-weight: 600; color: var(--text-primary); }
+    .family-bar .fb-pill .fb-time { opacity: 0.75; }
+
     /* ─── Priority bar (sticky Abdul Rafay last seen) ─── */
     .priority-bar {
       flex: 0 0 auto;
@@ -717,6 +757,49 @@
     html[data-theme="dark"] .seen-by-expanded { background: rgba(255,255,255,0.04); }
     .seen-by-expanded .sb-line { font-size: 11px; line-height: 1.5; }
     .seen-by-expanded .sb-name { font-weight: 600; }
+
+    /* ─── Upload spinner overlay ─── */
+    .upload-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 14px;
+      z-index: 40;
+      color: white;
+    }
+    .upload-overlay.show { display: flex; }
+    .upload-spinner {
+      width: 48px; height: 48px;
+      border: 4px solid rgba(255,255,255,0.2);
+      border-top-color: var(--brand-accent-soft);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+    .upload-overlay .upload-label { font-size: 15px; font-weight: 500; }
+
+    /* ─── Danger button in settings (Clear History / Sign Out) ─── */
+    .danger-btn {
+      width: 100%; padding: 12px 14px;
+      background: transparent;
+      color: #e53935;
+      border: 1px solid #e53935;
+      border-radius: 10px;
+      font-size: 14px; font-weight: 600;
+      margin-top: 8px;
+    }
+    .danger-btn:active { background: rgba(229,57,53,0.1); }
+    .neutral-btn {
+      width: 100%; padding: 12px 14px;
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+      font-size: 14px; font-weight: 500;
+      margin-top: 8px;
+    }
+    .neutral-btn:active { background: rgba(0,0,0,0.04); }
   </style>
 </head>
 <body>
@@ -774,6 +857,12 @@
       <span class="star">⭐</span>
       <span class="pname" id="pbName"></span>
       <span id="pbStatus"></span>
+    </div>
+
+    <!-- Family status bar: everyone else's online/last-seen status, scrollable -->
+    <div class="family-bar" id="familyBar">
+      <span class="fb-label">Family:</span>
+      <div id="familyBarList" style="display:contents"></div>
     </div>
 
     <!-- Messages -->
@@ -881,7 +970,19 @@
           Push notifications enabled.
         </div>
       </div>
+
+      <div class="settings-section">
+        <h3>Account</h3>
+        <button class="neutral-btn" onclick="signOut()">Sign out (change name)</button>
+        <button class="danger-btn" id="clearHistoryBtn" style="display:none;" onclick="clearHistory()">Clear chat history (admin)</button>
+      </div>
     </div>
+  </div>
+
+  <!-- ─── Upload spinner overlay ─── -->
+  <div class="upload-overlay" id="uploadOverlay">
+    <div class="upload-spinner"></div>
+    <div class="upload-label" id="uploadLabel">Sending…</div>
   </div>
 
   <!-- ─── Action sheet for long-press ─── -->
@@ -988,6 +1089,13 @@
       return norm.includes("abdul") || norm.includes("rafay");
     }
 
+    /** Strict match: only "abdulrafay" (with or without space, any case) — used for priority bar */
+    function isMySonName(name) {
+      if (!name) return false;
+      const norm = String(name).toLowerCase().replace(/\s+/g, "");
+      return norm === "abdulrafay";
+    }
+
     // ════════════════════════════════════════════════════════════════════
     //  Theme
     // ════════════════════════════════════════════════════════════════════
@@ -1029,18 +1137,24 @@
       isAdmin = name.toLowerCase() === "adnan";
       localStorage.setItem("rc_name", name);
 
-      // Tell the Cloud Function someone logged in (fires push to others)
+      // Tell the Cloud Function someone logged in (fires push to others).
+      // The function filters out Adnan's actions server-side, so no flag needed.
       db.ref("login_events").push({
         user: name,
         ts: firebase.database.ServerValue.TIMESTAMP
       }).catch(() => {});
 
-      // Push notification subscribe
+      // Push notification subscribe (so I receive pushes from others)
       setupPushNotifications(name);
 
       // UI transition
       document.getElementById("loginScreen").style.display = "none";
       document.getElementById("appScreen").classList.add("show");
+
+      // Show admin tools (clear history button)
+      if (isAdmin) {
+        document.getElementById("clearHistoryBtn").style.display = "";
+      }
 
       // My avatar bits
       document.getElementById("myAvatarInitials").innerText = initialsOf(name);
@@ -1065,8 +1179,19 @@
       listenToTyping();
       listenToLastSeen();
 
-      // Auto-keep-alive every 4 mins
-      setInterval(() => db.ref(`online_users/${currentUserName}`).set(true), 240000);
+      // Heartbeat — extend "online" status whenever there's activity
+      // (typing, reading, sending). Plus a background tick every 4 mins as fallback.
+      setInterval(keepAlive, 240000);
+    }
+
+    function keepAlive() {
+      if (!currentUserName) return;
+      const onlineRef = db.ref(`online_users/${currentUserName}`);
+      const lastSeenRef = db.ref(`last_seen/${currentUserName}`);
+      onlineRef.set(true);
+      onlineRef.onDisconnect().remove();
+      lastSeenRef.remove();
+      lastSeenRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
     }
 
     // ════════════════════════════════════════════════════════════════════
@@ -1169,7 +1294,8 @@
         document.getElementById("onlineCountLabel").innerText =
           `${Object.keys(onlineUsers).length} online`;
         renderOnlineUsersList();
-        renderPriorityBar(); // online status affects priority bar text
+        renderPriorityBar();  // priority bar reacts to online changes
+        renderFamilyBar();    // family bar reacts too
       });
     }
 
@@ -1180,40 +1306,68 @@
       db.ref("last_seen").on("value", (snap) => {
         lastSeenMap = snap.val() || {};
         renderPriorityBar();
+        renderFamilyBar();
       });
     }
 
-    function formatRelative(ts) {
+    /**
+     * Format last-seen per Adnan's spec:
+     *   < 1 min:    "just now"
+     *   1-59 min:   "X minutes ago"
+     *   1-23 hours: "X hours ago (h.mm AM/PM)"  — time in viewer's local zone
+     *   24-47 hr:   "Yesterday at h.mm AM/PM"
+     *   >= 48 hr:   "DD/MON/YY h.mm AM/PM"
+     */
+    function formatLastSeen(ts) {
       if (!ts) return "";
       const now = Date.now();
       const diff = now - ts;
       const mins = Math.floor(diff / 60000);
+      const d = new Date(ts);
+
+      // Time formatted in the viewer's local timezone, 12-hour with dot separator
+      const hours = d.getHours();
+      const mm = d.getMinutes().toString().padStart(2, "0");
+      const ampm = hours >= 12 ? "PM" : "AM";
+      const h12 = ((hours % 12) || 12);
+      const timeStr = `${h12}.${mm} ${ampm}`;
+
       if (mins < 1) return "just now";
-      if (mins < 60) return `${mins} min ago`;
+      if (mins < 60) return `${mins} minute${mins > 1 ? "s" : ""} ago`;
+
       const hrs = Math.floor(mins / 60);
-      if (hrs < 24) return `${hrs} hour${hrs > 1 ? "s" : ""} ago`;
-      const days = Math.floor(hrs / 24);
-      if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
-      return new Date(ts).toLocaleDateString();
+      if (hrs < 24) {
+        return `${hrs} hour${hrs > 1 ? "s" : ""} ago (${timeStr})`;
+      }
+
+      // Yesterday convenience
+      const yest = new Date(); yest.setDate(yest.getDate() - 1);
+      const isYesterday = d.toDateString() === yest.toDateString();
+      if (isYesterday) return `Yesterday at ${timeStr}`;
+
+      // Older — DD/MON/YY format
+      const day = d.getDate().toString().padStart(2, "0");
+      const month = d.toLocaleString("en-GB", { month: "short" }).toUpperCase();
+      const year = d.getFullYear().toString().slice(-2);
+      return `${day}/${month}/${year} ${timeStr}`;
     }
 
     function renderPriorityBar() {
-      // Find ANY user matching abdul/rafay
       const bar = document.getElementById("priorityBar");
       const nameEl = document.getElementById("pbName");
       const statusEl = document.getElementById("pbStatus");
 
-      // Collect all known Abdul Rafay variants (online + last_seen + my own if me)
+      // Strict match: only the canonical "Abdulrafay" name (any case/spacing)
       const candidates = new Set();
-      Object.keys(onlineUsers).forEach(u => { if (isAbdulRafayName(u)) candidates.add(u); });
-      Object.keys(lastSeenMap).forEach(u => { if (isAbdulRafayName(u)) candidates.add(u); });
+      Object.keys(onlineUsers).forEach(u => { if (isMySonName(u)) candidates.add(u); });
+      Object.keys(lastSeenMap).forEach(u => { if (isMySonName(u)) candidates.add(u); });
 
       if (candidates.size === 0) {
         bar.classList.remove("show");
         return;
       }
 
-      // Pick the most recent / online one
+      // Prefer the online instance; otherwise the most recently seen one
       let chosenName = null;
       let chosenIsOnline = false;
       let chosenLastSeen = 0;
@@ -1232,15 +1386,105 @@
       if (chosenIsOnline) {
         statusEl.innerHTML = `is <span class="pstatus">online</span> now`;
       } else if (chosenLastSeen) {
-        statusEl.innerHTML = `<span class="pseen">last seen ${formatRelative(chosenLastSeen)}</span>`;
+        statusEl.innerHTML = `<span class="pseen">last seen ${formatLastSeen(chosenLastSeen)}</span>`;
       } else {
         statusEl.innerHTML = `<span class="pseen">offline</span>`;
       }
       bar.classList.add("show");
     }
 
-    // Refresh the relative-time text on the priority bar every minute
-    setInterval(renderPriorityBar, 60000);
+    /**
+     * Format last-seen compactly for the family bar:
+     *   < 1 min  → "now"
+     *   <1 hour  → "5m"
+     *   <24 hr   → "2h"
+     *   else     → "DD/MON"
+     */
+    function formatLastSeenShort(ts) {
+      if (!ts) return "—";
+      const diff = Date.now() - ts;
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return "now";
+      if (mins < 60) return `${mins}m`;
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return `${hrs}h`;
+      const d = new Date(ts);
+      const day = d.getDate().toString().padStart(2, "0");
+      const month = d.toLocaleString("en-GB", { month: "short" }).toUpperCase();
+      return `${day}/${month}`;
+    }
+
+    /**
+     * Family status bar: shows everyone EXCEPT current user, EXCEPT Abdulrafay
+     * (he gets the priority bar above). Most recently active first.
+     */
+    function renderFamilyBar() {
+      const bar = document.getElementById("familyBar");
+      const list = document.getElementById("familyBarList");
+      list.innerHTML = "";
+
+      // Build candidate set: everyone who has ever logged in (online + last_seen)
+      const allUsers = new Set([
+        ...Object.keys(onlineUsers),
+        ...Object.keys(lastSeenMap)
+      ]);
+      // Only exclude Abdulrafay (he's shown in the priority bar above).
+      // Current user IS shown in the family bar — so Adnan sees his own status too.
+      const filtered = [...allUsers].filter(u => !isMySonName(u));
+
+      if (filtered.length === 0) {
+        bar.classList.remove("show");
+        return;
+      }
+
+      // Sort: online first (alphabetically), then offline by most-recent last_seen
+      filtered.sort((a, b) => {
+        const aOn = !!onlineUsers[a];
+        const bOn = !!onlineUsers[b];
+        if (aOn && !bOn) return -1;
+        if (bOn && !aOn) return 1;
+        if (aOn && bOn) return a.localeCompare(b);
+        return (lastSeenMap[b] || 0) - (lastSeenMap[a] || 0);
+      });
+
+      filtered.forEach((user) => {
+        const pill = document.createElement("div");
+        pill.className = "fb-pill";
+        const isOnline = !!onlineUsers[user];
+        const lastSeen = lastSeenMap[user];
+        const isMe = (user === currentUserName);
+
+        // Highlight my own pill so I can spot myself in the list
+        if (isMe) {
+          pill.style.outline = "1.5px solid var(--brand-accent)";
+        }
+
+        if (isOnline) {
+          pill.innerHTML = `<span class="dot-on"></span><span class="fb-name"></span> <span class="fb-time">online</span>`;
+        } else {
+          pill.innerHTML = `<span class="fb-name"></span> <span class="fb-time"></span>`;
+          pill.querySelector(".fb-time").innerText = formatLastSeenShort(lastSeen);
+        }
+        pill.querySelector(".fb-name").innerText = isMe ? `${user} (you)` : user;
+
+        // Tap to see full timestamp
+        pill.onclick = () => {
+          if (isOnline) {
+            alert(`${user}${isMe ? " (you)" : ""} is currently online.`);
+          } else if (lastSeen) {
+            alert(`${user}${isMe ? " (you)" : ""} — last seen:\n${formatLastSeen(lastSeen)}`);
+          } else {
+            alert(`${user} — no last-seen info.`);
+          }
+        };
+        list.appendChild(pill);
+      });
+
+      bar.classList.add("show");
+    }
+
+    // Refresh the relative-time text on the priority + family bars every minute
+    setInterval(() => { renderPriorityBar(); renderFamilyBar(); }, 60000);
 
     function renderOnlineUsersList() {
       const list = document.getElementById("onlineUsersList");
@@ -1271,25 +1515,32 @@
     let typingTimeout = null;
     function updateTypingStatus(status) {
       if (!currentUserName) return;
-      db.ref(`typing_status/${currentUserName}`).set(status === "typing");
-      if (status === "typing") {
+      keepAlive(); // any activity also extends presence
+      const ref = db.ref(`typing_status/${currentUserName}`);
+      if (status === "stopped" || !status) {
         clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => updateTypingStatus("stopped"), 2500);
+        ref.remove();
+        return;
       }
+      // status is a string like "typing" or "recording voice"
+      ref.set(status);
+      // Auto-clear after 3 seconds of inactivity
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => ref.remove(), 3000);
     }
+
     function listenToTyping() {
       db.ref("typing_status").on("value", (snap) => {
         const t = snap.val() || {};
         delete t[currentUserName];
-        typingUsers = {};
-        for (const [user, isTyping] of Object.entries(t)) {
-          if (isTyping) typingUsers[user] = true;
+        const lines = [];
+        for (const [user, status] of Object.entries(t)) {
+          if (!status) continue;
+          // status can be a boolean (legacy) or a string action label
+          const verb = (status === true || status === "typing") ? "typing" : String(status);
+          lines.push(`${user} is ${verb}…`);
         }
-        const bar = document.getElementById("typingBar");
-        const names = Object.keys(typingUsers);
-        bar.innerText = names.length === 0 ? "" :
-          names.length === 1 ? `${names[0]} is typing…` :
-          `${names.join(", ")} are typing…`;
+        document.getElementById("typingBar").innerText = lines.join(" · ");
       });
     }
 
@@ -1349,6 +1600,8 @@
       setTimeout(() => {
         db.ref(`messages/${key}/seenBy/${currentUserName}`).set(firebase.database.ServerValue.TIMESTAMP)
           .catch(() => {});
+        // Reading messages counts as activity
+        keepAlive();
       }, 800);
     }
 
@@ -1631,21 +1884,30 @@
         };
       }
 
-      // Upload file/voice if any
+      // Upload file/voice if any — show spinner because this can take seconds
       if (stagedFile || stagedVoiceBlob) {
         const blob = stagedFile || stagedVoiceBlob;
         const name = stagedFile ? stagedFile.name : `voice_${Date.now()}.webm`;
         const type = stagedVoiceBlob ? "voice"
           : (stagedFile.type.startsWith("image/") ? "image" : "doc");
         const path = `chat_uploads/${Date.now()}_${name}`;
+
+        const overlay = document.getElementById("uploadOverlay");
+        const label = document.getElementById("uploadLabel");
+        label.innerText = type === "image" ? "Sending photo…"
+          : type === "voice" ? "Sending voice…"
+          : "Sending file…";
+        overlay.classList.add("show");
         try {
           const ref = storage.ref(path);
           await ref.put(blob);
           const url = await ref.getDownloadURL();
           msg.fileUrl = url; msg.fileType = type; msg.fileName = name;
         } catch (err) {
+          overlay.classList.remove("show");
           return alert("Upload failed: " + err.message);
         }
+        overlay.classList.remove("show");
       }
 
       await db.ref("messages").push(msg);
@@ -1825,8 +2087,11 @@
       renderStaging();
     }
 
+    let voiceCountdownInterval = null;
+    const MAX_VOICE_SECONDS = 20;
     async function toggleRecording() {
       const btn = document.getElementById("voiceBtn");
+      const recText = document.querySelector("#recOverlay .rec-text");
       const MIC_SVG = '<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>';
       const STOP_SVG = '<svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>';
 
@@ -1843,6 +2108,10 @@
             // Restore mic icon
             btn.innerHTML = MIC_SVG;
             btn.classList.remove("recording");
+            // Clear typing/recording status
+            updateTypingStatus("stopped");
+            // Stop countdown
+            clearInterval(voiceCountdownInterval); voiceCountdownInterval = null;
           };
           mediaRecorder.start();
           recording = true;
@@ -1850,6 +2119,23 @@
           btn.innerHTML = STOP_SVG;
           btn.classList.add("recording");
           document.getElementById("recOverlay").classList.add("show");
+          // Broadcast "recording voice" status so others see it
+          updateTypingStatus("recording a voice message");
+          // 20-second countdown auto-stop
+          let secondsLeft = MAX_VOICE_SECONDS;
+          recText.innerText = `Recording… ${secondsLeft}s left — tap mic to stop`;
+          voiceCountdownInterval = setInterval(() => {
+            secondsLeft--;
+            if (secondsLeft <= 0) {
+              try { mediaRecorder.stop(); } catch (e) {}
+              recording = false;
+              document.getElementById("recOverlay").classList.remove("show");
+            } else {
+              recText.innerText = `Recording… ${secondsLeft}s left — tap mic to stop`;
+              // Re-broadcast so the typing status doesn't expire
+              updateTypingStatus("recording a voice message");
+            }
+          }, 1000);
         } catch (err) {
           alert("Mic access failed: " + err.message);
         }
@@ -1963,6 +2249,32 @@
       el.style.height = "auto";
       el.style.height = Math.min(el.scrollHeight, 140) + "px";
     }
+    function signOut() {
+      if (!confirm("Sign out and choose a different name?")) return;
+      // Clear presence
+      if (currentUserName) {
+        db.ref(`online_users/${currentUserName}`).remove();
+        db.ref(`typing_status/${currentUserName}`).remove();
+      }
+      localStorage.removeItem("rc_name");
+      // Reload so listeners detach cleanly
+      location.reload();
+    }
+
+    function clearHistory() {
+      if (!isAdmin) return;
+      const password = prompt("Enter admin password to clear ALL chat history:");
+      // Same password mechanism as in chat.html
+      if (password !== (35898589 + 35898590).toString()) {
+        if (password !== null) alert("Incorrect password.");
+        return;
+      }
+      if (!confirm("This will permanently delete ALL messages for everyone. Continue?")) return;
+      db.ref("messages").remove()
+        .then(() => alert("Chat history cleared."))
+        .catch(err => alert("Failed: " + err.message));
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       const input = document.getElementById("chatInput");
       input.addEventListener("input", () => { autoResize(); updateTypingStatus("typing"); });
@@ -1991,10 +2303,12 @@
       });
 
       // Auto-rejoin if name remembered
+      const userInput = document.getElementById("userName");
       const saved = localStorage.getItem("rc_name");
       if (saved) {
-        document.getElementById("userName").value = saved;
-        // Don't auto-start — let user confirm by tapping Join (safer)
+        userInput.value = saved;
+        // Auto-join after a tiny delay so the page renders first
+        setTimeout(() => startChat(), 100);
       }
     });
 
