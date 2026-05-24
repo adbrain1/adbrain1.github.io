@@ -679,29 +679,11 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 12px 6px 8px;
+      padding: 6px 12px;
       border-radius: 18px;
       background: var(--bg-bubble-other);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-      cursor: pointer;
-      transition: transform 0.1s;
-    }
-    .fb-pill:active { transform: scale(0.96); }
-    .fb-pill .fb-mini-avatar {
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      font-weight: 700;
-      color: white;
-      flex-shrink: 0;
-      overflow: hidden;
-      position: relative;
-    }
-    .fb-pill .fb-mini-avatar img {
-      width: 100%; height: 100%; object-fit: cover;
+      cursor: default;
     }
     .fb-pill .dot-on {
       display: inline-block !important;
@@ -721,12 +703,7 @@
     .fb-pill .fb-name {
       font-weight: 600;
       color: var(--text-primary);
-      font-size: 12px;
-    }
-    .fb-pill .fb-status {
-      font-size: 11px;
-      color: #4caf50;
-      font-weight: 600;
+      font-size: 12.5px;
     }
     .fb-pill .fb-time {
       font-size: 11px;
@@ -734,7 +711,7 @@
       font-weight: 500;
     }
     .fb-pill.is-me {
-      background: linear-gradient(135deg, rgba(157, 78, 221, 0.15), var(--bg-bubble-other));
+      background: linear-gradient(135deg, rgba(157, 78, 221, 0.18), var(--bg-bubble-other));
       border: 1.5px solid var(--brand-accent);
     }
 
@@ -932,7 +909,6 @@
 
     <!-- Family status bar: everyone else's online/last-seen status, scrollable -->
     <div class="family-bar" id="familyBar">
-      <span class="fb-label">Family:</span>
       <div id="familyBarList" style="display:contents"></div>
     </div>
 
@@ -1022,14 +998,6 @@
             <div class="me-name" id="myDisplayName"></div>
             <div style="font-size:13px;color:var(--text-secondary);margin-top:2px">Tap photo to change</div>
           </div>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <h3>Appearance</h3>
-        <div class="settings-row">
-          <span class="lbl">Dark mode</span>
-          <div class="toggle" id="darkToggle" onclick="toggleTheme()"></div>
         </div>
       </div>
 
@@ -1173,7 +1141,9 @@
     function applyTheme() {
       document.documentElement.setAttribute("data-theme", darkMode ? "dark" : "light");
       document.querySelector('meta[name="theme-color"]').setAttribute("content", darkMode ? "#1a0029" : "#2e0249");
-      document.getElementById("darkToggle").classList.toggle("on", darkMode);
+      // darkToggle was removed from settings — guard the reference
+      const dt = document.getElementById("darkToggle");
+      if (dt) dt.classList.toggle("on", darkMode);
 
       // Swap the header icon: moon when in light mode (tap to go dark),
       //                      sun when in dark mode (tap to go light)
@@ -1413,15 +1383,14 @@
     }
 
     /**
-     * Format a timestamp in Pakistan Standard Time (Asia/Karachi).
-     * Output: "30 Apr 26 at 6.38 PM"
+     * Format a timestamp in the VIEWER'S LOCAL TIMEZONE.
+     * Output: "30 Apr 26 at 6.38 PM" — date with year (2-digit) + time with dot.
      */
     function formatPST(ts) {
       if (!ts) return "";
       const d = new Date(ts);
-      const tz = "Asia/Karachi";
+      // Use viewer's local timezone — no timeZone option = local
       const fmt = new Intl.DateTimeFormat("en-US", {
-        timeZone: tz,
         day: "2-digit",
         month: "short",
         year: "2-digit",
@@ -1443,19 +1412,18 @@
     }
 
     /**
-     * Format last-seen — same as formatPST but used in the priority bar.
-     * Kept as a separate name so future tweaks to one don't affect the other.
+     * Format last-seen — same as formatPST. Viewer's local timezone.
      */
     function formatLastSeen(ts) {
       return formatPST(ts);
     }
 
     /**
-     * Short relative format for inline display in family bar pills.
+     * Short relative format for the family bar — viewer's local time.
      *   < 1 min  → "now"
      *   <1 hour  → "5m"
      *   <24 hr   → "2h"
-     *   else     → "DD MMM" (PST date)
+     *   else     → "DD MMM" (local date)
      */
     function formatLastSeenShort(ts) {
       if (!ts) return "—";
@@ -1466,10 +1434,27 @@
       const hrs = Math.floor(mins / 60);
       if (hrs < 24) return `${hrs}h`;
       const d = new Date(ts);
-      const tz = "Asia/Karachi";
-      const day = d.toLocaleString("en-GB", { timeZone: tz, day: "2-digit" });
-      const month = d.toLocaleString("en-GB", { timeZone: tz, month: "short" });
+      const day = d.toLocaleString("en-GB", { day: "2-digit" });
+      const month = d.toLocaleString("en-GB", { month: "short" });
       return `${day} ${month}`;
+    }
+
+    /**
+     * Format message bubble timestamp — viewer's local timezone.
+     * Matches chat.html: "24 May 6:38 PM"
+     */
+    function formatMessageTimestamp(ts) {
+      if (!ts) return "";
+      const d = new Date(ts);
+      const dateStr = d.toLocaleDateString([], { day: "numeric", month: "short" });
+      const timeStr = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+      return `${dateStr} ${timeStr}`;
+    }
+
+    /** First name (or first word) for compact display. */
+    function getFirstName(name) {
+      if (!name) return "";
+      return String(name).trim().split(/\s+/)[0];
     }
 
     function renderPriorityBar() {
@@ -1554,56 +1539,28 @@
         const isMe = (user === currentUserName);
         if (isMe) pill.classList.add("is-me");
 
-        // Mini avatar (initials or photo)
-        const av = document.createElement("div");
-        av.className = "fb-mini-avatar";
-        if (profilePics[user]) {
-          const img = document.createElement("img");
-          img.src = profilePics[user];
-          av.appendChild(img);
-        } else {
-          av.innerText = initialsOf(user);
-          av.style.background = colorFor(user);
-        }
-        pill.appendChild(av);
-
-        // Online dot (animated) for online users
+        // Online dot (pulsing green) BEFORE the name
         if (isOnline) {
           const dot = document.createElement("span");
           dot.className = "dot-on";
           pill.appendChild(dot);
         }
 
-        // Name
+        // First name only
         const nameEl = document.createElement("span");
         nameEl.className = "fb-name";
-        nameEl.innerText = isMe ? `${user} (you)` : user;
+        nameEl.innerText = getFirstName(user);
         pill.appendChild(nameEl);
 
-        // Status / time
-        if (isOnline) {
-          const s = document.createElement("span");
-          s.className = "fb-status";
-          s.innerText = "online";
-          pill.appendChild(s);
-        } else {
+        // Time AFTER the name for offline users
+        if (!isOnline) {
           const t = document.createElement("span");
           t.className = "fb-time";
           t.innerText = formatLastSeenShort(lastSeen);
           pill.appendChild(t);
         }
 
-        // Tap to see full timestamp in PST
-        pill.onclick = () => {
-          const meSuffix = isMe ? " (you)" : "";
-          if (isOnline) {
-            alert(`${user}${meSuffix}\n\nCurrently online.`);
-          } else if (lastSeen) {
-            alert(`${user}${meSuffix}\n\nLast seen: ${formatPST(lastSeen)}\n(Pakistan time)`);
-          } else {
-            alert(`${user}${meSuffix}\n\nNo last-seen info recorded.`);
-          }
-        };
+        // No click handler — info is shown directly in the pill
         list.appendChild(pill);
       });
 
@@ -1844,7 +1801,7 @@
       // Meta line (time + edited)
       const meta = document.createElement("div");
       meta.className = "msg-meta";
-      meta.innerHTML = `${data.edited ? '<span class="edited">edited</span>' : ""} ${formatTime(data.timestamp)}`;
+      meta.innerHTML = `${data.edited ? '<span class="edited">edited</span>' : ""} ${formatMessageTimestamp(data.timestamp)}`;
       bubble.appendChild(meta);
 
       // Reactions chip
@@ -1903,7 +1860,7 @@
       if (everyone) {
         summary = `✓ Seen by everyone (${entries.length})`;
       } else if (entries.length === 1) {
-        summary = `✓ Seen by ${entries[0][0]} at ${formatTime(entries[0][1])}`;
+        summary = `✓ Seen by ${entries[0][0]} at ${formatMessageTimestamp(entries[0][1])}`;
       } else {
         summary = `✓ Seen by ${entries.length} people — tap for details`;
       }
@@ -1922,7 +1879,7 @@
           row.className = "sb-line";
           row.innerHTML = `<span class="sb-name"></span>: <span></span>`;
           row.querySelector(".sb-name").innerText = user;
-          row.querySelector("span:last-child").innerText = formatDay(ts) + ", " + formatTime(ts);
+          row.querySelector("span:last-child").innerText = formatMessageTimestamp(ts);
           expanded.appendChild(row);
         });
         line.appendChild(expanded);
