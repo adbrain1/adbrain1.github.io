@@ -626,6 +626,97 @@
 
     /* ─── Hidden helpers ─── */
     .hidden { display: none !important; }
+
+    /* ─── Priority bar (sticky Abdul Rafay last seen) ─── */
+    .priority-bar {
+      flex: 0 0 auto;
+      background: linear-gradient(135deg, #2e0249, #4a0e78);
+      color: #e0e0e0;
+      padding: 6px 12px;
+      font-size: 12px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--brand-accent);
+    }
+    .priority-bar.show { display: flex; }
+    html[data-theme="dark"] .priority-bar { background: linear-gradient(135deg, #1a0029, #2e0249); }
+    .priority-bar .star { color: #ffd700; }
+    .priority-bar .pname { font-weight: 600; color: #ffd700; }
+    .priority-bar .pstatus { color: #4caf50; font-weight: 600; }
+    .priority-bar .pseen { opacity: 0.85; }
+
+    /* ─── Image lightbox ─── */
+    .lightbox {
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      animation: fadein 0.15s;
+    }
+    .lightbox.show { display: flex; }
+    .lightbox img {
+      max-width: 100%; max-height: 100%;
+      object-fit: contain;
+      user-select: none; -webkit-user-select: none;
+    }
+    .lightbox .lb-close {
+      position: absolute;
+      top: calc(env(safe-area-inset-top, 0px) + 12px);
+      right: 12px;
+      width: 44px; height: 44px;
+      background: rgba(255,255,255,0.15);
+      color: white; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+    .lightbox .lb-download {
+      position: absolute;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+      right: 16px;
+      width: 44px; height: 44px;
+      background: rgba(255,255,255,0.15);
+      color: white; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .lightbox .lb-download svg { width: 22px; height: 22px; fill: currentColor; }
+
+    /* Make chat images obviously clickable */
+    .msg-image { cursor: pointer; transition: transform 0.1s; }
+    .msg-image:active { transform: scale(0.98); }
+
+    /* ─── Voice button recording state ─── */
+    #voiceBtn.recording {
+      background: #e53935;
+      color: white;
+      animation: pulse-rec 1.2s infinite;
+    }
+    @keyframes pulse-rec {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.4); }
+      50%      { box-shadow: 0 0 0 10px rgba(229, 57, 53, 0); }
+    }
+
+    /* ─── Voice staging area player ─── */
+    .staging-area audio { height: 36px; flex: 1; max-width: 220px; }
+
+    /* ─── Seen-by line (expandable) ─── */
+    .seen-by {
+      cursor: pointer;
+    }
+    .seen-by:active { opacity: 0.6; }
+    .seen-by-expanded {
+      display: block;
+      margin-top: 2px;
+      padding: 4px 8px;
+      background: rgba(0,0,0,0.04);
+      border-radius: 6px;
+      color: var(--text-secondary);
+    }
+    html[data-theme="dark"] .seen-by-expanded { background: rgba(255,255,255,0.04); }
+    .seen-by-expanded .sb-line { font-size: 11px; line-height: 1.5; }
+    .seen-by-expanded .sb-name { font-weight: 600; }
   </style>
 </head>
 <body>
@@ -677,6 +768,13 @@
         <button class="icon-btn" onclick="searchNext()" title="Next">▼</button>
       </div>
     </header>
+
+    <!-- Priority bar: always-visible Abdul Rafay last-seen indicator -->
+    <div class="priority-bar" id="priorityBar">
+      <span class="star">⭐</span>
+      <span class="pname" id="pbName"></span>
+      <span id="pbStatus"></span>
+    </div>
 
     <!-- Messages -->
     <div id="messagesContainer"></div>
@@ -809,6 +907,20 @@
     </div>
   </div>
 
+  <!-- Image lightbox -->
+  <div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
+    <button class="lb-close" onclick="closeLightbox()">×</button>
+    <img id="lightboxImg" alt="">
+    <a class="lb-download" id="lbDownload" download title="Download">
+      <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+    </a>
+  </div>
+
+  <!-- Audio for new-message ping -->
+  <audio id="pingSound" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" type="audio/mpeg">
+  </audio>
+
   <!-- ─── Firebase + Messaging SDKs ─── -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
@@ -862,6 +974,19 @@
     let searchMatches = [];               // array of msgIds matching current search
     let searchIdx = -1;
     let darkMode = false;
+    let lastSeenMap = {};                 // userName -> timestamp ms
+    let initialLoadDone = false;          // suppress sounds while loading
+
+    // ════════════════════════════════════════════════════════════════════
+    //  Name helpers
+    // ════════════════════════════════════════════════════════════════════
+
+    /** Matches "abdul" or "rafay" anywhere — same logic as Cloud Function */
+    function isAbdulRafayName(name) {
+      if (!name) return false;
+      const norm = String(name).toLowerCase().replace(/\s+/g, "");
+      return norm.includes("abdul") || norm.includes("rafay");
+    }
 
     // ════════════════════════════════════════════════════════════════════
     //  Theme
@@ -938,6 +1063,7 @@
       listenToOnlineUsers();
       listenToProfiles();
       listenToTyping();
+      listenToLastSeen();
 
       // Auto-keep-alive every 4 mins
       setInterval(() => db.ref(`online_users/${currentUserName}`).set(true), 240000);
@@ -1043,8 +1169,78 @@
         document.getElementById("onlineCountLabel").innerText =
           `${Object.keys(onlineUsers).length} online`;
         renderOnlineUsersList();
+        renderPriorityBar(); // online status affects priority bar text
       });
     }
+
+    // ════════════════════════════════════════════════════════════════════
+    //  Last seen + Priority bar (Abdul Rafay always visible at top)
+    // ════════════════════════════════════════════════════════════════════
+    function listenToLastSeen() {
+      db.ref("last_seen").on("value", (snap) => {
+        lastSeenMap = snap.val() || {};
+        renderPriorityBar();
+      });
+    }
+
+    function formatRelative(ts) {
+      if (!ts) return "";
+      const now = Date.now();
+      const diff = now - ts;
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return "just now";
+      if (mins < 60) return `${mins} min ago`;
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return `${hrs} hour${hrs > 1 ? "s" : ""} ago`;
+      const days = Math.floor(hrs / 24);
+      if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
+      return new Date(ts).toLocaleDateString();
+    }
+
+    function renderPriorityBar() {
+      // Find ANY user matching abdul/rafay
+      const bar = document.getElementById("priorityBar");
+      const nameEl = document.getElementById("pbName");
+      const statusEl = document.getElementById("pbStatus");
+
+      // Collect all known Abdul Rafay variants (online + last_seen + my own if me)
+      const candidates = new Set();
+      Object.keys(onlineUsers).forEach(u => { if (isAbdulRafayName(u)) candidates.add(u); });
+      Object.keys(lastSeenMap).forEach(u => { if (isAbdulRafayName(u)) candidates.add(u); });
+
+      if (candidates.size === 0) {
+        bar.classList.remove("show");
+        return;
+      }
+
+      // Pick the most recent / online one
+      let chosenName = null;
+      let chosenIsOnline = false;
+      let chosenLastSeen = 0;
+      for (const name of candidates) {
+        const isOnline = !!onlineUsers[name];
+        const lastSeen = lastSeenMap[name] || 0;
+        if (isOnline && !chosenIsOnline) {
+          chosenName = name; chosenIsOnline = true; chosenLastSeen = 0;
+        } else if (!chosenIsOnline && lastSeen > chosenLastSeen) {
+          chosenName = name; chosenLastSeen = lastSeen;
+        }
+      }
+      if (!chosenName) { bar.classList.remove("show"); return; }
+
+      nameEl.innerText = chosenName;
+      if (chosenIsOnline) {
+        statusEl.innerHTML = `is <span class="pstatus">online</span> now`;
+      } else if (chosenLastSeen) {
+        statusEl.innerHTML = `<span class="pseen">last seen ${formatRelative(chosenLastSeen)}</span>`;
+      } else {
+        statusEl.innerHTML = `<span class="pseen">offline</span>`;
+      }
+      bar.classList.add("show");
+    }
+
+    // Refresh the relative-time text on the priority bar every minute
+    setInterval(renderPriorityBar, 60000);
 
     function renderOnlineUsersList() {
       const list = document.getElementById("onlineUsersList");
@@ -1101,12 +1297,26 @@
     //  Messages — load, render, send
     // ════════════════════════════════════════════════════════════════════
     function listenToMessages() {
+      // Wait for initial batch to finish before treating new messages as "incoming"
+      db.ref("messages").limitToLast(1000).once("value", () => {
+        // Defer flag set so child_added has fired for all initial messages
+        setTimeout(() => {
+          initialLoadDone = true;
+          scrollToBottom();
+        }, 300);
+      });
+
       // Load last 1000 (search scope per Adnan's decision)
       db.ref("messages").limitToLast(1000).on("child_added", (snap) => {
         const data = snap.val(); const key = snap.key;
         allMessages[key] = { ...data, _key: key };
         appendOrInsertMessage(key, data);
         maybeMarkSeen(key, data);
+
+        // Ping sound only for genuinely new messages from others (post-load)
+        if (initialLoadDone && data.user !== currentUserName) {
+          playPing();
+        }
       });
       db.ref("messages").limitToLast(1000).on("child_changed", (snap) => {
         const data = snap.val(); const key = snap.key;
@@ -1117,7 +1327,17 @@
         delete allMessages[snap.key];
         const el = document.getElementById("msg-" + snap.key);
         if (el) el.remove();
+        const seenEl = document.getElementById("seen-" + snap.key);
+        if (seenEl) seenEl.remove();
       });
+    }
+
+    function playPing() {
+      try {
+        const a = document.getElementById("pingSound");
+        a.currentTime = 0;
+        a.play().catch(() => {});
+      } catch (e) { /* ignore */ }
     }
 
     // Decide whether to mark a message as seen by current user
@@ -1218,6 +1438,7 @@
         const img = document.createElement("img");
         img.className = "msg-image";
         img.src = data.fileUrl;
+        img.onclick = (e) => { e.stopPropagation(); openLightbox(data.fileUrl); };
         bubble.appendChild(img);
       } else if (data.fileType === "voice" && data.fileUrl) {
         const v = document.createElement("div");
@@ -1283,17 +1504,73 @@
 
     function buildSeenLine(key, data) {
       if (data.user !== currentUserName) return null; // only show on my messages
-      const seenBy = data.seenBy ? Object.keys(data.seenBy).filter(u => u !== currentUserName) : [];
-      if (seenBy.length === 0) return null;
+      const seenObj = data.seenBy || {};
+      const entries = Object.entries(seenObj).filter(([u]) => u !== currentUserName);
+      if (entries.length === 0) return null;
+
+      // Sort by seen time (most recent first)
+      entries.sort((a, b) => (b[1] || 0) - (a[1] || 0));
+
       const line = document.createElement("div");
       line.className = "seen-by";
       line.id = "seen-" + key;
-      // Compute "all online" detection: did everyone currently online see it?
+
+      // Compact summary line at top — always visible
       const otherOnline = Object.keys(onlineUsers).filter(u => u !== currentUserName);
-      const everyone = otherOnline.length > 0 && otherOnline.every(u => seenBy.includes(u));
-      line.innerText = everyone ? "Seen by everyone"
-        : (seenBy.length === 1 ? `Seen by ${seenBy[0]}` : `Seen by ${seenBy.length} people`);
+      const everyone = otherOnline.length > 0 && otherOnline.every(u => seenObj[u]);
+
+      let summary;
+      if (everyone) {
+        summary = `✓ Seen by everyone (${entries.length})`;
+      } else if (entries.length === 1) {
+        summary = `✓ Seen by ${entries[0][0]} at ${formatTime(entries[0][1])}`;
+      } else {
+        summary = `✓ Seen by ${entries.length} people — tap for details`;
+      }
+
+      const summaryEl = document.createElement("div");
+      summaryEl.innerText = summary;
+      line.appendChild(summaryEl);
+
+      // Expanded details (hidden by default; shown when summary tapped)
+      if (entries.length > 1) {
+        const expanded = document.createElement("div");
+        expanded.className = "seen-by-expanded";
+        expanded.style.display = "none";
+        entries.forEach(([user, ts]) => {
+          const row = document.createElement("div");
+          row.className = "sb-line";
+          row.innerHTML = `<span class="sb-name"></span>: <span></span>`;
+          row.querySelector(".sb-name").innerText = user;
+          row.querySelector("span:last-child").innerText = formatDay(ts) + ", " + formatTime(ts);
+          expanded.appendChild(row);
+        });
+        line.appendChild(expanded);
+
+        line.onclick = () => {
+          const isHidden = expanded.style.display === "none";
+          expanded.style.display = isHidden ? "block" : "none";
+          summaryEl.innerText = isHidden
+            ? `✓ Seen by ${entries.length} people — tap to hide`
+            : summary;
+        };
+      }
+
       return line;
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    //  Image lightbox
+    // ════════════════════════════════════════════════════════════════════
+    function openLightbox(url) {
+      document.getElementById("lightboxImg").src = url;
+      document.getElementById("lbDownload").href = url;
+      document.getElementById("lightbox").classList.add("show");
+    }
+    function closeLightbox() {
+      document.getElementById("lightbox").classList.remove("show");
+      // Free memory by clearing src after fade-out
+      setTimeout(() => { document.getElementById("lightboxImg").src = ""; }, 200);
     }
 
     function scrollToBottom() {
@@ -1376,6 +1653,8 @@
       clearStaged();
       cancelReply();
       updateTypingStatus("stopped");
+      // Keep keyboard up / focus for continued typing
+      input.focus();
     }
 
     function saveEdit() {
@@ -1407,7 +1686,13 @@
       let timer = null; let moved = false;
       const start = (e) => {
         moved = false;
-        timer = setTimeout(() => openActionSheet(msgId, false), 450);
+        timer = setTimeout(() => {
+          if (!moved) {
+            // Subtle haptic confirmation on supported devices
+            if (navigator.vibrate) navigator.vibrate(15);
+            openActionSheet(msgId, false);
+          }
+        }, 450);
       };
       const cancel = () => { clearTimeout(timer); };
       node.addEventListener("touchstart", start, { passive: true });
@@ -1502,21 +1787,35 @@
       const a = document.getElementById("stagingArea");
       if (!stagedFile && !stagedVoiceBlob) { a.classList.remove("show"); a.innerHTML = ""; return; }
       a.classList.add("show"); a.innerHTML = "";
+
       if (stagedFile && stagedFile.type.startsWith("image/")) {
         const img = document.createElement("img");
         img.className = "preview-img"; img.src = URL.createObjectURL(stagedFile);
         a.appendChild(img);
+        const name = document.createElement("span");
+        name.className = "name"; name.innerText = stagedFile.name;
+        a.appendChild(name);
       } else if (stagedFile) {
-        const s = document.createElement("span"); s.innerText = "📄"; a.appendChild(s);
+        const ic = document.createElement("span"); ic.innerText = "📄"; ic.style.fontSize = "20px";
+        a.appendChild(ic);
+        const name = document.createElement("span");
+        name.className = "name"; name.innerText = stagedFile.name;
+        a.appendChild(name);
       } else if (stagedVoiceBlob) {
-        const s = document.createElement("span"); s.innerText = "🎤"; a.appendChild(s);
+        // Voice — show an inline playback control so user can preview before sending
+        const ic = document.createElement("span"); ic.innerText = "🎤"; ic.style.fontSize = "20px";
+        a.appendChild(ic);
+        const audio = document.createElement("audio");
+        audio.controls = true;
+        audio.src = URL.createObjectURL(stagedVoiceBlob);
+        a.appendChild(audio);
       }
-      const name = document.createElement("span");
-      name.className = "name";
-      name.innerText = stagedFile ? stagedFile.name : "Voice message ready";
-      a.appendChild(name);
+
       const cancel = document.createElement("button");
-      cancel.className = "icon-btn"; cancel.innerText = "✕";
+      cancel.className = "icon-btn";
+      cancel.innerText = "✕";
+      cancel.style.color = "var(--text-secondary)";
+      cancel.title = "Discard";
       cancel.onclick = clearStaged;
       a.appendChild(cancel);
     }
@@ -1527,6 +1826,10 @@
     }
 
     async function toggleRecording() {
+      const btn = document.getElementById("voiceBtn");
+      const MIC_SVG = '<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>';
+      const STOP_SVG = '<svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>';
+
       if (!recording) {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -1537,9 +1840,15 @@
             stagedVoiceBlob = new Blob(recordedChunks, { type: "audio/webm" });
             stagedFile = null; renderStaging();
             stream.getTracks().forEach(t => t.stop());
+            // Restore mic icon
+            btn.innerHTML = MIC_SVG;
+            btn.classList.remove("recording");
           };
           mediaRecorder.start();
           recording = true;
+          // Swap to red stop icon
+          btn.innerHTML = STOP_SVG;
+          btn.classList.add("recording");
           document.getElementById("recOverlay").classList.add("show");
         } catch (err) {
           alert("Mic access failed: " + err.message);
@@ -1663,6 +1972,23 @@
         }
       });
       document.getElementById("searchInput").addEventListener("input", performSearch);
+
+      // ESC closes whichever overlay is open (desktop convenience)
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        const lb = document.getElementById("lightbox");
+        if (lb.classList.contains("show")) { closeLightbox(); return; }
+        const sheet = document.getElementById("actionSheet");
+        if (sheet.classList.contains("show")) { hideActionSheet(); return; }
+        const sp = document.getElementById("settingsPanel");
+        if (sp.classList.contains("show")) { toggleSettings(false); return; }
+        const op = document.getElementById("onlinePanel");
+        if (op.classList.contains("show")) { toggleOnlinePanel(false); return; }
+        const sb = document.getElementById("searchBar");
+        if (sb.classList.contains("show")) { toggleSearch(); return; }
+        if (replyingTo) { cancelReply(); return; }
+        if (editingMessageKey) { cancelEdit(); return; }
+      });
 
       // Auto-rejoin if name remembered
       const saved = localStorage.getItem("rc_name");
