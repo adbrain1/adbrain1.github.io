@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>Rafay Chat</title>
   <link rel="icon" type="image/png" href="./favicon.png">
   <link rel="manifest" href="/manifest.json">
@@ -76,12 +76,16 @@
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body {
       margin: 0; padding: 0;
-      height: 100%; width: 100%;
+      height: 100%;
+      height: 100dvh; /* dynamic viewport height — shrinks when keyboard opens */
+      width: 100%;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       color: var(--text-primary);
       background: var(--bg-app);
       overflow: hidden;
       overscroll-behavior: none;
+      position: fixed; /* prevents iOS rubber-band */
+      width: 100%;
     }
     button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
     input, textarea { font-family: inherit; color: var(--text-primary); }
@@ -139,6 +143,7 @@
     #appScreen {
       display: none;
       position: fixed; inset: 0;
+      height: 100dvh; /* shrinks with keyboard */
       flex-direction: column;
       background: var(--bg-chat);
     }
@@ -644,7 +649,63 @@
     /* ─── Hidden helpers ─── */
     .hidden { display: none !important; }
 
-    /* ─── Family status bar (everyone except Abdulrafay) ─── */
+    /* ─── Profile panel (top-sliding, same style as online users panel) ─── */
+    .profile-panel-content {
+      padding: 20px 16px;
+      text-align: center;
+    }
+    .profile-dp {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      margin: 0 auto 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 36px; color: white;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+      transition: transform 0.15s;
+    }
+    .profile-dp:active { transform: scale(0.96); }
+    .profile-dp img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-name {
+      font-size: 22px; font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .profile-status {
+      font-size: 14px; color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .profile-status.online { color: #4caf50; font-weight: 600; }
+    .profile-lastseen {
+      font-size: 13px; color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+    .profile-mute-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px;
+      background: var(--bg-bubble-other);
+      border-radius: 12px;
+      margin: 0 8px;
+    }
+    .profile-mute-row .pmr-label {
+      font-size: 15px; font-weight: 600;
+      color: var(--text-primary);
+    }
+    .profile-mute-row .pmr-sub {
+      font-size: 12px; color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .profile-dp-hint {
+      font-size: 11px; color: var(--text-muted);
+      margin-top: -10px; margin-bottom: 14px;
+      font-style: italic;
+    }
+    /* Make sender name in messages tappable */
+    .msg-sender {
+      cursor: pointer;
+    }
+    .msg-sender:active { opacity: 0.7; }
     .family-bar {
       flex: 0 0 auto;
       background: linear-gradient(135deg, rgba(157, 78, 221, 0.10), rgba(46, 2, 73, 0.04));
@@ -979,6 +1040,29 @@
     <div id="onlineUsersList"></div>
   </div>
 
+  <!-- ─── User profile panel (slides from top, same style) ─── -->
+  <div class="panel-backdrop" id="profileBackdrop" onclick="toggleProfilePanel(false)"></div>
+  <div class="top-panel" id="profilePanel">
+    <div class="ph">
+      <button class="icon-btn" onclick="toggleProfilePanel(false)">←</button>
+      <div class="ph-title" id="profilePanelTitle">Profile</div>
+    </div>
+    <div class="profile-panel-content">
+      <div class="profile-dp" id="profileDp" onclick="zoomProfileDp()"></div>
+      <div class="profile-dp-hint">tap photo to zoom</div>
+      <div class="profile-name" id="profileNameDisplay"></div>
+      <div class="profile-status" id="profileStatus"></div>
+      <div class="profile-lastseen" id="profileLastSeen"></div>
+      <div class="profile-mute-row" id="profileMuteRow" style="display:none">
+        <div>
+          <div class="pmr-label">Mute notifications</div>
+          <div class="pmr-sub" id="profileMuteSub"></div>
+        </div>
+        <div class="toggle" id="profileMuteToggle" onclick="toggleMuteUser()"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ─── Settings panel (slides from left) ─── -->
   <div class="panel-backdrop" id="settingsBackdrop" onclick="toggleSettings(false)"></div>
   <div class="side-panel" id="settingsPanel">
@@ -1116,6 +1200,8 @@
     let darkMode = false;
     let lastSeenMap = {};                 // userName -> timestamp ms
     let initialLoadDone = false;          // suppress sounds while loading
+    let mutedUsers = {};                  // userName -> true (muted by me)
+    let activeProfileUser = null;         // who's profile is currently open
 
     // ════════════════════════════════════════════════════════════════════
     //  Name helpers
@@ -1229,6 +1315,7 @@
       listenToProfiles();
       listenToTyping();
       listenToLastSeen();
+      listenToMutes();
 
       // Heartbeat — extend "online" status whenever there's activity
       // (typing, reading, sending). Plus a background tick every 4 mins as fallback.
@@ -1634,11 +1721,15 @@
     function listenToMessages() {
       // Wait for initial batch to finish before treating new messages as "incoming"
       db.ref("messages").limitToLast(1000).once("value", () => {
-        // Defer flag set so child_added has fired for all initial messages
+        // Set initial-load flag and force scroll to bottom after a few intervals
+        // (images and audio elements can change height as they load, which
+        // pushes the previous scroll position out of date).
         setTimeout(() => {
           initialLoadDone = true;
           scrollToBottom();
         }, 300);
+        // Multiple scroll passes to catch images that load slowly
+        [600, 1200, 2400].forEach(d => setTimeout(scrollToBottom, d));
       });
 
       // Load last 1000 (search scope per Adnan's decision)
@@ -1745,6 +1836,8 @@
       avatar.setAttribute("data-user-avatar", data.user);
       renderAvatarInto(avatar, data.user);
       if (isMe) avatar.classList.remove("show");
+      avatar.style.cursor = "pointer";
+      avatar.onclick = (e) => { e.stopPropagation(); openUserProfile(data.user); };
       row.appendChild(avatar);
 
       const bubble = document.createElement("div");
@@ -1756,6 +1849,7 @@
         s.className = "msg-sender";
         s.innerText = data.user;
         s.style.color = colorFor(data.user);
+        s.onclick = (e) => { e.stopPropagation(); openUserProfile(data.user); };
         bubble.appendChild(s);
       }
 
@@ -1974,7 +2068,7 @@
         const name = stagedFile ? stagedFile.name : `voice_${Date.now()}.webm`;
         const type = stagedVoiceBlob ? "voice"
           : (stagedFile.type.startsWith("image/") ? "image" : "doc");
-        const path = `chat_uploads/${Date.now()}_${name}`;
+        const path = `chat_files/${Date.now()}_${name}`;
 
         const overlay = document.getElementById("uploadOverlay");
         const label = document.getElementById("uploadLabel");
@@ -1999,6 +2093,7 @@
       clearStaged();
       cancelReply();
       updateTypingStatus("stopped");
+      input.placeholder = "Type a message";  // reset
       // Keep keyboard up / focus for continued typing
       input.focus();
     }
@@ -2127,7 +2222,10 @@
     function stageFile(input) {
       const file = input.files[0]; if (!file) return;
       if (file.size / (1024 * 1024) > MAX_FILE_SIZE_MB) return alert(`Limit is ${MAX_FILE_SIZE_MB}MB`);
-      stagedFile = file; stagedVoiceBlob = null; renderStaging();
+      stagedFile = file; stagedVoiceBlob = null;
+      renderStaging();
+      // Mirror chat.html placeholder text
+      document.getElementById("chatInput").placeholder = "Send now →";
     }
     function renderStaging() {
       const a = document.getElementById("stagingArea");
@@ -2168,6 +2266,7 @@
     function clearStaged() {
       stagedFile = null; stagedVoiceBlob = null;
       document.getElementById("fileInput").value = "";
+      document.getElementById("chatInput").placeholder = "Type a message";
       renderStaging();
     }
 
@@ -2175,9 +2274,11 @@
     const MAX_VOICE_SECONDS = 20;
     async function toggleRecording() {
       const btn = document.getElementById("voiceBtn");
+      const input = document.getElementById("chatInput");
       const recText = document.querySelector("#recOverlay .rec-text");
       const MIC_SVG = '<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>';
       const STOP_SVG = '<svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>';
+      const ORIGINAL_PLACEHOLDER = "Type a message";
 
       if (!recording) {
         try {
@@ -2187,11 +2288,14 @@
           mediaRecorder.ondataavailable = (e) => { if (e.data.size) recordedChunks.push(e.data); };
           mediaRecorder.onstop = () => {
             stagedVoiceBlob = new Blob(recordedChunks, { type: "audio/webm" });
-            stagedFile = null; renderStaging();
+            stagedFile = null;
+            renderStaging();
             stream.getTracks().forEach(t => t.stop());
-            // Restore mic icon
+            // Restore mic icon + re-enable input
             btn.innerHTML = MIC_SVG;
             btn.classList.remove("recording");
+            input.disabled = false;
+            input.placeholder = "Listen & Send →";  // mirrors chat.html behaviour
             // Clear typing/recording status
             updateTypingStatus("stopped");
             // Stop countdown
@@ -2199,14 +2303,15 @@
           };
           mediaRecorder.start();
           recording = true;
-          // Swap to red stop icon
+          // Swap to red stop icon, disable text input, show countdown in placeholder
           btn.innerHTML = STOP_SVG;
           btn.classList.add("recording");
-          document.getElementById("recOverlay").classList.add("show");
+          input.disabled = true;
           // Broadcast "recording voice" status so others see it
           updateTypingStatus("recording a voice message");
-          // 20-second countdown auto-stop
+          // 20-second countdown auto-stop — mirrors chat.html
           let secondsLeft = MAX_VOICE_SECONDS;
+          input.placeholder = `Recording... ${secondsLeft}s remaining`;
           recText.innerText = `Recording… ${secondsLeft}s left — tap mic to stop`;
           voiceCountdownInterval = setInterval(() => {
             secondsLeft--;
@@ -2215,11 +2320,13 @@
               recording = false;
               document.getElementById("recOverlay").classList.remove("show");
             } else {
+              input.placeholder = `Recording... ${secondsLeft}s remaining`;
               recText.innerText = `Recording… ${secondsLeft}s left — tap mic to stop`;
               // Re-broadcast so the typing status doesn't expire
               updateTypingStatus("recording a voice message");
             }
           }, 1000);
+          document.getElementById("recOverlay").classList.add("show");
         } catch (err) {
           alert("Mic access failed: " + err.message);
         }
@@ -2322,8 +2429,103 @@
     }
 
     // ════════════════════════════════════════════════════════════════════
-    //  Panel toggles
+    //  Mutes — per-user, stored at /user_mutes/{viewer}/{mutedActor} = true
     // ════════════════════════════════════════════════════════════════════
+    function listenToMutes() {
+      db.ref(`user_mutes/${currentUserName}`).on("value", (snap) => {
+        mutedUsers = snap.val() || {};
+        // If profile panel is open, refresh its mute state
+        if (activeProfileUser) renderProfilePanel(activeProfileUser);
+      });
+    }
+    function toggleMuteUser() {
+      if (!activeProfileUser) return;
+      const ref = db.ref(`user_mutes/${currentUserName}/${activeProfileUser}`);
+      if (mutedUsers[activeProfileUser]) {
+        ref.remove();
+      } else {
+        ref.set(true);
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    //  Profile panel
+    // ════════════════════════════════════════════════════════════════════
+    function openUserProfile(user) {
+      if (!user) return;
+      activeProfileUser = user;
+      renderProfilePanel(user);
+      toggleProfilePanel(true);
+    }
+
+    function renderProfilePanel(user) {
+      const dp = document.getElementById("profileDp");
+      const titleEl = document.getElementById("profilePanelTitle");
+      const nameEl = document.getElementById("profileNameDisplay");
+      const statusEl = document.getElementById("profileStatus");
+      const lastSeenEl = document.getElementById("profileLastSeen");
+      const muteRow = document.getElementById("profileMuteRow");
+      const muteToggle = document.getElementById("profileMuteToggle");
+      const muteSub = document.getElementById("profileMuteSub");
+
+      titleEl.innerText = (user === currentUserName) ? "Your profile" : "Profile";
+      nameEl.innerText = user;
+
+      // DP — large circular avatar (tap to zoom)
+      dp.innerHTML = "";
+      if (profilePics[user]) {
+        const img = document.createElement("img");
+        img.src = profilePics[user];
+        dp.appendChild(img);
+        dp.style.background = "transparent";
+      } else {
+        dp.innerText = initialsOf(user);
+        dp.style.background = colorFor(user);
+      }
+
+      // Status
+      const isOnline = !!onlineUsers[user];
+      const lastSeen = lastSeenMap[user];
+      if (isOnline) {
+        statusEl.innerText = "● online now";
+        statusEl.className = "profile-status online";
+        lastSeenEl.innerText = "";
+      } else if (lastSeen) {
+        statusEl.innerText = "offline";
+        statusEl.className = "profile-status";
+        lastSeenEl.innerText = `Last seen: ${formatLastSeen(lastSeen)}`;
+      } else {
+        statusEl.innerText = "offline";
+        statusEl.className = "profile-status";
+        lastSeenEl.innerText = "No last-seen info recorded.";
+      }
+
+      // Mute toggle — only for other users (not yourself)
+      if (user === currentUserName) {
+        muteRow.style.display = "none";
+      } else {
+        muteRow.style.display = "flex";
+        const isMuted = !!mutedUsers[user];
+        muteToggle.classList.toggle("on", isMuted);
+        muteSub.innerText = isMuted
+          ? `You won't get pushes from ${user}.`
+          : `Tap to stop receiving pushes from ${user}.`;
+      }
+    }
+
+    function toggleProfilePanel(show) {
+      document.getElementById("profilePanel").classList.toggle("show", show);
+      document.getElementById("profileBackdrop").classList.toggle("show", show);
+      if (!show) activeProfileUser = null;
+    }
+
+    function zoomProfileDp() {
+      if (!activeProfileUser) return;
+      // Only zoom if there's a real photo (not initials)
+      const photo = profilePics[activeProfileUser];
+      if (!photo) return;
+      openLightbox(photo);
+    }
     function toggleOnlinePanel(show) {
       document.getElementById("onlinePanel").classList.toggle("show", show);
       document.getElementById("onlineBackdrop").classList.toggle("show", show);
@@ -2384,6 +2586,8 @@
         if (lb.classList.contains("show")) { closeLightbox(); return; }
         const sheet = document.getElementById("actionSheet");
         if (sheet.classList.contains("show")) { hideActionSheet(); return; }
+        const pp = document.getElementById("profilePanel");
+        if (pp.classList.contains("show")) { toggleProfilePanel(false); return; }
         const sp = document.getElementById("settingsPanel");
         if (sp.classList.contains("show")) { toggleSettings(false); return; }
         const op = document.getElementById("onlinePanel");
