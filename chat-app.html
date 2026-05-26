@@ -1263,6 +1263,7 @@
         <h3>Admin tools</h3>
         <button class="admin-btn" onclick="sendBroadcast()">📢 Send broadcast message</button>
         <button class="admin-btn" onclick="exportChat()">💾 Export chat history</button>
+        <button class="admin-btn" onclick="openDeleteUserPanel()" style="color:#e53935;border-color:#e53935;">🗑️ Delete a user</button>
       </div>
     </div>
   </div>
@@ -1510,6 +1511,8 @@
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState !== "visible") return;
       if (!currentUserName) return;
+      // Clear unread badge when user returns to the app
+      clearUnread();
       // Re-mark presence — mobile browsers often suspend background tabs
       keepAlive();
       // Refresh FCM token if permission still granted (token can rotate)
@@ -1914,6 +1917,7 @@
         // Ping sound only for genuinely new messages from others (post-load)
         if (initialLoadDone && data.user !== currentUserName) {
           playPing();
+          incrementUnread();
         }
       });
       db.ref("messages").limitToLast(1000).on("child_changed", (snap) => {
@@ -1936,6 +1940,40 @@
         a.currentTime = 0;
         a.play().catch(() => {});
       } catch (e) { /* ignore */ }
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    //  Unread message badge (tab title + app icon badge)
+    // ════════════════════════════════════════════════════════════════════
+    let unreadCount = 0;
+    const BASE_TITLE = "Rafay Chat";
+
+    function updateBadge() {
+      // Update browser tab title with unread count
+      document.title = unreadCount > 0 ? `(${unreadCount}) ${BASE_TITLE}` : BASE_TITLE;
+      // Update app icon badge (works on installed PWAs and some browsers)
+      if ("setAppBadge" in navigator) {
+        if (unreadCount > 0) {
+          navigator.setAppBadge(unreadCount).catch(() => {});
+        } else {
+          navigator.clearAppBadge().catch(() => {});
+        }
+      }
+    }
+
+    function incrementUnread() {
+      // Only count as unread if the user is NOT looking at the app
+      if (document.hidden) {
+        unreadCount++;
+        updateBadge();
+      }
+    }
+
+    function clearUnread() {
+      if (unreadCount > 0) {
+        unreadCount = 0;
+        updateBadge();
+      }
     }
 
     // Decide whether to mark a message as seen by current user
@@ -2560,7 +2598,7 @@
           updateTypingStatus("recording a voice message");
           // 20-second countdown auto-stop — mirrors chat.html
           let secondsLeft = MAX_VOICE_SECONDS;
-          input.placeholder = `Recording... ${secondsLeft}s remaining`;
+          input.placeholder = "Recording…";
           recText.innerText = `Recording… ${secondsLeft}s left — tap mic to stop`;
           voiceCountdownInterval = setInterval(() => {
             secondsLeft--;
@@ -2569,7 +2607,6 @@
               recording = false;
               document.getElementById("recOverlay").classList.remove("show");
             } else {
-              input.placeholder = `Recording... ${secondsLeft}s remaining`;
               recText.innerText = `Recording… ${secondsLeft}s left — tap mic to stop`;
               // Re-broadcast so the typing status doesn't expire
               updateTypingStatus("recording a voice message");
@@ -2799,6 +2836,109 @@
     }
 
     // ════════════════════════════════════════════════════════════════════
+    //  Admin — Delete a user (removes all their data from Firebase)
+    // ════════════════════════════════════════════════════════════════════
+    async function openDeleteUserPanel() {
+      if (!isAdmin) return;
+      toggleSettings(false);
+
+      // Gather all known user names from last_seen + messages
+      const userSet = new Set();
+      const lsSnap = await db.ref("last_seen").once("value");
+      if (lsSnap.val()) Object.keys(lsSnap.val()).forEach(u => userSet.add(u));
+      Object.values(allMessages).forEach(m => { if (m.user) userSet.add(m.user); });
+
+      // Don't allow admin to delete themselves
+      userSet.delete(currentUserName);
+
+      if (userSet.size === 0) { alert("No other users found to delete."); return; }
+
+      // Build a simple selection list
+      const sorted = [...userSet].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+      const choice = prompt(
+        "⚠️ DELETE USER — This will permanently remove:\n" +
+        "• All their messages (text, voice, images, files)\n" +
+        "• Their last-seen data\n" +
+        "• Their profile picture\n" +
+        "• Their seen-by entries on other messages\n" +
+        "• Their FCM tokens & mute settings\n\n" +
+        "Type the exact username to delete:\n\n" +
+        "Available users:\n" + sorted.join(", ")
+      );
+
+      if (!choice || !choice.trim()) return;
+      const targetUser = choice.trim();
+
+      if (!userSet.has(targetUser)) {
+        alert(`User "${targetUser}" not found. Names are case-sensitive.`);
+        return;
+      }
+
+      if (!confirm(`Are you SURE you want to permanently delete ALL data for "${targetUser}"?\n\nThis cannot be undone.`)) return;
+
+      // Show spinner
+      const overlay = document.getElementById("uploadOverlay");
+      const label = document.getElementById("uploadLabel");
+      label.innerText = `Deleting ${targetUser}…`;
+      overlay.classList.add("show");
+
+      try {
+        // 1. Delete all messages from this user
+        const msgSnap = await db.ref("messages").once("value");
+        const updates = {};
+        if (msgSnap.val()) {
+          Object.entries(msgSnap.val()).forEach(([key, msg]) => {
+            // Delete messages sent by this user
+            if (msg.user === targetUser) {
+              updates[`messages/${key}`] = null;
+            } else {
+              // Remove their seenBy entry from other people's messages
+              if (msg.seenBy && msg.seenBy[targetUser]) {
+                updates[`messages/${key}/seenBy/${targetUser}`] = null;
+              }
+              // Remove their reactions from other people's messages
+              if (msg.reactions && msg.reactions[targetUser]) {
+                updates[`messages/${key}/reactions/${targetUser}`] = null;
+              }
+            }
+          });
+        }
+
+        // 2. Delete their last_seen, online_users, profile, typing_status, fcm_tokens
+        updates[`last_seen/${targetUser}`] = null;
+        updates[`online_users/${targetUser}`] = null;
+        updates[`profiles/${targetUser}`] = null;
+        updates[`typing_status/${targetUser}`] = null;
+        updates[`fcm_tokens/${targetUser}`] = null;
+
+        // 3. Delete mute entries — both their own mutes AND others who muted them
+        const mutesSnap = await db.ref("user_mutes").once("value");
+        if (mutesSnap.val()) {
+          Object.entries(mutesSnap.val()).forEach(([viewer, mutedList]) => {
+            if (viewer === targetUser) {
+              // Delete all of this user's mute prefs
+              updates[`user_mutes/${targetUser}`] = null;
+            } else if (mutedList && mutedList[targetUser]) {
+              // Remove this user from other people's mute lists
+              updates[`user_mutes/${viewer}/${targetUser}`] = null;
+            }
+          });
+        }
+
+        // 4. Apply all deletions in one atomic update
+        await db.ref().update(updates);
+
+        overlay.classList.remove("show");
+        alert(`✅ "${targetUser}" has been completely deleted.\n\nMessages removed, last-seen wiped, profile erased.`);
+
+      } catch (err) {
+        overlay.classList.remove("show");
+        alert("Error deleting user: " + err.message);
+        console.error("Delete user error:", err);
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════
     //  Mutes — per-user, stored at /user_mutes/{viewer}/{mutedActor} = true
     // ════════════════════════════════════════════════════════════════════
     function listenToMutes() {
@@ -2811,7 +2951,16 @@
     function toggleMuteUser() {
       if (!activeProfileUser) return;
       const ref = db.ref(`user_mutes/${currentUserName}/${activeProfileUser}`);
-      if (mutedUsers[activeProfileUser]) {
+      const isMuted = !!mutedUsers[activeProfileUser];
+      // Immediately toggle visuals so button feels responsive
+      const muteToggle = document.getElementById("profileMuteToggle");
+      const muteSub = document.getElementById("profileMuteSub");
+      muteToggle.classList.toggle("on", !isMuted);
+      muteSub.innerText = !isMuted
+        ? `You won't get pushes from ${activeProfileUser}.`
+        : `Tap to stop receiving pushes from ${activeProfileUser}.`;
+      // Then write to Firebase (listenToMutes callback will confirm)
+      if (isMuted) {
         ref.remove();
       } else {
         ref.set(true);
