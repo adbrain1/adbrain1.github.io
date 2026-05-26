@@ -1384,11 +1384,12 @@
       document.getElementById("loginScreen").style.display = "none";
       document.getElementById("appScreen").classList.add("show");
 
-      // Show admin tools (clear history button + sign out)
+      // Show admin tools (clear history button)
       if (isAdmin) {
         document.getElementById("clearHistoryBtn").style.display = "";
-        document.getElementById("signOutBtn").style.display = "";
       }
+      // Sign out is available to everyone
+      document.getElementById("signOutBtn").style.display = "";
 
       // My avatar bits
       document.getElementById("myAvatarInitials").innerText = initialsOf(name);
@@ -1896,6 +1897,7 @@
       }
 
       const node = buildMessageNode(key, data);
+      if (!node) return; // soft-deleted message — hidden from this user
       container.appendChild(node);
 
       const seenLine = buildSeenLine(key, data);
@@ -1907,9 +1909,23 @@
     function rerenderMessage(key) {
       const existing = document.getElementById("msg-" + key);
       const data = allMessages[key];
-      if (!existing || !data) return;
+      if (!data) return;
       const newNode = buildMessageNode(key, data);
-      existing.replaceWith(newNode);
+
+      // Soft-deleted message hidden from this user — remove from view
+      if (!newNode) {
+        if (existing) existing.remove();
+        const seenExisting = document.getElementById("seen-" + key);
+        if (seenExisting) seenExisting.remove();
+        return;
+      }
+
+      if (existing) {
+        existing.replaceWith(newNode);
+      } else {
+        // Message just became visible (e.g. admin logged in) — append it
+        document.getElementById("messagesContainer").appendChild(newNode);
+      }
 
       // Seen line
       const seenExisting = document.getElementById("seen-" + key);
@@ -1921,6 +1937,11 @@
 
     function buildMessageNode(key, data) {
       const isMe = data.user === currentUserName;
+
+      // --- Soft-delete: if deletedBy is set, hide from everyone except Adnan ---
+      if (data.deletedBy && !isAdmin) return null;
+      const isSoftDeleted = !!data.deletedBy;
+
       const row = document.createElement("div");
       row.className = "msg-row " + (isMe ? "mine" : "other");
       row.id = "msg-" + key;
@@ -1994,6 +2015,14 @@
       meta.className = "msg-meta";
       meta.innerHTML = `${data.edited ? '<span class="edited">edited</span>' : ""} ${formatMessageTimestamp(data.timestamp)}`;
       bubble.appendChild(meta);
+
+      // Soft-deleted badge — only visible to Adnan
+      if (isSoftDeleted) {
+        const badge = document.createElement("div");
+        badge.style.cssText = "font-size:11px;color:#e53935;font-style:italic;margin-top:4px;padding:3px 6px;background:rgba(229,57,53,0.08);border-radius:4px;border:1px dashed rgba(229,57,53,0.3);";
+        badge.innerText = `🗑️ Deleted by ${data.deletedBy}`;
+        bubble.appendChild(badge);
+      }
 
       // Reactions chip
       if (data.reactions) {
@@ -2260,7 +2289,9 @@
         row.appendChild(b);
       });
       document.getElementById("actEdit").style.display = isMine && data.text && !data.fileUrl ? "" : "none";
-      document.getElementById("actDelete").style.display = (isMine || isAdmin) ? "" : "none";
+      // Delete: Admin always, AR on own msgs, everyone else on own msgs
+      const canDelete = isAdmin || isMine;
+      document.getElementById("actDelete").style.display = canDelete ? "" : "none";
       document.getElementById("actionSheet").classList.add("show");
     }
     function hideActionSheet() {
@@ -2308,8 +2339,38 @@
       const data = allMessages[activeSelectedMsgId]; if (!data) return;
       const isMine = data.user === currentUserName;
       if (!isMine && !isAdmin) return;
-      if (!confirm("Delete this message for everyone?")) { hideActionSheet(); return; }
-      db.ref(`messages/${activeSelectedMsgId}`).remove();
+
+      // --- Admin (Adnan) always hard-deletes ---
+      if (isAdmin) {
+        if (!confirm("Admin: Permanently delete this message?")) { hideActionSheet(); return; }
+        // Also delete the file from Storage if there is one
+        if (data.fileUrl) {
+          try { storage.refFromURL(data.fileUrl).delete().catch(() => {}); } catch(e) {}
+        }
+        db.ref(`messages/${activeSelectedMsgId}`).remove();
+        hideActionSheet();
+        return;
+      }
+
+      // --- Abdul Rafay soft-deletes (hidden from everyone except Adnan) ---
+      if (isAbdulRafayName(currentUserName)) {
+        if (!confirm("Delete this message?")) { hideActionSheet(); return; }
+        db.ref(`messages/${activeSelectedMsgId}`).update({
+          deletedBy: currentUserName,
+          deletedAt: firebase.database.ServerValue.TIMESTAMP
+        });
+        hideActionSheet();
+        return;
+      }
+
+      // --- Everyone else can only delete their OWN messages (hard delete) ---
+      if (isMine) {
+        if (!confirm("Delete this message for everyone?")) { hideActionSheet(); return; }
+        if (data.fileUrl) {
+          try { storage.refFromURL(data.fileUrl).delete().catch(() => {}); } catch(e) {}
+        }
+        db.ref(`messages/${activeSelectedMsgId}`).remove();
+      }
       hideActionSheet();
     }
 
