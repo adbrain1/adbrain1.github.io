@@ -353,8 +353,8 @@
 
     .msg-bubble {
       max-width: 78%;
-      min-width: 60px;
-      padding: 6px 10px 22px 10px;
+      min-width: 120px;
+      padding: 6px 10px 24px 10px;
       border-radius: 8px;
       position: relative;
       box-shadow: var(--shadow-sm);
@@ -988,6 +988,58 @@
       margin-top: 8px;
     }
     .neutral-btn:active { background: rgba(0,0,0,0.04); }
+    .admin-btn {
+      width: 100%; padding: 12px 14px;
+      background: transparent;
+      color: var(--brand-accent);
+      border: 1px solid var(--brand-accent);
+      border-radius: 10px;
+      font-size: 14px; font-weight: 600;
+      margin-top: 8px;
+    }
+    .admin-btn:active { background: rgba(157,78,221,0.1); }
+
+    /* ─── Pinned message bar ─── */
+    .pinned-bar {
+      flex: 0 0 auto;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: linear-gradient(135deg, rgba(255,204,0,0.12), rgba(255,204,0,0.04));
+      border-bottom: 1px solid rgba(255,204,0,0.25);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+    .pinned-bar.show { display: flex; }
+    .pinned-bar .pin-icon { font-size: 16px; flex-shrink: 0; }
+    .pinned-bar .pin-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pinned-bar .pin-sender { font-weight: 600; font-size: 12px; color: var(--brand-accent); }
+    .pinned-bar .pin-close { flex-shrink: 0; color: var(--text-muted); padding: 4px; font-size: 16px; }
+
+    /* ─── Broadcast / announcement message ─── */
+    .msg-row.broadcast .msg-bubble {
+      background: linear-gradient(135deg, #2e0249, #4a0e78) !important;
+      color: white !important;
+      border: 1px solid var(--brand-accent);
+      border-radius: 12px !important;
+    }
+    .msg-row.broadcast .msg-text { color: white !important; }
+    .msg-row.broadcast .msg-meta { color: rgba(255,255,255,0.6) !important; }
+    .msg-row.broadcast .msg-sender { color: var(--gold) !important; }
+    .broadcast-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      background: rgba(255,204,0,0.15);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-bottom: 4px;
+    }
   </style>
 </head>
 <body>
@@ -1068,6 +1120,16 @@
     <!-- Family status bar: everyone else's online/last-seen status, scrollable -->
     <div class="family-bar" id="familyBar">
       <div id="familyBarList" style="display:contents"></div>
+    </div>
+
+    <!-- Pinned message bar -->
+    <div class="pinned-bar" id="pinnedBar" onclick="jumpToPinnedMessage()">
+      <span class="pin-icon">📌</span>
+      <div style="flex:1;min-width:0">
+        <div class="pin-sender" id="pinnedSender"></div>
+        <div class="pin-text" id="pinnedText"></div>
+      </div>
+      <button class="pin-close" id="pinnedUnpin" onclick="event.stopPropagation();unpinMessage()" style="display:none" title="Unpin">✕</button>
     </div>
 
     <!-- Messages -->
@@ -1196,6 +1258,12 @@
         <button class="neutral-btn" id="signOutBtn" style="display:none;" onclick="signOut()">Sign out (change name)</button>
         <button class="danger-btn" id="clearHistoryBtn" style="display:none;" onclick="clearHistory()">Clear chat history (admin)</button>
       </div>
+
+      <div class="settings-section" id="adminToolsSection" style="display:none;">
+        <h3>Admin tools</h3>
+        <button class="admin-btn" onclick="sendBroadcast()">📢 Send broadcast message</button>
+        <button class="admin-btn" onclick="exportChat()">💾 Export chat history</button>
+      </div>
     </div>
   </div>
 
@@ -1220,6 +1288,10 @@
       <button class="action-item" onclick="actionCopy()">
         <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
         Copy
+      </button>
+      <button class="action-item" id="actPin" onclick="actionPin()" style="display:none">
+        <svg viewBox="0 0 24 24"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
+        <span id="actPinLabel">Pin message</span>
       </button>
       <button class="action-item danger" id="actDelete" onclick="actionDelete()">
         <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
@@ -1387,6 +1459,7 @@
       // Show admin tools (clear history button)
       if (isAdmin) {
         document.getElementById("clearHistoryBtn").style.display = "";
+        document.getElementById("adminToolsSection").style.display = "";
       }
       // Sign out is available to everyone
       document.getElementById("signOutBtn").style.display = "";
@@ -1414,6 +1487,7 @@
       listenToTyping();
       listenToLastSeen();
       listenToMutes();
+      listenToPinnedMessage();
 
       // Heartbeat — extend "online" status whenever there's activity
       // (typing, reading, sending). Plus a background tick every 4 mins as fallback.
@@ -1944,6 +2018,7 @@
 
       const row = document.createElement("div");
       row.className = "msg-row " + (isMe ? "mine" : "other");
+      if (data.broadcast) row.classList.add("broadcast");
       row.id = "msg-" + key;
       row.setAttribute("data-day", formatDay(data.timestamp || Date.now()));
       if (data.reactions && Object.keys(data.reactions).length > 0) row.classList.add("has-reactions");
@@ -1980,6 +2055,14 @@
         q.querySelector(".qtext").innerText = (data.replyTo.snippet || "").substring(0, 80);
         q.onclick = () => jumpToMessage(data.replyTo.msgId);
         bubble.appendChild(q);
+      }
+
+      // Broadcast badge
+      if (data.broadcast) {
+        const badge = document.createElement("div");
+        badge.className = "broadcast-badge";
+        badge.innerText = "📢 Broadcast";
+        bubble.appendChild(badge);
       }
 
       // Content
@@ -2292,6 +2375,14 @@
       // Delete: Admin always, AR on own msgs, everyone else on own msgs
       const canDelete = isAdmin || isMine;
       document.getElementById("actDelete").style.display = canDelete ? "" : "none";
+      // Pin: admin only
+      if (isAdmin) {
+        document.getElementById("actPin").style.display = "";
+        const isPinned = pinnedMessageId === msgId;
+        document.getElementById("actPinLabel").innerText = isPinned ? "Unpin message" : "Pin message";
+      } else {
+        document.getElementById("actPin").style.display = "none";
+      }
       document.getElementById("actionSheet").classList.add("show");
     }
     function hideActionSheet() {
@@ -2584,6 +2675,127 @@
       if (searchMatches.length === 0) return;
       searchIdx = (searchIdx - 1 + searchMatches.length) % searchMatches.length;
       jumpToMessage(searchMatches[searchIdx]); updateSearchStats();
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    //  Pinned message — stored at /pinned_message in database
+    // ════════════════════════════════════════════════════════════════════
+    let pinnedMessageId = null;
+    let pinnedMessageData = null;
+
+    function listenToPinnedMessage() {
+      db.ref("pinned_message").on("value", (snap) => {
+        const val = snap.val();
+        const bar = document.getElementById("pinnedBar");
+        if (val && val.msgId) {
+          pinnedMessageId = val.msgId;
+          pinnedMessageData = val;
+          document.getElementById("pinnedSender").innerText = val.user || "";
+          document.getElementById("pinnedText").innerText = val.snippet || "📷 Media";
+          bar.classList.add("show");
+          // Only admin sees the unpin X button
+          document.getElementById("pinnedUnpin").style.display = isAdmin ? "" : "none";
+        } else {
+          pinnedMessageId = null;
+          pinnedMessageData = null;
+          bar.classList.remove("show");
+        }
+      });
+    }
+
+    function actionPin() {
+      if (!isAdmin || !activeSelectedMsgId) return;
+      const data = allMessages[activeSelectedMsgId];
+      if (!data) { hideActionSheet(); return; }
+
+      // If already pinned, unpin
+      if (pinnedMessageId === activeSelectedMsgId) {
+        db.ref("pinned_message").remove();
+        hideActionSheet();
+        return;
+      }
+
+      const snippet = data.text
+        ? data.text.substring(0, 100)
+        : data.fileType === "image" ? "📷 Photo"
+        : data.fileType === "voice" ? "🎤 Voice message"
+        : data.fileType === "doc" ? "📄 " + (data.fileName || "Document")
+        : "";
+
+      db.ref("pinned_message").set({
+        msgId: activeSelectedMsgId,
+        user: data.user,
+        snippet: snippet,
+        pinnedBy: currentUserName,
+        pinnedAt: firebase.database.ServerValue.TIMESTAMP
+      });
+      hideActionSheet();
+    }
+
+    function unpinMessage() {
+      if (!isAdmin) return;
+      db.ref("pinned_message").remove();
+    }
+
+    function jumpToPinnedMessage() {
+      if (pinnedMessageId) jumpToMessage(pinnedMessageId);
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    //  Broadcast / announcement — admin sends a highlighted message
+    // ════════════════════════════════════════════════════════════════════
+    function sendBroadcast() {
+      if (!isAdmin) return;
+      const text = prompt("Type your broadcast message:");
+      if (!text || !text.trim()) return;
+      toggleSettings(false);
+      db.ref("messages").push({
+        user: currentUserName,
+        text: text.trim(),
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        broadcast: true
+      });
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    //  Export chat — downloads all loaded messages as a text file
+    // ════════════════════════════════════════════════════════════════════
+    function exportChat() {
+      if (!isAdmin) return;
+      const keys = Object.keys(allMessages).sort((a, b) =>
+        (allMessages[a].timestamp || 0) - (allMessages[b].timestamp || 0));
+      if (keys.length === 0) { alert("No messages to export."); return; }
+
+      let output = "═══ Rafay Chat Export ═══\n";
+      output += "Exported on: " + new Date().toLocaleString() + "\n";
+      output += "Messages: " + keys.length + "\n";
+      output += "════════════════════════════\n\n";
+
+      keys.forEach((key) => {
+        const m = allMessages[key];
+        const time = m.timestamp ? new Date(m.timestamp).toLocaleString() : "unknown time";
+        const deleted = m.deletedBy ? " [DELETED by " + m.deletedBy + "]" : "";
+        const edited = m.edited ? " [edited]" : "";
+        const broadcast = m.broadcast ? " [BROADCAST]" : "";
+        let content = m.text || "";
+        if (m.fileType === "image") content += " [📷 Image: " + (m.fileUrl || "") + "]";
+        if (m.fileType === "voice") content += " [🎤 Voice: " + (m.fileUrl || "") + "]";
+        if (m.fileType === "doc") content += " [📄 File: " + (m.fileName || "Document") + " " + (m.fileUrl || "") + "]";
+
+        output += `[${time}] ${m.user}${broadcast}${edited}${deleted}: ${content}\n`;
+      });
+
+      // Download as text file
+      const blob = new Blob([output], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "rafay-chat-export-" + new Date().toISOString().slice(0,10) + ".txt";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toggleSettings(false);
     }
 
     // ════════════════════════════════════════════════════════════════════
