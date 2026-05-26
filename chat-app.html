@@ -2912,17 +2912,18 @@
         updates[`fcm_tokens/${targetUser}`] = null;
 
         // 3. Delete mute entries — both their own mutes AND others who muted them
-        // Instead of reading the entire user_mutes tree (which requires broad permissions),
-        // we directly write null to the specific paths using the known user list.
-        updates[`user_mutes/${targetUser}`] = null; // Delete all of the target user's own mute prefs
+        // Done as a separate update to avoid parent/child path conflicts.
+        // First: delete the target user's entire mute folder
+        await db.ref(`user_mutes/${targetUser}`).remove().catch(() => {});
+        // Then: remove target user from every other known user's mute list
+        const muteCleanup = {};
         userSet.forEach(u => {
-          // Skip the target user — their whole folder is already being deleted above,
-          // and Firebase doesn't allow deleting a parent and child in the same update.
           if (u === targetUser) return;
-          updates[`user_mutes/${u}/${targetUser}`] = null;
+          muteCleanup[`${u}/${targetUser}`] = null;
         });
         // Also remove from admin's mute list
-        updates[`user_mutes/${currentUserName}/${targetUser}`] = null;
+        muteCleanup[`${currentUserName}/${targetUser}`] = null;
+        await db.ref("user_mutes").update(muteCleanup).catch(() => {});
 
         // 4. Apply all deletions in one atomic update
         await db.ref().update(updates);
