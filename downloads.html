@@ -1,648 +1,542 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Get the Rafay Chat App</title>
-  <link rel="icon" type="image/png" href="./favicon.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#2e0249">
-  <meta property="og:title" content="Get the Rafay Chat App">
-  <meta property="og:description" content="Install the Rafay Chat app on your phone in 3 easy steps.">
-  <meta property="og:image" content="https://www.rafaytravelsworldwide.com/icon-512.png">
+  <title>Get Rafay Chat</title>
+  <link rel="icon" type="image/png" href="./favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Display serif for headlines + warm humanist sans for body -->
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap');
+
     :root {
-      --plum-deep: #1a0029;
-      --plum: #2e0249;
-      --plum-mid: #4a0e78;
-      --orchid: #9d4edd;
-      --orchid-soft: #c77dff;
-      --gold: #ffcc00;
-      --cream: #fff8e7;
-      --cream-2: #fef3d8;
-      --ink: #1a0029;
-      --paper: #fffaf0;
-      --paper-shadow: rgba(46, 2, 73, 0.12);
-      --rule: rgba(46, 2, 73, 0.15);
+      --bg: #2e0249;
+      --card: #570a57;
+      --text: #ffffff;
+      --muted: #fbc7ff;
+      --accent: #ffcc00;
+      --border-color: #a91079;
     }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; padding: 0; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: 'Nunito', system-ui, sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(ellipse at 0% 0%, rgba(157, 78, 221, 0.18), transparent 50%),
-        radial-gradient(ellipse at 100% 0%, rgba(255, 204, 0, 0.15), transparent 50%),
-        radial-gradient(ellipse at 50% 100%, rgba(157, 78, 221, 0.10), transparent 60%),
-        linear-gradient(180deg, #fffaf0 0%, #f8efd8 100%);
-      min-height: 100vh;
-      line-height: 1.6;
+      background-color: var(--bg);
+      background-image: radial-gradient(#a91079 1px, transparent 1px);
+      background-size: 30px 30px;
+      color: var(--text);
+      font-family: 'Nunito', sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 60px;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* ─── Headline serif treatment ─── */
-    .display {
-      font-family: 'Fraunces', Georgia, serif;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      line-height: 1.05;
-    }
-    .italic-script {
-      font-family: 'Fraunces', Georgia, serif;
-      font-style: italic;
-      font-weight: 600;
-      color: var(--orchid);
-    }
-
-    /* ─── Header ─── */
-    header {
-      position: relative;
-      padding: 32px 24px 48px;
-      text-align: center;
-      overflow: hidden;
-    }
-    header::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(circle at 50% 100%, rgba(255, 204, 0, 0.20), transparent 70%);
-      z-index: 0;
-    }
-    .header-inner { position: relative; z-index: 1; }
-    .app-icon-shell {
-      width: 96px; height: 96px;
-      border-radius: 24px;
-      background: white;
-      margin: 0 auto 18px;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 18px 40px rgba(46, 2, 73, 0.25), 0 4px 12px rgba(46, 2, 73, 0.15);
-      transform: rotate(-3deg);
-      transition: transform 0.3s ease;
-    }
-    .app-icon-shell:hover { transform: rotate(0deg) scale(1.05); }
-    .app-icon-shell img { width: 84%; height: 84%; object-fit: contain; }
-    .kicker {
-      font-size: 12px; font-weight: 700;
-      letter-spacing: 0.25em; text-transform: uppercase;
-      color: var(--orchid); margin-bottom: 8px;
-    }
-    h1.display { font-size: clamp(36px, 9vw, 64px); margin: 0 0 14px; color: var(--plum); }
-    .subtitle {
-      font-size: clamp(15px, 4vw, 18px);
-      max-width: 540px; margin: 0 auto;
-      color: rgba(26, 0, 41, 0.7);
-    }
-
-    /* ─── Auto-detected device badge ─── */
-    .device-badge {
-      display: inline-flex; align-items: center; gap: 10px;
-      margin-top: 22px; padding: 8px 18px;
-      background: white;
-      border-radius: 100px;
-      box-shadow: 0 4px 14px var(--paper-shadow);
-      font-weight: 700; font-size: 14px;
-      color: var(--plum);
-    }
-    .device-badge .ico {
-      width: 22px; height: 22px;
-      display: inline-flex; align-items: center; justify-content: center;
-      color: var(--orchid);
-    }
-    .device-badge svg { width: 22px; height: 22px; fill: currentColor; }
-
-    /* ─── OS tabs (manual switch) ─── */
-    .os-switch {
-      display: flex; justify-content: center;
-      gap: 8px; margin: 28px auto 0;
-      max-width: 360px; padding: 0 16px;
-    }
-    .os-tab {
-      flex: 1;
-      padding: 10px 16px;
-      background: rgba(255,255,255,0.6);
-      border: 2px solid transparent;
-      border-radius: 100px;
-      cursor: pointer; font: inherit;
-      font-weight: 700; font-size: 13px;
-      color: rgba(26, 0, 41, 0.55);
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      transition: all 0.2s;
-    }
-    .os-tab.active {
-      background: white;
-      color: var(--plum);
-      border-color: var(--orchid);
-      box-shadow: 0 4px 10px var(--paper-shadow);
-    }
-    .os-tab:not(.active):hover { background: white; color: var(--plum); }
-    .os-tab svg { width: 16px; height: 16px; fill: currentColor; }
-
-    /* ─── Main content ─── */
-    main {
-      max-width: 720px; margin: 0 auto;
-      padding: 24px 20px 60px;
-    }
-
-    /* ─── Hidden panels ─── */
-    .panel { display: none; }
-    .panel.active { display: block; }
-
-    /* ─── Big step cards ─── */
-    .step {
-      background: white;
-      border-radius: 22px;
-      box-shadow: 0 8px 30px var(--paper-shadow);
-      padding: 26px 26px 28px;
-      margin-bottom: 22px;
-      position: relative;
-      overflow: hidden;
-    }
-    .step::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 4px;
-      background: linear-gradient(90deg, var(--orchid), var(--gold));
-    }
-    .step-num {
-      position: absolute; top: 22px; right: 22px;
-      font-family: 'Fraunces', serif;
-      font-style: italic;
-      font-size: 64px; font-weight: 800;
-      color: var(--orchid);
-      opacity: 0.12;
-      line-height: 1;
-      letter-spacing: -0.03em;
-    }
-    .step-tag {
-      display: inline-block;
-      background: linear-gradient(135deg, var(--plum), var(--orchid));
-      color: white;
-      font-weight: 700; font-size: 11px;
-      letter-spacing: 0.15em; text-transform: uppercase;
-      padding: 5px 12px; border-radius: 100px;
-      margin-bottom: 12px;
-    }
-    .step h2 {
-      font-family: 'Fraunces', serif;
-      font-weight: 700;
-      font-size: clamp(22px, 5vw, 28px);
-      color: var(--plum);
-      margin: 0 0 12px;
-      letter-spacing: -0.01em;
-    }
-    .step p {
-      margin: 8px 0;
-      font-size: 16px;
-      color: rgba(26, 0, 41, 0.78);
-    }
-    .step ol {
-      padding-left: 0; counter-reset: substep;
-      list-style: none; margin: 14px 0 0;
-    }
-    .step ol li {
-      counter-increment: substep;
-      position: relative;
-      padding: 10px 0 10px 38px;
-      font-size: 15.5px;
-      color: rgba(26, 0, 41, 0.82);
-      border-top: 1px dashed var(--rule);
-    }
-    .step ol li:first-child { border-top: 0; }
-    .step ol li::before {
-      content: counter(substep);
-      position: absolute; left: 0; top: 11px;
-      width: 26px; height: 26px;
-      background: var(--cream-2); color: var(--plum);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 800; font-size: 13px;
-    }
-    .step strong { color: var(--plum); font-weight: 800; }
-
-    /* ─── Inline icons (button representations) ─── */
-    .ui-chip {
-      display: inline-flex; align-items: center; gap: 5px;
-      background: var(--cream-2);
-      padding: 2px 9px;
-      border-radius: 6px;
-      font-weight: 700; font-size: 13px;
-      color: var(--plum-mid);
-      border: 1px solid rgba(46, 2, 73, 0.1);
-      white-space: nowrap;
-    }
-    .ui-chip svg { width: 14px; height: 14px; fill: currentColor; }
-
-    /* ─── Call-outs / warning blocks ─── */
-    .callout {
-      margin-top: 14px; padding: 14px 16px;
-      background: linear-gradient(135deg, rgba(255, 204, 0, 0.18), rgba(255, 204, 0, 0.05));
-      border-left: 4px solid var(--gold);
-      border-radius: 10px;
-      font-size: 14px;
-    }
-    .callout strong { display: block; margin-bottom: 4px; color: var(--plum); }
-    .callout-info {
-      background: linear-gradient(135deg, rgba(157, 78, 221, 0.10), rgba(157, 78, 221, 0.03));
-      border-left-color: var(--orchid);
-    }
-
-    /* ─── Section divider ─── */
-    .section-title {
-      font-family: 'Fraunces', serif;
-      font-weight: 700; font-style: italic;
-      font-size: clamp(22px, 5vw, 28px);
-      color: var(--plum);
-      margin: 36px 0 10px;
-      letter-spacing: -0.01em;
+    /* === MAIN CARD === */
+    .dl-card {
+      max-width: 480px;
+      width: 100%;
+      background: var(--card);
+      border-radius: 30px;
+      border: 4px solid #fff;
+      box-shadow: 10px 10px 0px rgba(0,0,0,0.3);
+      padding: 36px 24px 32px;
+      animation: fadeUp 0.8s ease-out;
       text-align: center;
     }
-    .section-sub {
-      text-align: center;
-      color: rgba(26, 0, 41, 0.65);
-      max-width: 460px;
-      margin: 0 auto 18px;
-      font-size: 15px;
-    }
 
-    /* ─── Sticky launch link ─── */
-    .launch-pill {
-      position: sticky; bottom: 16px;
-      margin: 28px auto 0;
-      max-width: 360px;
-      display: flex; align-items: center; justify-content: center;
-      gap: 10px;
-      padding: 16px 28px;
-      background: linear-gradient(135deg, var(--plum), var(--orchid));
-      color: white;
-      border-radius: 100px;
-      text-decoration: none;
-      font-weight: 800;
-      font-size: 17px;
-      box-shadow: 0 12px 30px rgba(46, 2, 73, 0.45);
-      z-index: 10;
-      transition: transform 0.2s;
-    }
-    .launch-pill:active { transform: scale(0.97); }
-    .launch-pill svg { width: 20px; height: 20px; fill: currentColor; }
-
-    /* ─── Footer ─── */
-    footer {
-      text-align: center;
-      padding: 30px 20px 40px;
-      color: rgba(26, 0, 41, 0.5);
-      font-size: 13px;
-    }
-    footer a { color: var(--orchid); text-decoration: none; font-weight: 700; }
-
-    /* ─── Reveal animation ─── */
-    .step, .device-badge {
-      animation: rise 0.6s ease-out backwards;
-    }
-    .step:nth-child(1) { animation-delay: 0.05s; }
-    .step:nth-child(2) { animation-delay: 0.15s; }
-    .step:nth-child(3) { animation-delay: 0.25s; }
-    .step:nth-child(4) { animation-delay: 0.35s; }
-    .step:nth-child(5) { animation-delay: 0.45s; }
-    @keyframes rise {
+    @keyframes fadeUp {
       from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* === APP ICON === */
+    .app-icon {
+      width: 100px;
+      height: 100px;
+      border-radius: 24px;
+      border: 4px solid #fff;
+      box-shadow: 4px 4px 0px #000;
+    }
+
+    .app-name {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin: 16px 0 4px;
+      text-shadow: 2px 2px 0px #000;
+    }
+
+    .app-desc {
+      color: var(--muted);
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    /* === OS BADGE === */
+    .os-badge {
+      display: inline-block;
+      background: rgba(0,0,0,0.3);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 12px 0 0;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* === OPEN BUTTON === */
+    .open-btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: #000;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      border: 3px solid #000;
+      border-radius: 15px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      margin-top: 24px;
+      box-shadow: 4px 4px 0px #000;
+      transition: transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .open-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0px #000;
+    }
+
+    /* === SECTION HEADING === */
+    .section-heading {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-align: left;
+      margin: 28px 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* === STEPS === */
+    .steps { display: flex; flex-direction: column; gap: 12px; }
+
+    .step {
+      background: rgba(0,0,0,0.25);
+      border: 2px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .step-num {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #000;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 2px solid #000;
+      box-shadow: 2px 2px 0px #000;
+    }
+
+    .step-body { flex: 1; }
+
+    .step-main {
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .step-sub {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.35;
+    }
+
+    .hl {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* === VISUAL HINT === */
+    .visual-hint {
+      margin-top: 10px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 1.4rem;
+      border: 1px dashed var(--border-color);
+    }
+
+    .visual-hint .label {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* share icon for iphone */
+    .share-icon-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: #007AFF;
+      border-radius: 6px;
+      vertical-align: middle;
+    }
+
+    .share-icon-box svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* === WARNING BOX === */
+    .warn-box {
+      background: rgba(0,0,0,0.35);
+      border: 2px solid var(--accent);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 16px;
+      text-align: left;
+    }
+
+    .warn-title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .warn-text {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .warn-text strong { color: var(--text); }
+
+    /* === TROUBLE SECTION === */
+    .trouble-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 24px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      width: 100%;
+      -webkit-tap-highlight-color: transparent;
+      padding: 8px;
+    }
+
+    .trouble-btn .arrow {
+      display: inline-block;
+      transition: transform 0.2s;
+      font-size: 0.8rem;
+    }
+
+    .trouble-btn.open .arrow { transform: rotate(180deg); }
+
+    .trouble-content { display: none; margin-top: 10px; }
+    .trouble-content.open { display: block; }
+
+    .trouble-item {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      text-align: left;
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .trouble-item strong {
+      color: var(--text);
+      display: block;
+      margin-bottom: 3px;
+      font-size: 0.95rem;
+    }
+
+    /* === FOOTER === */
+    .footer {
+      text-align: center;
+      margin-top: 32px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      opacity: 0.7;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="header-inner">
-      <div class="app-icon-shell"><img src="/icon-512.png" alt="Rafay Chat"></div>
-      <div class="kicker">Family installer</div>
-      <h1 class="display">Get the <span class="italic-script">Rafay Chat</span> App</h1>
-      <p class="subtitle">A private chat for our family, with reliable notifications. Pick your phone below and follow the steps.</p>
+<div class="dl-card">
 
-      <div class="device-badge" id="deviceBadge" style="display:none;">
-        <span class="ico" id="deviceIco"></span>
-        <span id="deviceText">Detecting your device…</span>
+  <!-- APP HEADER -->
+  <img class="app-icon" src="https://www.rafaytravelsworldwide.com/icon-512.png" alt="Rafay Chat">
+  <div class="app-name">Rafay Chat</div>
+  <div class="app-desc">Family chat with Abdul Rafay</div>
+  <div class="os-badge" id="osBadge">Detecting your phone…</div>
+
+  <!-- OPEN BUTTON -->
+  <a class="open-btn" href="https://www.rafaytravelsworldwide.com/chat-app.html" id="openBtn">
+    Open Rafay Chat
+  </a>
+
+  <!-- ===== INSTRUCTIONS (filled by JS based on OS) ===== -->
+  <div id="instructions"></div>
+
+  <!-- TROUBLE -->
+  <button class="trouble-btn" id="troubleBtn" onclick="toggleTrouble()">
+    Having trouble? <span class="arrow">▼</span>
+  </button>
+  <div class="trouble-content" id="troubleContent"></div>
+
+</div>
+
+<div class="footer">Made with ❤️ by Abdul Rafay</div>
+
+<script>
+(function() {
+
+  // ---- OS DETECTION ----
+  function detectOS() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'iphone';
+    if (/android/i.test(ua)) return 'android';
+    if (/Macintosh/.test(ua) && 'ontouchend' in document) return 'iphone';
+    return 'unknown';
+  }
+
+  const os = detectOS();
+  const badge = document.getElementById('osBadge');
+  const instructions = document.getElementById('instructions');
+  const troubleContent = document.getElementById('troubleContent');
+
+  // ---- SET BADGE ----
+  if (os === 'android') {
+    badge.textContent = '📱 Android Phone Detected';
+  } else if (os === 'iphone') {
+    badge.textContent = '📱 iPhone Detected';
+  } else {
+    badge.textContent = '📱 Phone not detected';
+  }
+
+  // ---- ANDROID INSTRUCTIONS ----
+  const androidHTML = `
+    <div class="section-heading">📲 How to Install</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-main">Tap the <span class="hl">"Open Rafay Chat"</span> button above</div>
+        </div>
       </div>
-
-      <div class="os-switch">
-        <button class="os-tab" id="tabAndroid" onclick="showPanel('android')">
-          <svg viewBox="0 0 24 24"><path d="M17.523 15.34l1.408-2.453a.294.294 0 0 0-.107-.4.288.288 0 0 0-.397.107l-1.43 2.48a8.736 8.736 0 0 0-3.5-.747c-1.24 0-2.42.27-3.5.747l-1.43-2.48a.288.288 0 0 0-.397-.107.294.294 0 0 0-.107.4l1.408 2.453C7.038 16.27 5.4 18.6 5.135 21.39h13.73c-.265-2.79-1.903-5.12-1.342-6.05zM9.32 19.205a.79.79 0 1 1 .79-.79.79.79 0 0 1-.79.79zm5.36 0a.79.79 0 1 1 .79-.79.79.79 0 0 1-.79.79zM12 2.61c-.43 0-.842.082-1.222.232l-1.92-3.32a.582.582 0 1 0-.21-.794L7.65-.92"/></svg>
-        </button>
-        <button class="os-tab" id="tabIos" onclick="showPanel('ios')">
-          <svg viewBox="0 0 24 24"><path d="M19.665 16.811a10.316 10.316 0 0 1-1.021 1.837c-.537.767-.978 1.297-1.316 1.592-.525.482-1.089.73-1.692.744-.432 0-.954-.123-1.562-.373-.61-.249-1.17-.371-1.683-.371-.537 0-1.113.122-1.73.371-.616.25-1.114.381-1.495.393-.577.025-1.154-.229-1.729-.764-.367-.32-.826-.87-1.377-1.648-.59-.829-1.075-1.794-1.455-2.891-.407-1.187-.611-2.335-.611-3.447 0-1.273.275-2.372.826-3.292a4.857 4.857 0 0 1 1.73-1.751 4.65 4.65 0 0 1 2.34-.66c.46 0 1.063.142 1.81.422.747.28 1.227.422 1.436.422.157 0 .69-.166 1.593-.498.853-.308 1.573-.435 2.163-.385 1.6.129 2.801.759 3.6 1.895-1.43.867-2.137 2.08-2.123 3.637.012 1.213.45 2.222 1.315 3.023a4.33 4.33 0 0 0 1.315.863c-.106.307-.218.6-.336.882zM15.998 2.38c0 .95-.348 1.838-1.039 2.659-.836.976-1.846 1.541-2.941 1.452a2.955 2.955 0 0 1-.022-.36c0-.913.396-1.889 1.103-2.688.352-.404.8-.741 1.343-1.009.542-.264 1.054-.41 1.536-.435.013.128.02.255.02.381z"/></svg>
-        </button>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-main">Tap the <span class="hl">⋮ three dots</span> at the top-right of Chrome</div>
+          <div class="visual-hint">
+            ⋮ &nbsp;→&nbsp; <span class="label">Opens a menu</span>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-main">Tap <span class="hl">"Add to Home screen"</span> or <span class="hl">"Install app"</span></div>
+          <div class="step-sub">Then tap <strong>Install</strong> to confirm</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-main">The app icon now appears on your home screen! 🎉</div>
+          <div class="step-sub">Open it from there — it works like a normal app</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-main">When asked, tap <span class="hl">"Allow"</span> for notifications</div>
+          <div class="step-sub">So you get alerts when someone sends a message</div>
+        </div>
       </div>
     </div>
-  </header>
-
-  <main>
-
-    <!-- ───────────── ANDROID PANEL ───────────── -->
-    <section class="panel" id="panel-android">
-
-      <h2 class="section-title">For Android phones</h2>
-      <p class="section-sub">Three short steps. About 2 minutes total.</p>
-
-      <div class="step">
-        <div class="step-num">01</div>
-        <div class="step-tag">Open</div>
-        <h2>Open Chrome on your phone</h2>
-        <p>Tap the Chrome app icon to open it. If you don't have Chrome, install it free from the Play Store first.</p>
-        <ol>
-          <li>Find the <strong>Chrome</strong> app on your phone (a coloured circle with a blue dot in the middle).</li>
-          <li>Tap it to open.</li>
-          <li>In the address bar at the top, type or paste:<br>
-            <span class="ui-chip" style="margin-top:6px;">www.rafaytravelsworldwide.com/chat-app.html</span>
-          </li>
-          <li>Tap <strong>Go</strong> or <strong>Enter</strong>.</li>
-        </ol>
+    <div class="warn-box">
+      <div class="warn-title">⚠️ Not getting notifications?</div>
+      <div class="warn-text">
+        Go to your phone's <strong>Settings → Apps → Rafay Chat</strong> and make sure notifications are <strong>ON</strong>.<br><br>
+        Also check that <strong>Battery Saver</strong> is not blocking the app.
       </div>
+    </div>
+  `;
 
+  // ---- IPHONE INSTRUCTIONS ----
+  const iphoneHTML = `
+    <div class="section-heading">📲 How to Install</div>
+    <div class="warn-box" style="margin-top:0; margin-bottom:14px; border-color:#ff6b6b;">
+      <div class="warn-title" style="color:#ff6b6b;">📌 You must use Safari</div>
+      <div class="warn-text">
+        This only works in <strong>Safari</strong>. If the page opens in Chrome or another browser, close it and open it in <strong>Safari</strong> instead.
+      </div>
+    </div>
+    <div class="steps">
       <div class="step">
-        <div class="step-num">02</div>
-        <div class="step-tag">Install</div>
-        <h2>Add the app to your home screen</h2>
-        <p>Now Chrome will help you turn this page into a real app icon on your home screen.</p>
-        <ol>
-          <li>At the top right of Chrome, tap the menu button (
-            <span class="ui-chip">⋮ three dots</span>).
-          </li>
-          <li>Tap <strong>Install app</strong> (or <strong>Add to Home Screen</strong> — it may say either).</li>
-          <li>A small box appears. Tap <strong>Install</strong> or <strong>Add</strong>.</li>
-          <li>Wait a moment — you'll see a new <strong>R</strong> icon on your home screen.</li>
-          <li>Tap the new <strong>R</strong> icon to open the app.</li>
-        </ol>
-        <div class="callout">
-          <strong>Don't see "Install app"?</strong>
-          Try tapping <span class="ui-chip">⋮</span> → <strong>Add to Home Screen</strong>. Some Chrome versions phrase it differently — both work the same.
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-main">Tap the <span class="hl">"Open Rafay Chat"</span> button above</div>
+          <div class="step-sub">Make sure it opens in <strong>Safari</strong></div>
         </div>
       </div>
-
       <div class="step">
-        <div class="step-num">03</div>
-        <div class="step-tag">Enter</div>
-        <h2>Sign in with your name</h2>
-        <ol>
-          <li>The app asks for your name. Type your name (e.g. "Naghmana") and tap <strong>Join Chat</strong>.</li>
-          <li>A pop-up appears asking <em>"Allow notifications?"</em> — tap <strong>Allow</strong>. This is what lets your phone buzz when there's a new message.</li>
-          <li>You'll only be asked once. The next time you open the app, you go straight in.</li>
-        </ol>
-      </div>
-
-      <h2 class="section-title">Make sure notifications always work</h2>
-      <p class="section-sub">Android phones save battery by silencing apps in the background. Do these one-time steps so you never miss a message.</p>
-
-      <div class="step">
-        <div class="step-num">04</div>
-        <div class="step-tag">Important</div>
-        <h2>Turn off battery savings for Chrome</h2>
-        <p>This step is the single biggest reason messages get missed. It's a one-time setting.</p>
-        <ol>
-          <li>Open your phone's <strong>Settings</strong> app (the gear icon).</li>
-          <li>Tap <strong>Apps</strong> (or <strong>Apps &amp; notifications</strong>).</li>
-          <li>Scroll down and tap <strong>Chrome</strong>.</li>
-          <li>Tap <strong>Battery</strong>.</li>
-          <li>Choose <strong>Unrestricted</strong> (or "No restrictions" / "Don't optimise" — the wording varies by phone).</li>
-        </ol>
-        <div class="callout">
-          <strong>Samsung phones</strong> &mdash; Settings → Apps → Chrome → Battery → set to <strong>Unrestricted</strong>. Then also: Settings → Battery and device care → Battery → Background usage limits → make sure Chrome is <strong>not</strong> in the "Sleeping apps" list.
-        </div>
-        <div class="callout">
-          <strong>Xiaomi / Redmi / POCO phones</strong> &mdash; Settings → Apps → Manage apps → Chrome → Battery saver → <strong>No restrictions</strong>. Then: Settings → Battery → App battery saver → Chrome → <strong>No restrictions</strong>.
-        </div>
-        <div class="callout">
-          <strong>Huawei / Honor</strong> &mdash; Settings → Battery → App launch → Chrome → switch <strong>off</strong> "Manage automatically", then turn <strong>on</strong> all three options shown (Auto-launch, Secondary launch, Run in background).
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-num">05</div>
-        <div class="step-tag">Allow</div>
-        <h2>Make sure notifications are switched on</h2>
-        <ol>
-          <li>Open Settings → <strong>Apps</strong> → <strong>Chrome</strong>.</li>
-          <li>Tap <strong>Notifications</strong>.</li>
-          <li>Make sure the main switch at the top is <strong>ON</strong>.</li>
-          <li>Scroll down — make sure <strong>Sites</strong> is turned on. If you see <em>rafaytravelsworldwide.com</em> listed, make sure that's ON too.</li>
-          <li>If your phone offers a "Priority" or "Important" notification category, set Rafay Chat to <strong>Priority / High</strong>.</li>
-        </ol>
-      </div>
-
-      <div class="step">
-        <div class="step-num">06</div>
-        <div class="step-tag">Optional</div>
-        <h2>Don't sleep, Chrome</h2>
-        <p>Some phones aggressively "put apps to sleep" if you haven't opened them in a while. Make sure Chrome isn't sleeping.</p>
-        <ol>
-          <li>Settings → <strong>Battery</strong> (or "Battery &amp; device care").</li>
-          <li>Look for <strong>Sleeping apps</strong>, <strong>App standby</strong>, or <strong>Deep sleep apps</strong>.</li>
-          <li>If you see <strong>Chrome</strong> in any of these lists, tap it and <strong>remove</strong> it.</li>
-        </ol>
-        <div class="callout callout-info">
-          <strong>Good to know:</strong> After these settings, your phone will buzz reliably even if the app isn't open. Notifications use the same system as WhatsApp.
-        </div>
-      </div>
-    </section>
-
-    <!-- ───────────── iOS PANEL ───────────── -->
-    <section class="panel" id="panel-ios">
-
-      <h2 class="section-title">For iPhone &amp; iPad</h2>
-      <p class="section-sub">Three short steps. About 2 minutes total. You'll need iOS 16.4 or newer for notifications to work.</p>
-
-      <div class="step">
-        <div class="step-num">01</div>
-        <div class="step-tag">Open</div>
-        <h2>Open Safari (not Chrome)</h2>
-        <p><strong>This is important:</strong> on iPhone, the install only works in Apple's Safari browser. Chrome or other browsers won't work for this.</p>
-        <ol>
-          <li>Find the <strong>Safari</strong> app on your phone (a blue compass icon).</li>
-          <li>Tap to open it.</li>
-          <li>In the address bar, type or paste:<br>
-            <span class="ui-chip" style="margin-top:6px;">www.rafaytravelsworldwide.com/chat-app.html</span>
-          </li>
-          <li>Tap <strong>Go</strong>.</li>
-        </ol>
-      </div>
-
-      <div class="step">
-        <div class="step-num">02</div>
-        <div class="step-tag">Install</div>
-        <h2>Add to Home Screen</h2>
-        <ol>
-          <li>At the bottom of Safari (or top, on iPad), tap the <strong>Share</strong> button — a square with an arrow pointing up:
-            <span class="ui-chip">
-              <svg viewBox="0 0 24 24"><path d="M12 2l-4 4h3v8h2V6h3l-4-4zm-8 16v4h16v-4h-2v2H6v-2H4z"/></svg> Share
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-main">Tap the <span class="hl">Share button</span> at the bottom of the screen</div>
+          <div class="visual-hint">
+            <span class="share-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+                <polyline points="16 6 12 2 8 6"/>
+                <line x1="12" y1="2" x2="12" y2="15"/>
+              </svg>
             </span>
-          </li>
-          <li>Scroll down the menu that appears and tap <strong>Add to Home Screen</strong>.</li>
-          <li>Tap <strong>Add</strong> in the top-right corner.</li>
-          <li>You'll see a new <strong>R</strong> icon on your home screen.</li>
-          <li>Tap the new <strong>R</strong> icon to open the app.</li>
-        </ol>
-        <div class="callout">
-          <strong>Can't find "Add to Home Screen"?</strong>
-          Make sure you tapped the proper Share button (square with up-arrow), not something else. Scroll down in that menu — it's not always at the top.
+            &nbsp;<span class="label">Square with an arrow pointing up</span>
+          </div>
         </div>
       </div>
-
       <div class="step">
-        <div class="step-num">03</div>
-        <div class="step-tag">Enter</div>
-        <h2>Sign in &amp; allow notifications</h2>
-        <ol>
-          <li>The app asks for your name. Type your name (e.g. "Sarah") and tap <strong>Join Chat</strong>.</li>
-          <li>A pop-up will say <em>"Rafay Chat would like to send you notifications"</em> &mdash; tap <strong>Allow</strong>.</li>
-          <li>You'll only be asked once. Next time you open it, you go straight in.</li>
-        </ol>
-      </div>
-
-      <h2 class="section-title">Make sure notifications always work</h2>
-      <p class="section-sub">iPhone is much more reliable than Android by default, but these small checks make sure you don't miss anything.</p>
-
-      <div class="step">
-        <div class="step-num">04</div>
-        <div class="step-tag">Important</div>
-        <h2>Check iPhone notifications are switched on</h2>
-        <ol>
-          <li>Open the <strong>Settings</strong> app.</li>
-          <li>Scroll down and tap <strong>Notifications</strong>.</li>
-          <li>Scroll through the apps list and find <strong>Rafay Chat</strong>.</li>
-          <li>Tap it. Make sure <strong>Allow Notifications</strong> is <span class="ui-chip" style="background:#34c759;color:white;">ON</span>.</li>
-          <li>Underneath, check that <strong>Sounds</strong> and <strong>Badges</strong> are on.</li>
-          <li>For "Show in Notification Centre" and "Lock Screen", make sure both are ticked.</li>
-        </ol>
-      </div>
-
-      <div class="step">
-        <div class="step-num">05</div>
-        <div class="step-tag">Optional</div>
-        <h2>Turn off "Focus" mode for Rafay Chat</h2>
-        <p>If you use Focus modes (e.g. Sleep, Work, Do Not Disturb), notifications can get hidden. Allow Rafay Chat through.</p>
-        <ol>
-          <li>Settings → <strong>Focus</strong>.</li>
-          <li>Tap each Focus mode you use (e.g. "Do Not Disturb", "Sleep").</li>
-          <li>Under <strong>Allowed Apps</strong>, add <strong>Rafay Chat</strong>.</li>
-        </ol>
-        <div class="callout callout-info">
-          <strong>Update needed?</strong> Notifications require iOS 16.4 or later. Open Settings → General → Software Update to check. Most iPhones from 2017 and newer support this update.
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-main">Scroll down and tap <span class="hl">"Add to Home Screen"</span></div>
+          <div class="step-sub">Then tap <strong>Add</strong> at the top right</div>
         </div>
       </div>
-    </section>
-
-    <!-- ───────────── DESKTOP / OTHER PANEL ───────────── -->
-    <section class="panel" id="panel-desktop">
-
-      <h2 class="section-title">It looks like you're on a computer</h2>
-      <p class="section-sub">This app is designed for phones. Here's what to do:</p>
-
       <div class="step">
-        <div class="step-num">01</div>
-        <div class="step-tag">Pick</div>
-        <h2>Open this page on your phone</h2>
-        <p>Choose how you want to send the install link to your phone:</p>
-        <ol>
-          <li><strong>Text or WhatsApp it to yourself:</strong><br>
-            Copy this link and message it to your phone:
-            <br><br>
-            <span class="ui-chip" style="background:white; border:1px solid var(--rule); padding:8px 12px; user-select:all;">
-              www.rafaytravelsworldwide.com/downloads.html
-            </span>
-          </li>
-          <li>On your phone, tap that link to open this page, then follow the Android or iPhone steps above.</li>
-        </ol>
-      </div>
-
-      <div class="step">
-        <div class="step-num">02</div>
-        <div class="step-tag">Alternative</div>
-        <h2>I just want to use chat on this computer</h2>
-        <p>That's fine — open this in your browser to chat right now:</p>
-        <ol>
-          <li>Open Chrome or Edge.</li>
-          <li>Go to <span class="ui-chip">www.rafaytravelsworldwide.com/chat-app.html</span>.</li>
-          <li>Sign in with your name. Allow notifications when asked.</li>
-        </ol>
-        <div class="callout callout-info">
-          On a computer, notifications appear as banners on your desktop. They work when Chrome/Edge is running, even minimised.
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-main">The app icon now appears on your home screen! 🎉</div>
+          <div class="step-sub">Open it from there — it works like a normal app</div>
         </div>
       </div>
-
-      <div style="text-align:center; margin-top: 24px;">
-        <button class="os-tab active" style="background:white;border-color:var(--orchid);min-width:180px" onclick="showPanel('android')">📱 Show me Android steps anyway</button>
-        <button class="os-tab active" style="background:white;border-color:var(--orchid);min-width:180px;margin-top:8px" onclick="showPanel('ios')">🍎 Show me iPhone steps anyway</button>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-main">When asked, tap <span class="hl">"Allow"</span> for notifications</div>
+          <div class="step-sub">So you get alerts when someone sends a message</div>
+        </div>
       </div>
-    </section>
+    </div>
+    <div class="warn-box">
+      <div class="warn-title">⚠️ Not getting notifications?</div>
+      <div class="warn-text">
+        Notifications only work when you open the app <strong>from the home screen icon</strong> (not from Safari).<br><br>
+        If they're still not working, go to <strong>Settings → Rafay Chat → Notifications</strong> and turn them <strong>ON</strong>.
+      </div>
+    </div>
+  `;
 
-    <a href="/chat-app.html" class="launch-pill">
-      <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg>
-      Launch the chat now
-    </a>
-  </main>
+  // ---- UNKNOWN OS ----
+  const unknownHTML = `
+    <div class="section-heading">📲 How to Install</div>
+    <div class="warn-box" style="margin-top:0; margin-bottom:14px;">
+      <div class="warn-title">📱 Open this page on your phone</div>
+      <div class="warn-text">
+        This page needs to be opened on your <strong>Android</strong> or <strong>iPhone</strong> to show you the right steps. Please open this link on your phone.
+      </div>
+    </div>
+  `;
 
-  <footer>
-    <p>Rafay Chat &mdash; part of <a href="/index.html">Abdul Rafay's Adventures</a></p>
-  </footer>
+  // ---- SHOW THE RIGHT INSTRUCTIONS ----
+  if (os === 'android') {
+    instructions.innerHTML = androidHTML;
+  } else if (os === 'iphone') {
+    instructions.innerHTML = iphoneHTML;
+  } else {
+    instructions.innerHTML = unknownHTML;
+  }
 
-  <script>
-    /**
-     * Detect the user's OS family and switch to the appropriate panel.
-     * Falls back to a desktop view if neither phone OS is detected.
-     */
-    function detectOS() {
-      const ua = (navigator.userAgent || "").toLowerCase();
-      const platform = (navigator.platform || "").toLowerCase();
-      // iOS detection (iPhone, iPad, iPod, and modern iPads which spoof as Mac)
-      const isIOS =
-        /iphone|ipad|ipod/.test(ua) ||
-        (platform === "macintel" && navigator.maxTouchPoints > 1);
-      const isAndroid = /android/.test(ua);
-      if (isIOS) return "ios";
-      if (isAndroid) return "android";
-      return "desktop";
-    }
+  // ---- TROUBLE ITEMS (OS specific) ----
+  const androidTrouble = `
+    <div class="trouble-item">
+      <strong>I don't see "Add to Home screen"</strong>
+      Make sure you opened the app in <strong>Chrome</strong>. Other browsers might not show this option.
+    </div>
+    <div class="trouble-item">
+      <strong>I'm not getting notifications</strong>
+      Open the app from the home screen icon, not from the browser. Then check Settings → Apps → Rafay Chat → Notifications → make sure they're ON.
+    </div>
+    <div class="trouble-item">
+      <strong>The app won't load or looks broken</strong>
+      Close the app completely and re-open it. If that doesn't work, delete the icon from your home screen and follow the steps again.
+    </div>
+  `;
 
-    /**
-     * Show one panel and hide the others; also sync the OS-switch tabs.
-     */
-    function showPanel(name) {
-      document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
-      const target = document.getElementById("panel-" + name);
-      if (target) target.classList.add("active");
-      // Sync tabs (only Android & iOS tabs exist)
-      const tA = document.getElementById("tabAndroid");
-      const tI = document.getElementById("tabIos");
-      tA.classList.toggle("active", name === "android");
-      tI.classList.toggle("active", name === "ios");
-      // Scroll a little so the panel is in view
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+  const iphoneTrouble = `
+    <div class="trouble-item">
+      <strong>I don't see "Add to Home Screen"</strong>
+      Make sure you're using <strong>Safari</strong>. This option does not appear in Chrome or other browsers on iPhone.
+    </div>
+    <div class="trouble-item">
+      <strong>I'm not getting notifications</strong>
+      You must open the app from the <strong>home screen icon</strong>. Notifications do not work when opening from Safari. Also check Settings → Rafay Chat → Notifications.
+    </div>
+    <div class="trouble-item">
+      <strong>The app won't load or looks broken</strong>
+      Close the app completely and re-open it. If that doesn't work, delete the icon from your home screen and follow the steps again using Safari.
+    </div>
+  `;
 
-    /**
-     * Set the detected-device badge with an appropriate icon.
-     */
-    function showDeviceBadge(os) {
-      const badge = document.getElementById("deviceBadge");
-      const ico = document.getElementById("deviceIco");
-      const text = document.getElementById("deviceText");
-      const ANDROID_SVG = '<svg viewBox="0 0 24 24"><path d="M17.6 9.48l1.84-3.18a.4.4 0 1 0-.69-.4L16.9 9.1A11.7 11.7 0 0 0 12 8a11.7 11.7 0 0 0-4.9 1.1L5.25 5.9a.4.4 0 1 0-.69.4L6.4 9.48A10.81 10.81 0 0 0 1 18h22a10.81 10.81 0 0 0-5.4-8.52zM7 15.25A1.25 1.25 0 1 1 8.25 14 1.25 1.25 0 0 1 7 15.25zm10 0A1.25 1.25 0 1 1 18.25 14 1.25 1.25 0 0 1 17 15.25z"/></svg>';
-      const APPLE_SVG = '<svg viewBox="0 0 24 24"><path d="M17.05 20.28c-.98.95-2.05.94-3.08.49-1.09-.47-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.49C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>';
-      const PC_SVG = '<svg viewBox="0 0 24 24"><path d="M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg>';
-      if (os === "android") { ico.innerHTML = ANDROID_SVG; text.innerText = "We've detected an Android phone"; }
-      else if (os === "ios") { ico.innerHTML = APPLE_SVG; text.innerText = "We've detected an iPhone or iPad"; }
-      else { ico.innerHTML = PC_SVG; text.innerText = "We've detected a computer"; }
-      badge.style.display = "inline-flex";
-    }
+  if (os === 'android') {
+    troubleContent.innerHTML = androidTrouble;
+  } else if (os === 'iphone') {
+    troubleContent.innerHTML = iphoneTrouble;
+  } else {
+    document.getElementById('troubleBtn').style.display = 'none';
+  }
 
-    // Wire it all up on load
-    document.addEventListener("DOMContentLoaded", () => {
-      const os = detectOS();
-      showDeviceBadge(os);
-      showPanel(os);
-      // Hide tabs panel for desktop (computer users see a different panel)
-      // — but we still let them click a tab to peek at phone steps.
-    });
-  </script>
+})();
+
+function toggleTrouble() {
+  document.getElementById('troubleBtn').classList.toggle('open');
+  document.getElementById('troubleContent').classList.toggle('open');
+}
+</script>
+
 </body>
 </html>
