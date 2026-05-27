@@ -725,6 +725,48 @@
     /* ─── Search highlight ─── */
     mark { background: #ffeb3b; color: #000; padding: 0 2px; border-radius: 2px; }
 
+    /* ─── Floating "new messages" button with red badge ─── */
+    .new-msg-fab {
+      position: absolute;
+      bottom: 8px;
+      right: 12px;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--bg-panel);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 8;
+      cursor: pointer;
+      border: none;
+      color: var(--text-secondary);
+      transition: transform 0.15s;
+    }
+    .new-msg-fab.show { display: flex; }
+    .new-msg-fab:active { transform: scale(0.92); }
+    .new-msg-fab svg { width: 22px; height: 22px; fill: currentColor; }
+    .new-msg-fab .unread-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      border-radius: 10px;
+      background: #e53935;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      box-shadow: 0 1px 4px rgba(229,57,53,0.4);
+    }
+    .new-msg-fab .unread-badge.show { display: flex; }
+
     /* ─── Hidden helpers ─── */
     .hidden { display: none !important; }
 
@@ -1133,7 +1175,14 @@
     </div>
 
     <!-- Messages -->
-    <div id="messagesContainer"></div>
+    <div style="position:relative; flex:1 1 auto; overflow:hidden; display:flex; flex-direction:column;">
+      <div id="messagesContainer"></div>
+      <!-- Floating scroll-down + unread badge button -->
+      <button class="new-msg-fab" id="newMsgFab" onclick="scrollToBottomAndClear()">
+        <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+        <span class="unread-badge" id="unreadBadge">0</span>
+      </button>
+    </div>
 
     <!-- Typing indicator -->
     <div class="typing-bar" id="typingBar"></div>
@@ -1513,6 +1562,11 @@
       if (!currentUserName) return;
       // Clear unread badge when user returns to the app
       clearUnread();
+      // If at bottom, also clear the in-app badge
+      if (isNearBottom()) {
+        fabUnreadCount = 0;
+        updateFabBadge();
+      }
       // Re-mark presence — mobile browsers often suspend background tabs
       keepAlive();
       // Refresh FCM token if permission still granted (token can rotate)
@@ -1942,11 +1996,35 @@
       } catch (e) { /* ignore */ }
     }
 
+    // Unlock audio on mobile — browsers block sound until the user taps something.
+    // This plays a silent "touch" on the first tap so future pings work automatically.
+    (function unlockAudio() {
+      let unlocked = false;
+      function doUnlock() {
+        if (unlocked) return;
+        const a = document.getElementById("pingSound");
+        if (a) {
+          a.muted = true;
+          a.play().then(() => { a.pause(); a.muted = false; a.currentTime = 0; unlocked = true; })
+                  .catch(() => {});
+        }
+      }
+      document.addEventListener("touchstart", doUnlock, { once: false });
+      document.addEventListener("click", doUnlock, { once: false });
+    })();
+
     // ════════════════════════════════════════════════════════════════════
-    //  Unread message badge (tab title + app icon badge)
+    //  Unread message badge (tab title + app icon badge + in-app red badge)
     // ════════════════════════════════════════════════════════════════════
     let unreadCount = 0;
+    let fabUnreadCount = 0;        // count for the floating red badge
     const BASE_TITLE = "Rafay Chat";
+
+    function isNearBottom() {
+      const c = document.getElementById("messagesContainer");
+      if (!c) return true;
+      return (c.scrollHeight - c.scrollTop - c.clientHeight) < 80;
+    }
 
     function updateBadge() {
       // Update browser tab title with unread count
@@ -1961,11 +2039,36 @@
       }
     }
 
+    function updateFabBadge() {
+      const fab = document.getElementById("newMsgFab");
+      const badge = document.getElementById("unreadBadge");
+      if (!fab || !badge) return;
+
+      if (fabUnreadCount > 0) {
+        badge.innerText = fabUnreadCount > 99 ? "99+" : fabUnreadCount;
+        badge.classList.add("show");
+        fab.classList.add("show");
+      } else {
+        badge.classList.remove("show");
+        // Keep fab visible if user is scrolled up (even without unread)
+        if (!isNearBottom()) {
+          fab.classList.add("show");
+        } else {
+          fab.classList.remove("show");
+        }
+      }
+    }
+
     function incrementUnread() {
-      // Only count as unread if the user is NOT looking at the app
+      // Tab-level badge: only count if tab is hidden
       if (document.hidden) {
         unreadCount++;
         updateBadge();
+      }
+      // In-app red badge: count if user is scrolled up OR tab is hidden
+      if (!isNearBottom() || document.hidden) {
+        fabUnreadCount++;
+        updateFabBadge();
       }
     }
 
@@ -1974,6 +2077,14 @@
         unreadCount = 0;
         updateBadge();
       }
+      fabUnreadCount = 0;
+      updateFabBadge();
+    }
+
+    function scrollToBottomAndClear() {
+      scrollToBottom();
+      fabUnreadCount = 0;
+      updateFabBadge();
     }
 
     // Decide whether to mark a message as seen by current user
@@ -1992,6 +2103,9 @@
 
     function appendOrInsertMessage(key, data) {
       const container = document.getElementById("messagesContainer");
+      // Check scroll position BEFORE adding message
+      const wasNearBottom = isNearBottom();
+
       // Day divider logic
       const ts = data.timestamp || Date.now();
       const lastChild = container.lastElementChild;
@@ -2015,7 +2129,11 @@
       const seenLine = buildSeenLine(key, data);
       if (seenLine) container.appendChild(seenLine);
 
-      scrollToBottom();
+      // Only auto-scroll if the user is already near the bottom
+      // (don't interrupt if they're reading older messages)
+      if (wasNearBottom || data.user === currentUserName) {
+        scrollToBottom();
+      }
     }
 
     function rerenderMessage(key) {
@@ -3086,6 +3204,20 @@
         }
       });
       document.getElementById("searchInput").addEventListener("input", performSearch);
+
+      // Show/hide the scroll-down fab when user scrolls the messages
+      document.getElementById("messagesContainer").addEventListener("scroll", () => {
+        const fab = document.getElementById("newMsgFab");
+        if (!fab) return;
+        if (isNearBottom()) {
+          // At bottom — clear in-app badge and hide fab
+          fabUnreadCount = 0;
+          updateFabBadge();
+        } else {
+          // Scrolled up — show the down-arrow fab
+          fab.classList.add("show");
+        }
+      });
 
       // ESC closes whichever overlay is open (desktop convenience)
       document.addEventListener("keydown", (e) => {
