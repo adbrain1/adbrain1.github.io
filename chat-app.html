@@ -2883,50 +2883,39 @@
       overlay.classList.add("show");
 
       try {
-        // 1. Delete all messages from this user
+        // 1. Delete all messages from this user & clean seenBy/reactions
         const msgSnap = await db.ref("messages").once("value");
-        const updates = {};
+        const msgUpdates = {};
         if (msgSnap.val()) {
           Object.entries(msgSnap.val()).forEach(([key, msg]) => {
-            // Delete messages sent by this user
             if (msg.user === targetUser) {
-              updates[`messages/${key}`] = null;
+              msgUpdates[`messages/${key}`] = null;
             } else {
-              // Remove their seenBy entry from other people's messages
               if (msg.seenBy && msg.seenBy[targetUser]) {
-                updates[`messages/${key}/seenBy/${targetUser}`] = null;
+                msgUpdates[`messages/${key}/seenBy/${targetUser}`] = null;
               }
-              // Remove their reactions from other people's messages
               if (msg.reactions && msg.reactions[targetUser]) {
-                updates[`messages/${key}/reactions/${targetUser}`] = null;
+                msgUpdates[`messages/${key}/reactions/${targetUser}`] = null;
               }
             }
           });
         }
+        if (Object.keys(msgUpdates).length > 0) {
+          await db.ref().update(msgUpdates).catch(e => console.warn("Could not delete messages:", e.message));
+        }
 
-        // 2. Delete their last_seen, online_users, profile, typing_status, fcm_tokens
-        updates[`last_seen/${targetUser}`] = null;
-        updates[`online_users/${targetUser}`] = null;
-        updates[`profiles/${targetUser}`] = null;
-        updates[`typing_status/${targetUser}`] = null;
-        updates[`fcm_tokens/${targetUser}`] = null;
-
-        // 3. Delete mute entries — both their own mutes AND others who muted them
-        // Done as a separate update to avoid parent/child path conflicts.
-        // First: delete the target user's entire mute folder
-        await db.ref(`user_mutes/${targetUser}`).remove().catch(() => {});
-        // Then: remove target user from every other known user's mute list
-        const muteCleanup = {};
-        userSet.forEach(u => {
-          if (u === targetUser) return;
-          muteCleanup[`${u}/${targetUser}`] = null;
-        });
-        // Also remove from admin's mute list
-        muteCleanup[`${currentUserName}/${targetUser}`] = null;
-        await db.ref("user_mutes").update(muteCleanup).catch(() => {});
-
-        // 4. Apply all deletions in one atomic update
-        await db.ref().update(updates);
+        // 2. Delete their last_seen and online_users (try each separately)
+        const safePaths = [
+          `last_seen/${targetUser}`,
+          `online_users/${targetUser}`,
+          `profiles/${targetUser}`,
+          `typing_status/${targetUser}`,
+          `fcm_tokens/${targetUser}`,
+          `user_mutes/${currentUserName}/${targetUser}`
+        ];
+        for (const path of safePaths) {
+          await db.ref(path).remove().catch(e => console.warn(`Could not delete ${path}:`, e.message));
+        }
 
         overlay.classList.remove("show");
         alert(`✅ "${targetUser}" has been completely deleted.\n\nMessages removed, last-seen wiped, profile erased.`);
