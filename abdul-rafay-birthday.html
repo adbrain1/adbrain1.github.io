@@ -365,36 +365,60 @@
    2) SOUND (no files needed - made by the browser)
 ==================================================== */
 let AC=null;
-function makeAudio(){ if(!AC){ AC=new (window.AudioContext||window.webkitAudioContext)(); } }
-function whistle(){
-  if(!AC) return;
-  const t=AC.currentTime, o=AC.createOscillator(), g=AC.createGain();
-  o.type='triangle';
-  o.frequency.setValueAtTime(900,t);
-  o.frequency.exponentialRampToValueAtTime(1900,t+0.9);
-  g.gain.setValueAtTime(0.0001,t);
-  g.gain.exponentialRampToValueAtTime(0.12,t+0.1);
-  g.gain.exponentialRampToValueAtTime(0.0001,t+0.95);
-  o.connect(g).connect(AC.destination); o.start(t); o.stop(t+1);
+function makeAudio(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; } } }
+function audioReady(){ return AC && AC.state==='running'; }
+function noise(dur){
+  const b=AC.createBuffer(1,Math.max(1,(AC.sampleRate*dur)|0),AC.sampleRate);
+  const d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  return b;
 }
+// rising "screaming" whistle as the rocket climbs
+function whistle(){
+  if(!audioReady()) return;
+  const t=AC.currentTime, o=AC.createOscillator(), g=AC.createGain();
+  o.type='sawtooth';
+  o.frequency.setValueAtTime(480,t);
+  o.frequency.exponentialRampToValueAtTime(1500,t+0.55);
+  const lfo=AC.createOscillator(), lg=AC.createGain();   // little vibrato
+  lfo.frequency.value=16; lg.gain.value=35; lfo.connect(lg).connect(o.frequency);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(0.06,t+0.1);
+  g.gain.setValueAtTime(0.06,t+0.5);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.62);
+  o.connect(g).connect(AC.destination);
+  o.start(t); lfo.start(t); o.stop(t+0.65); lfo.stop(t+0.65);
+}
+// the BANG: sharp crack + low boom + sub thump + crackling sparkle tail
 function boom(){
-  if(!AC) return;
-  const t=AC.currentTime, dur=1.0;
-  const buf=AC.createBuffer(1,AC.sampleRate*dur,AC.sampleRate);
-  const d=buf.getChannelData(0);
-  for(let i=0;i<d.length;i++){ d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2); }
-  const src=AC.createBufferSource(); src.buffer=buf;
-  const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=900;
-  const g=AC.createGain();
-  g.gain.setValueAtTime(0.9,t);
-  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
-  src.connect(lp).connect(g).connect(AC.destination); src.start(t);
-  // little crackles
-  for(let k=0;k<6;k++){
-    const ot=t+0.15+Math.random()*0.5, oo=AC.createOscillator(), og=AC.createGain();
-    oo.type='square'; oo.frequency.value=200+Math.random()*1200;
-    og.gain.setValueAtTime(0.08,ot); og.gain.exponentialRampToValueAtTime(0.0001,ot+0.12);
-    oo.connect(og).connect(AC.destination); oo.start(ot); oo.stop(ot+0.13);
+  if(!audioReady()) return;
+  const t=AC.currentTime;
+  // 1) sharp crack
+  const c=AC.createBufferSource(); c.buffer=noise(0.09);
+  const hp=AC.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=900;
+  const cg=AC.createGain(); cg.gain.setValueAtTime(0.95,t); cg.gain.exponentialRampToValueAtTime(0.001,t+0.13);
+  c.connect(hp).connect(cg).connect(AC.destination); c.start(t);
+  // 2) low boom body
+  const b=AC.createBufferSource(); b.buffer=noise(0.9);
+  const lp=AC.createBiquadFilter(); lp.type='lowpass';
+  lp.frequency.setValueAtTime(700,t); lp.frequency.exponentialRampToValueAtTime(110,t+0.5);
+  const bg=AC.createGain(); bg.gain.setValueAtTime(0.9,t); bg.gain.exponentialRampToValueAtTime(0.001,t+0.9);
+  b.connect(lp).connect(bg).connect(AC.destination); b.start(t);
+  // 3) deep sub thump
+  const s=AC.createOscillator(), sg=AC.createGain();
+  s.type='sine'; s.frequency.setValueAtTime(120,t); s.frequency.exponentialRampToValueAtTime(45,t+0.4);
+  sg.gain.setValueAtTime(0.8,t); sg.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+  s.connect(sg).connect(AC.destination); s.start(t); s.stop(t+0.55);
+  // 4) crackle / sparkle tail
+  for(let k=0;k<24;k++){
+    const ot=t+0.12+Math.random()*1.1;
+    const ns=AC.createBufferSource(); ns.buffer=noise(0.05);
+    const nf=AC.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=1600+Math.random()*3200; nf.Q.value=2.5;
+    const ng=AC.createGain();
+    ng.gain.setValueAtTime(0.0001,ot);
+    ng.gain.exponentialRampToValueAtTime(0.10+Math.random()*0.10,ot+0.004);
+    ng.gain.exponentialRampToValueAtTime(0.0001,ot+0.08);
+    ns.connect(nf).connect(ng).connect(AC.destination); ns.start(ot);
   }
 }
 
@@ -413,6 +437,7 @@ function launch(){
   requestAnimationFrame(loop);
 }
 function explode(x,y){
+  boom();                                   // BANG fires the instant the firework bursts
   for(let i=0;i<150;i++){
     const a=Math.random()*Math.PI*2, s=Math.random()*7+1.5;
     parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,
@@ -444,23 +469,31 @@ function loop(){
 /* ====================================================
    4) SEQUENCE: start -> firework -> rainbow -> jungle -> welcome
 ==================================================== */
+let revealed=false;
+function playFirework(){ whistle(); launch(); }   // boom() is fired from explode(), so it stays in sync
+function reveal(){
+  if(revealed) return; revealed=true;
+  setTimeout(()=>{ document.getElementById('rainbow').classList.add('show'); },1300);
+  setTimeout(()=>{ document.getElementById('app').classList.add('reveal'); },1700);
+  setTimeout(()=>{ goto('welcome'); },3000);
+}
 function begin(){
-  try{ makeAudio(); if(AC.state==='suspended')AC.resume(); }catch(e){}
+  makeAudio();
+  let started=false;
+  const go=()=>{ if(started)return; started=true; playFirework(); reveal(); };
 
-  whistle();
-  launch();
-  setTimeout(boom,900);                              // bang at the top
-  setTimeout(()=>{                                    // rainbow appears
-    document.getElementById('rainbow').classList.add('show');
-  },1300);
-  setTimeout(()=>{                                    // jungle + critters reveal
-    document.getElementById('app').classList.add('reveal');
-  },1700);
-  setTimeout(()=>{ goto('welcome'); },3000);          // welcome message
+  // Try to switch sound on right away; if allowed, the firework plays WITH sound (no tap needed)
+  if(AC){ AC.resume().then(go).catch(()=>{}); }
+  // If sound is still blocked after a moment (phones do this), show the firework anyway
+  setTimeout(go,350);
+
+  // On phones/tablets that block sound until a touch, the FIRST tap launches a
+  // full firework together with the sound, so the bang always matches a burst.
+  window.addEventListener('pointerdown',function(){
+    if(!audioReady() && AC){ AC.resume().then(()=>playFirework()).catch(()=>{}); }
+  },{once:true});
 }
 window.addEventListener('load',begin);
-// If the phone/tablet blocked sound, the first tap anywhere switches it on
-document.addEventListener('click',()=>{try{if(AC&&AC.state==='suspended')AC.resume();}catch(e){}},{once:true});
 
 /* ====================================================
    5) QUESTIONNAIRE LOGIC
