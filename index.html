@@ -88,6 +88,95 @@
     </div>
   </div>
 
+  <!-- ============================================================ -->
+  <!-- ===============  WHAT'S NEW SECTION  ======================== -->
+  <!-- ============================================================ -->
+
+  <!-- Styles for this section live here so it's all in one place -->
+  <style>
+    .whats-new {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 30px 20px;
+      font-family: 'Nunito', sans-serif;
+      text-align: center;
+    }
+    .whats-new .eyebrow {
+      display: inline-block;
+      background: #2e0249;
+      color: #fff;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+    .whats-new h2 {
+      font-family: 'Fredoka', sans-serif;
+      color: #2e0249;
+      font-size: 2rem;
+      margin: 0 0 25px;
+    }
+    .news-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    .news-item {
+      background: #fff;
+      border: 2px solid #f0e6f7;
+      border-radius: 18px;
+      box-shadow: 0 6px 18px rgba(46, 2, 73, 0.12);
+      padding: 22px;
+      width: 300px;
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+    .news-item:hover { transform: translateY(-4px); }
+    .news-item h3 {
+      font-family: 'Fredoka', sans-serif;
+      color: #2e0249;
+      font-size: 1.3rem;
+      margin: 0 0 10px;
+    }
+    .news-item p {
+      color: #444;
+      font-size: 1rem;
+      line-height: 1.5;
+      margin: 0 0 16px;
+    }
+    .play-link img {
+      height: 55px;
+      width: auto;
+    }
+  </style>
+
+  <section class="whats-new">
+    <div class="eyebrow">What's new</div>
+    <h2>Latest on the site</h2>
+
+    <div class="news-grid">
+
+      <!-- ===== NEWS ITEM: copy everything between the two "NEWS ITEM" lines to add a new one ===== -->
+      <div class="news-item">
+        <h3>📱 New Chat App!</h3>
+        <p>You can now chat with me right from your phone. Grab the app from our downloads page!</p>
+        <a href="downloads.html" class="play-link">
+          <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play">
+        </a>
+      </div>
+      <!-- ===== END NEWS ITEM ===== -->
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ===============  END WHAT'S NEW SECTION  =================== -->
+  <!-- ============================================================ -->
+
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
     emailjs.init("PZGTEkN5j0VkE3Q5V"); // Your public key
@@ -275,130 +364,6 @@
     });
 
   </script>
-<!-- ================= BIRTHDAY BANNER START ================= -->
-<!-- To REMOVE this popup after the birthday, delete everything    -->
-<!-- between BIRTHDAY BANNER START and BIRTHDAY BANNER END.         -->
-<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
-<div id="rafayBday" role="dialog" aria-label="Birthday invitation">
-  <style>
-    #rafayBday{
-      position:fixed; inset:0; z-index:2147483000;
-      display:flex; align-items:center; justify-content:center;
-      padding:18px; background:rgba(6,18,26,.62);
-      -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
-      font-family:"Baloo 2",system-ui,sans-serif;
-      animation:rb-fade .35s ease both;
-    }
-    @keyframes rb-fade{from{opacity:0}to{opacity:1}}
-    #rafayBday .rb-card{
-      position:relative;
-      width:min(92vw,460px);
-      border-radius:26px;
-      padding:clamp(20px,5vw,34px) clamp(18px,5vw,30px) clamp(22px,5vw,30px);
-      text-align:center; color:#fff7e6;
-      background:linear-gradient(to bottom,#0e3b4a 0%,#1f7a6b 55%,#2a8f54 100%);
-      border:3px solid #fff;
-      box-shadow:0 22px 60px rgba(0,0,0,.5), inset 0 0 0 6px rgba(255,207,77,.30);
-      overflow:hidden;
-      animation:rb-pop .5s cubic-bezier(.2,.9,.3,1) both;
-    }
-    @keyframes rb-pop{from{transform:translateY(26px) scale(.94);opacity:0}to{transform:none;opacity:1}}
-    /* rainbow arc at the top */
-    #rafayBday .rb-rainbow{position:absolute;top:-58%;left:50%;transform:translateX(-50%);width:150%;opacity:.9;pointer-events:none;}
-    #rafayBday .rb-leaves{position:absolute;bottom:-6px;left:0;width:100%;opacity:.9;pointer-events:none;}
-    #rafayBday .rb-close{
-      position:absolute; top:10px; right:10px; z-index:3;
-      width:38px; height:38px; border:none; border-radius:50%;
-      background:rgba(255,255,255,.92); color:#1c6b3f;
-      font-size:22px; line-height:1; cursor:pointer; font-weight:800;
-      box-shadow:0 3px 8px rgba(0,0,0,.3); transition:transform .12s ease;
-    }
-    #rafayBday .rb-close:hover{transform:scale(1.08);}
-    #rafayBday .rb-emoji{font-size:clamp(34px,9vw,48px);position:relative;z-index:2;}
-    #rafayBday .rb-title{
-      font-family:"Lilita One",sans-serif; position:relative; z-index:2;
-      font-size:clamp(24px,6.5vw,38px); line-height:1.05; margin:6px 0 2px;
-      color:#fff; text-shadow:0 2px 0 rgba(0,0,0,.25);
-    }
-    #rafayBday .rb-title span{color:#ffcf4d;}
-    #rafayBday .rb-sub{font-size:clamp(14px,4vw,18px);font-weight:600;position:relative;z-index:2;opacity:.95;}
-    #rafayBday .rb-count{
-      position:relative; z-index:2; margin:16px auto 4px; display:inline-block;
-      background:rgba(255,255,255,.14); border:2px solid rgba(255,255,255,.35);
-      border-radius:18px; padding:12px 22px;
-    }
-    #rafayBday .rb-num{font-family:"Lilita One",sans-serif;font-size:clamp(30px,9vw,46px);color:#ffcf4d;line-height:1;}
-    #rafayBday .rb-num small{display:block;font-family:"Baloo 2";font-size:13px;color:#fff7e6;letter-spacing:.5px;margin-top:4px;font-weight:700;}
-    #rafayBday .rb-date{position:relative;z-index:2;margin-top:10px;font-weight:700;font-size:clamp(13px,3.6vw,16px);opacity:.95;}
-    #rafayBday .rb-btn{
-      position:relative; z-index:2; display:inline-block; margin-top:18px;
-      font-family:"Lilita One",sans-serif; font-size:clamp(17px,4.6vw,22px);
-      color:#3a2200; text-decoration:none;
-      background:linear-gradient(180deg,#ffe08a,#ffcf4d);
-      padding:14px 30px; border-radius:999px;
-      box-shadow:0 7px 0 #c9941f, 0 12px 22px rgba(0,0,0,.3);
-      transition:transform .12s ease;
-    }
-    #rafayBday .rb-btn:active{transform:translateY(4px);box-shadow:0 3px 0 #c9941f;}
-  </style>
-
-  <div class="rb-card">
-    <button class="rb-close" aria-label="Close" onclick="document.getElementById('rafayBday').remove()">&times;</button>
-
-    <!-- rainbow -->
-    <svg class="rb-rainbow" viewBox="0 0 400 200" aria-hidden="true">
-      <g fill="none" stroke-width="9" stroke-linecap="round">
-        <path stroke="#ff5a5a" d="M40 200 A160 160 0 0 1 360 200"/>
-        <path stroke="#ff9f43" d="M52 200 A148 148 0 0 1 348 200"/>
-        <path stroke="#ffd93d" d="M64 200 A136 136 0 0 1 336 200"/>
-        <path stroke="#4cd97b" d="M76 200 A124 124 0 0 1 324 200"/>
-        <path stroke="#4db8ff" d="M88 200 A112 112 0 0 1 312 200"/>
-        <path stroke="#5a6bff" d="M100 200 A100 100 0 0 1 300 200"/>
-        <path stroke="#b56bff" d="M112 200 A88 88 0 0 1 288 200"/>
-      </g>
-    </svg>
-
-    <div class="rb-emoji">🦜🌿🎉</div>
-    <div class="rb-title">Abdul Rafay turns <span>9</span>!</div>
-    <div class="rb-sub">A rainforest birthday adventure 🌴</div>
-
-    <div class="rb-count">
-      <div class="rb-num" id="rbDays">--<small id="rbLabel">DAYS TO GO</small></div>
-    </div>
-
-    <div class="rb-date">📅 June 28, 2026</div>
-
-    <!-- CHANGE the link below if your party page has a different name/address -->
-    <a class="rb-btn" href="abdul-rafay-birthday.html">🎈 Open the Party Page</a>
-
-    <!-- jungle leaves at the bottom -->
-    <svg class="rb-leaves" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true">
-      <path fill="#0b2e1d" d="M0 60 V28 Q60 8 120 26 Q180 44 240 22 Q300 4 360 26 Q380 32 400 22 V60 Z"/>
-    </svg>
-  </div>
-
-  <script>
-    (function(){
-      // Count days until the birthday (28 June 2026).
-      var party = new Date(2026, 5, 28, 0, 0, 0); // month is 0-based: 5 = June
-      var today = new Date(); today.setHours(0,0,0,0);
-      var days = Math.round((party - today) / 86400000);
-      var numEl = document.getElementById('rbDays');
-      var labEl = document.getElementById('rbLabel');
-      if(days > 1){ numEl.firstChild.nodeValue = days; labEl.textContent = 'DAYS TO GO'; }
-      else if(days === 1){ numEl.firstChild.nodeValue = 1; labEl.textContent = 'DAY TO GO'; }
-      else if(days === 0){ numEl.firstChild.nodeValue = '🎂'; labEl.textContent = 'IT\u2019S TODAY!'; }
-      else { numEl.firstChild.nodeValue = '🎉'; labEl.textContent = 'HOPE IT WAS FUN!'; }
-
-      // Close when tapping the dark area outside the card
-      document.getElementById('rafayBday').addEventListener('click', function(e){
-        if(e.target === this){ this.remove(); }
-      });
-    })();
-  </script>
-</div>
-<!-- ================= BIRTHDAY BANNER END ================= -->
-
 </body>
 
 </html>
