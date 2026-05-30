@@ -259,6 +259,17 @@
     .header-title { font-size: 17px; font-weight: 600; line-height: 1.2; }
     .header-subtitle { font-size: 12px; opacity: 0.85; line-height: 1.2; }
     .header-actions { display: flex; gap: 4px; }
+    .header-clocks {
+      display: flex; flex-direction: column;
+      align-items: flex-end; justify-content: center;
+      gap: 1px; margin-right: 6px; flex-shrink: 0;
+      line-height: 1.15; color: var(--text-on-brand);
+    }
+    .header-clocks > div { font-size: 11px; white-space: nowrap; opacity: 0.95; }
+    .header-clocks .hc-label {
+      font-size: 9px; font-weight: 700;
+      opacity: 0.65; letter-spacing: 0.5px; margin-right: 1px;
+    }
     .icon-btn {
       width: 40px; height: 40px;
       display: flex; align-items: center; justify-content: center;
@@ -305,15 +316,23 @@
     }
 
     /* ─── Messages area ─── */
+    /* Light mode (crescent/moon showing): warm, friendly yellow */
     #messagesContainer {
       flex: 1 1 auto;
       overflow-y: auto;
       padding: 12px 8px 16px 8px;
-      background: var(--bg-chat);
-      background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03), transparent);
+      background-color: #ffe9a8;
+      background-image: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.5), transparent 70%);
     }
+    /* Dark mode (sun showing): the website's purple index background */
     html[data-theme="dark"] #messagesContainer {
-      background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02), transparent);
+      background-color: #2e0249;
+      background-image: radial-gradient(#a91079 1px, transparent 1px);
+      background-size: 30px 30px;
+    }
+    /* Keep message bubbles clearly separated from the purple background */
+    html[data-theme="dark"] .msg-bubble {
+      border: 1px solid rgba(255,255,255,0.08);
     }
 
     .day-divider {
@@ -342,7 +361,7 @@
     .msg-row.other { justify-content: flex-start; }
     .msg-avatar {
       width: 30px; height: 30px; border-radius: 50%;
-      flex-shrink: 0; align-self: flex-end;
+      flex-shrink: 0; align-self: flex-start;
       display: flex; align-items: center; justify-content: center;
       font-size: 13px; font-weight: 600;
       color: white; overflow: hidden;
@@ -1130,6 +1149,10 @@
             <div class="header-subtitle" id="onlineCountLabel">0 online</div>
           </div>
         </div>
+        <div class="header-clocks" id="headerClocks">
+          <div><span class="hc-label">UK</span> <span id="clockUK">--:--</span></div>
+          <div><span class="hc-label">PK</span> <span id="clockPK">--:--</span></div>
+        </div>
         <div class="header-actions">
           <button class="icon-btn" onclick="toggleSearch()" title="Search">
             <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 .001-9.001A4.5 4.5 0 0 1 9.5 14z"/></svg>
@@ -1433,11 +1456,27 @@
       return norm.includes("abdul") || norm.includes("rafay");
     }
 
-    /** Strict match: only "abdulrafay" (with or without space, any case) — used for priority bar */
+    /**
+     * Is this name one of my son's name combinations?
+     * Any combination containing "abdul" or "rafay" (Abdulrafay, Abdul Rafay,
+     * Abdul, Rafay, Rafay Adnan, etc., in any case) counts as my son —
+     * EXCEPT the exact name "Adnan", which is reserved for the admin (dad).
+     */
     function isMySonName(name) {
       if (!name) return false;
       const norm = String(name).toLowerCase().replace(/\s+/g, "");
-      return norm === "abdulrafay";
+      if (norm === "adnan") return false;       // Adnan = admin, not the son
+      return norm.includes("abdul") || norm.includes("rafay");
+    }
+
+    /**
+     * The single name to SHOW (and to use as the identity key) for any user.
+     * Every one of my son's name combinations collapses to "Rafay" so he is
+     * treated as one person everywhere. Everyone else keeps their own name.
+     */
+    function displayNameOf(name) {
+      if (!name) return name;
+      return isMySonName(name) ? "Rafay" : name;
     }
 
     // ════════════════════════════════════════════════════════════════════
@@ -1468,6 +1507,20 @@
     applyTheme();
 
     // ════════════════════════════════════════════════════════════════════
+    //  Header clocks — live UK & Pakistan time (12-hour)
+    // ════════════════════════════════════════════════════════════════════
+    function updateHeaderClocks() {
+      const opts = { hour: "numeric", minute: "2-digit", hour12: true };
+      const uk = document.getElementById("clockUK");
+      const pk = document.getElementById("clockPK");
+      const now = new Date();
+      if (uk) uk.textContent = now.toLocaleTimeString("en-GB", { ...opts, timeZone: "Europe/London" });
+      if (pk) pk.textContent = now.toLocaleTimeString("en-GB", { ...opts, timeZone: "Asia/Karachi" });
+    }
+    updateHeaderClocks();
+    setInterval(updateHeaderClocks, 1000);
+
+    // ════════════════════════════════════════════════════════════════════
     //  Login & Push notifications
     // ════════════════════════════════════════════════════════════════════
     async function setupPushNotifications(userName) {
@@ -1486,10 +1539,14 @@
     }
 
     function startChat() {
-      const name = document.getElementById("userName").value.trim();
-      if (!name) return alert("Please enter your name");
+      const typedName = document.getElementById("userName").value.trim();
+      if (!typedName) return alert("Please enter your name");
+      // Admin is decided from the exact typed name BEFORE we canonicalise.
+      isAdmin = typedName.toLowerCase() === "adnan";
+      // Collapse all of my son's name combinations into one identity, "Rafay",
+      // so he is never created as a separate user. Everyone else keeps their name.
+      const name = (!isAdmin && isMySonName(typedName)) ? "Rafay" : typedName;
       currentUserName = name;
-      isAdmin = name.toLowerCase() === "adnan";
       localStorage.setItem("rc_name", name);
 
       // Tell the Cloud Function someone logged in (fires push to others).
@@ -1661,15 +1718,16 @@
     }
 
     function renderAvatarInto(el, user) {
+      const key = displayNameOf(user);   // son's variants share one avatar
       el.innerHTML = "";
-      if (profilePics[user]) {
+      if (profilePics[key]) {
         const img = document.createElement("img");
-        img.src = profilePics[user];
+        img.src = profilePics[key];
         el.appendChild(img);
         el.style.background = "transparent";
       } else {
-        el.innerText = initialsOf(user);
-        el.style.background = colorFor(user);
+        el.innerText = initialsOf(key);
+        el.style.background = colorFor(key);
       }
     }
 
@@ -1732,6 +1790,22 @@
      */
     function formatLastSeen(ts) {
       return formatPST(ts);
+    }
+
+    /**
+     * Long last-seen format used in the priority bar, INCLUDING the weekday.
+     * Output: "Wed, May 28, 26 at 6:38 PM" — viewer's local timezone.
+     */
+    function formatLastSeenLong(ts) {
+      if (!ts) return "";
+      const d = new Date(ts);
+      const fmt = new Intl.DateTimeFormat("en-US", {
+        weekday: "short", day: "2-digit", month: "short", year: "2-digit",
+        hour: "numeric", minute: "2-digit", hour12: true
+      });
+      const parts = fmt.formatToParts(d);
+      const g = (t) => { const p = parts.find(z => z.type === t); return p ? p.value : ""; };
+      return `${g("weekday")}, ${g("month")} ${g("day")}, ${g("year")} at ${g("hour")}:${g("minute")} ${g("dayPeriod").toUpperCase()}`;
     }
 
     /**
@@ -1803,14 +1877,17 @@
       }
       if (!chosenName) { bar.classList.remove("show"); return; }
 
-      nameEl.innerText = chosenName;
+      nameEl.innerText = displayNameOf(chosenName);
       if (chosenIsOnline) {
         statusEl.innerHTML = `is <span class="pstatus">online</span> now`;
       } else if (chosenLastSeen) {
-        statusEl.innerHTML = `<span class="pseen">last seen ${formatLastSeen(chosenLastSeen)}</span>`;
+        statusEl.innerHTML = `<span class="pseen">last seen ${formatLastSeenLong(chosenLastSeen)}</span>`;
       } else {
         statusEl.innerHTML = `<span class="pseen">offline</span>`;
       }
+      // Tapping the priority bar opens my son's profile (same as in chat)
+      bar.style.cursor = "pointer";
+      bar.onclick = () => openUserProfile(chosenName);
       bar.classList.add("show");
     }
 
@@ -1830,7 +1907,15 @@
       ]);
       // Only exclude Abdulrafay (he's shown in the priority bar above).
       // Current user IS shown in the family bar — so Adnan sees his own status too.
-      const filtered = [...allUsers].filter(u => !isMySonName(u));
+      // De-duplicate by display name so a person never appears twice.
+      const seenNames = new Set();
+      const filtered = [...allUsers].filter(u => {
+        if (isMySonName(u)) return false;
+        const dn = displayNameOf(u);
+        if (seenNames.has(dn)) return false;
+        seenNames.add(dn);
+        return true;
+      });
 
       if (filtered.length === 0) {
         bar.classList.remove("show");
@@ -1865,7 +1950,7 @@
         // First name only
         const nameEl = document.createElement("span");
         nameEl.className = "fb-name";
-        nameEl.innerText = getFirstName(user);
+        nameEl.innerText = getFirstName(displayNameOf(user));
         pill.appendChild(nameEl);
 
         // Time AFTER the name for offline users
@@ -1876,7 +1961,9 @@
           pill.appendChild(t);
         }
 
-        // No click handler — info is shown directly in the pill
+        // Tapping a person opens their profile (same as tapping them in chat)
+        pill.style.cursor = "pointer";
+        pill.onclick = () => openUserProfile(user);
         list.appendChild(pill);
       });
 
@@ -1894,17 +1981,23 @@
         list.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-secondary)">No one is online right now.</div>`;
         return;
       }
+      const seen = new Set();
       sorted.forEach((u) => {
+        const dn = displayNameOf(u);
+        if (seen.has(dn)) return;   // don't list the same person twice
+        seen.add(dn);
         const row = document.createElement("div");
         row.className = "user-row";
         const av = document.createElement("div");
         av.className = "ua"; av.setAttribute("data-user-avatar", u);
         renderAvatarInto(av, u);
         const name = document.createElement("div");
-        name.className = "un"; name.innerText = u + (u === currentUserName ? " (You)" : "");
+        name.className = "un"; name.innerText = dn + (u === currentUserName ? " (You)" : "");
         const dot = document.createElement("div");
         dot.className = "online-dot";
         row.appendChild(av); row.appendChild(name); row.appendChild(dot);
+        row.style.cursor = "pointer";
+        row.onclick = () => { toggleOnlinePanel(false); openUserProfile(u); };
         list.appendChild(row);
       });
     }
@@ -2176,6 +2269,7 @@
       row.className = "msg-row " + (isMe ? "mine" : "other");
       if (data.broadcast) row.classList.add("broadcast");
       row.id = "msg-" + key;
+      row.setAttribute("data-sender", data.user);
       row.setAttribute("data-day", formatDay(data.timestamp || Date.now()));
       if (data.reactions && Object.keys(data.reactions).length > 0) row.classList.add("has-reactions");
 
@@ -2196,8 +2290,17 @@
       if (!isMe) {
         const s = document.createElement("div");
         s.className = "msg-sender";
-        s.innerText = data.user;
-        s.style.color = colorFor(data.user);
+        const dn = displayNameOf(data.user);
+        // 🔇 reminder shown when I have muted this person
+        const mic = document.createElement("span");
+        mic.className = "mute-ic";
+        mic.innerText = "🔇";
+        mic.style.display = mutedUsers[dn] ? "inline" : "none";
+        const nameSpan = document.createElement("span");
+        nameSpan.innerText = dn;
+        s.appendChild(mic);
+        s.appendChild(nameSpan);
+        s.style.color = colorFor(dn);
         s.onclick = (e) => { e.stopPropagation(); openUserProfile(data.user); };
         bubble.appendChild(s);
       }
@@ -2207,7 +2310,7 @@
         const q = document.createElement("div");
         q.className = "msg-reply-quote";
         q.innerHTML = `<span class="qname"></span><span class="qtext"></span>`;
-        q.querySelector(".qname").innerText = data.replyTo.user;
+        q.querySelector(".qname").innerText = displayNameOf(data.replyTo.user);
         q.querySelector(".qtext").innerText = (data.replyTo.snippet || "").substring(0, 80);
         q.onclick = () => jumpToMessage(data.replyTo.msgId);
         bubble.appendChild(q);
@@ -2319,7 +2422,7 @@
       if (everyone) {
         summary = `✓ Seen by everyone (${entries.length})`;
       } else if (entries.length === 1) {
-        summary = `✓ Seen by ${entries[0][0]} at ${formatMessageTimestamp(entries[0][1])}`;
+        summary = `✓ Seen by ${displayNameOf(entries[0][0])} at ${formatMessageTimestamp(entries[0][1])}`;
       } else {
         summary = `✓ Seen by ${entries.length} people — tap for details`;
       }
@@ -2337,7 +2440,7 @@
           const row = document.createElement("div");
           row.className = "sb-line";
           row.innerHTML = `<span class="sb-name"></span>: <span></span>`;
-          row.querySelector(".sb-name").innerText = user;
+          row.querySelector(".sb-name").innerText = displayNameOf(user);
           row.querySelector("span:last-child").innerText = formatMessageTimestamp(ts);
           expanded.appendChild(row);
         });
@@ -2413,6 +2516,7 @@
       const input = document.getElementById("chatInput");
       const text = input.value.trim();
       if (!text && !stagedFile && !stagedVoiceBlob) return;
+      const hadTypedText = text.length > 0;   // was the user actually typing?
 
       const msg = {
         user: currentUserName,
@@ -2459,8 +2563,10 @@
       cancelReply();
       updateTypingStatus("stopped");
       input.placeholder = "Type a message";  // reset
-      // Keep keyboard up / focus for continued typing
-      input.focus();
+      // Keep the keyboard up only if the user was typing text. For a voice note
+      // or attachment, close the keyboard so it doesn't pop up unexpectedly.
+      if (hadTypedText) { input.focus(); }
+      else { input.blur(); }
     }
 
     function saveEdit() {
@@ -3053,34 +3159,52 @@
         mutedUsers = snap.val() || {};
         // If profile panel is open, refresh its mute state
         if (activeProfileUser) renderProfilePanel(activeProfileUser);
+        refreshMuteIndicators();
       });
     }
+
+    /** Show/hide the 🔇 reminder on every message from a muted person. */
+    function refreshMuteIndicators() {
+      document.querySelectorAll(".msg-row[data-sender]").forEach((row) => {
+        const id = displayNameOf(row.getAttribute("data-sender"));
+        const ic = row.querySelector(".mute-ic");
+        if (ic) ic.style.display = mutedUsers[id] ? "inline" : "none";
+      });
+    }
+
     function toggleMuteUser() {
       if (!activeProfileUser) return;
-      const ref = db.ref(`user_mutes/${currentUserName}/${activeProfileUser}`);
-      const isMuted = !!mutedUsers[activeProfileUser];
-      // Immediately toggle visuals so button feels responsive
-      const muteToggle = document.getElementById("profileMuteToggle");
-      const muteSub = document.getElementById("profileMuteSub");
-      muteToggle.classList.toggle("on", !isMuted);
-      muteSub.innerText = !isMuted
-        ? `You won't get pushes from ${activeProfileUser}.`
-        : `Tap to stop receiving pushes from ${activeProfileUser}.`;
-      // Then write to Firebase (listenToMutes callback will confirm)
-      if (isMuted) {
-        ref.remove();
-      } else {
-        ref.set(true);
-      }
+      const target = activeProfileUser;
+      const currentlyMuted = !!mutedUsers[target];
+      const ref = db.ref(`user_mutes/${currentUserName}/${target}`);
+
+      // Update local state immediately so everything reflects the new value at once
+      if (currentlyMuted) { delete mutedUsers[target]; ref.remove(); }
+      else { mutedUsers[target] = true; ref.set(true); }
+
+      // Re-render the profile toggle + refresh the chat reminders right away
+      renderProfilePanel(target);
+      refreshMuteIndicators();
     }
 
     // ════════════════════════════════════════════════════════════════════
     //  Profile panel
     // ════════════════════════════════════════════════════════════════════
+    /** Combined presence for a canonical identity (merges my son's variants). */
+    function presenceFor(canonName) {
+      if (canonName === "Rafay") {
+        let isOnline = false, lastSeen = 0;
+        Object.keys(onlineUsers).forEach(u => { if (isMySonName(u) && onlineUsers[u]) isOnline = true; });
+        Object.keys(lastSeenMap).forEach(u => { if (isMySonName(u)) lastSeen = Math.max(lastSeen, lastSeenMap[u] || 0); });
+        return { isOnline, lastSeen };
+      }
+      return { isOnline: !!onlineUsers[canonName], lastSeen: lastSeenMap[canonName] || 0 };
+    }
+
     function openUserProfile(user) {
       if (!user) return;
-      activeProfileUser = user;
-      renderProfilePanel(user);
+      activeProfileUser = displayNameOf(user);   // one canonical identity
+      renderProfilePanel(activeProfileUser);
       toggleProfilePanel(true);
     }
 
@@ -3110,8 +3234,9 @@
       }
 
       // Status
-      const isOnline = !!onlineUsers[user];
-      const lastSeen = lastSeenMap[user];
+      const pres = presenceFor(user);
+      const isOnline = pres.isOnline;
+      const lastSeen = pres.lastSeen;
       if (isOnline) {
         statusEl.innerText = "● online now";
         statusEl.className = "profile-status online";

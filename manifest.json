@@ -1,26 +1,16 @@
 {
-  "name": "Abdul Rafay's Chat",
+  "name": "Rafay Chat",
   "short_name": "Rafay Chat",
-  "description": "Live chat with Abdul Rafay — part of Abdul Rafay's Adventures.",
+  "description": "Family chat with Abdul Rafay",
   "start_url": "/chat-app.html",
-  "scope": "/chat-app.html",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
+  "background_color": "#2e0249",
   "theme_color": "#2e0249",
-  "background_color": "#ffffff",
-  "lang": "en",
   "icons": [
-    {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

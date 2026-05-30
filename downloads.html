@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#2e0249">
   <title>Get Rafay Chat</title>
   <link rel="icon" type="image/png" href="./favicon.png">
+  <link rel="manifest" href="/manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
@@ -117,6 +118,47 @@
     .open-btn:active {
       transform: translate(2px, 2px);
       box-shadow: 1px 1px 0px #000;
+    }
+
+    /* === ONE-TAP INSTALL BUTTON === */
+    .install-btn {
+      display: none; /* shown by JS only when the phone allows install */
+      width: 100%;
+      padding: 18px;
+      background: #34c759;
+      color: #fff;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 600;
+      border: 3px solid #000;
+      border-radius: 15px;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 16px;
+      box-shadow: 4px 4px 0px #000;
+      transition: transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      animation: pulseInstall 1.6s ease-in-out infinite;
+    }
+    .install-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0px #000;
+    }
+    @keyframes pulseInstall {
+      0%, 100% { box-shadow: 4px 4px 0px #000; }
+      50% { box-shadow: 4px 4px 0px #000, 0 0 0 6px rgba(52,199,89,0.25); }
+    }
+    .install-note {
+      display: none;
+      margin-top: 16px;
+      padding: 14px 16px;
+      background: rgba(52,199,89,0.15);
+      border: 2px solid #34c759;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
     }
 
     /* === SECTION HEADING === */
@@ -318,6 +360,10 @@
     Open Rafay Chat
   </a>
 
+  <!-- ONE-TAP INSTALL (appears automatically when the phone allows it) -->
+  <button class="install-btn" id="installBtn" onclick="doInstall()">⬇️ Install app</button>
+  <div class="install-note" id="installNote"></div>
+
   <!-- ===== INSTRUCTIONS (filled by JS based on OS) ===== -->
   <div id="instructions"></div>
 
@@ -360,6 +406,13 @@
   // ---- ANDROID INSTRUCTIONS ----
   const androidHTML = `
     <div class="section-heading">📲 How to Install</div>
+    <div class="warn-box" style="margin-top:0;margin-bottom:14px;border-color:#34c759;">
+      <div class="warn-title" style="color:#34c759;">✅ Easiest way</div>
+      <div class="warn-text">
+        If you see the green <strong>"⬇️ Install app"</strong> button above, just tap it and then tap <strong>Install</strong>. Done!<br><br>
+        No green button? Follow the steps below instead.
+      </div>
+    </div>
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
@@ -531,6 +584,53 @@
   }
 
 })();
+
+// ───────── ONE-TAP INSTALL ─────────
+let deferredPrompt = null;
+const installBtn = document.getElementById('installBtn');
+const installNote = document.getElementById('installNote');
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+// Chrome (Android) fires this when the app can be installed. We capture it and
+// reveal our big green button instead of making kids hunt through the menu.
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (installBtn) installBtn.style.display = 'block';
+});
+
+async function doInstall() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  try { await deferredPrompt.userChoice; } catch (e) {}
+  deferredPrompt = null;
+  if (installBtn) installBtn.style.display = 'none';
+}
+
+window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  if (installBtn) installBtn.style.display = 'none';
+  if (installNote) {
+    installNote.textContent = '🎉 Installed! Open “Rafay Chat” from your home screen.';
+    installNote.style.display = 'block';
+  }
+});
+
+// If it's already installed and opened from the home screen, say so.
+if (isStandalone() && installNote) {
+  installNote.textContent = '✅ App is already installed. You can open it from your home screen.';
+  installNote.style.display = 'block';
+}
+
+// Register the service worker so the page qualifies as an installable app.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
 
 function toggleTrouble() {
   document.getElementById('troubleBtn').classList.toggle('open');

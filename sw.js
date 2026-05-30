@@ -1,47 +1,41 @@
-/**
- * Service worker for Abdul Rafay's Chat PWA.
- *
- * IMPORTANT: This worker is registered with scope "/chat-app.html" in the
- * registering page, so it can ONLY intercept fetches for that single URL.
- * It cannot affect chat.html, index.html, or anything else on the site.
- *
- * Strategy: network-first with cache fallback. This keeps the chat live and
- * only serves the cached shell if the user is offline.
- */
+// Rafay Chat service worker — makes the app installable and adds a basic
+// offline fallback. It is "network-first", so when online everyone always
+// gets the freshest chat; the cache is only used when there is no connection.
 
-const CACHE_NAME = "rafay-chat-app-v1";
+const CACHE = 'rafay-chat-v1';
+const SHELL = ['/chat-app.html', '/icon-192.png', '/icon-512.png', '/favicon.png'];
 
-// Install: take over immediately so users don't need to refresh twice
-self.addEventListener("install", (event) => {
+self.addEventListener('install', (event) => {
   self.skipWaiting();
-});
-
-// Activate: clean up old caches and claim clients
-self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    caches.open(CACHE).then((cache) => cache.addAll(SHELL).catch(() => {}))
   );
 });
 
-// Fetch: network-first; cache the latest copy for offline fallback
-self.addEventListener("fetch", (event) => {
-  // Only handle GET on our origin — skip Firebase, fonts, etc.
-  if (event.request.method !== "GET") return;
-  const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return;
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Cache successful responses for offline fallback
-        if (response && response.status === 200) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-        }
-        return response;
+    fetch(req)
+      .then((res) => {
+        // Keep a fresh copy of our own files for offline use.
+        try {
+          if (res && res.ok && new URL(req.url).origin === self.location.origin) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+          }
+        } catch (e) {}
+        return res;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() => caches.match(req).then((m) => m || caches.match('/chat-app.html')))
   );
 });
