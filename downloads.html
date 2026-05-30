@@ -589,6 +589,11 @@
 let deferredPrompt = null;
 const installBtn = document.getElementById('installBtn');
 const installNote = document.getElementById('installNote');
+const openBtn = document.getElementById('openBtn');
+
+// Hide the "Open Rafay Chat" button to start with. We only show it later if the
+// green Install button is NOT going to appear (so kids can't tap Open by mistake).
+if (openBtn) openBtn.style.display = 'none';
 
 function isStandalone() {
   return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -600,7 +605,15 @@ window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
   if (installBtn) installBtn.style.display = 'block';
+  if (openBtn) openBtn.style.display = 'none';   // install available → hide Open
 });
+
+// If the green Install button never appears (e.g. iPhone, or already installed),
+// show the "Open Rafay Chat" button after a short wait so people still have a way in.
+setTimeout(() => {
+  const installVisible = installBtn && installBtn.style.display === 'block';
+  if (!installVisible && openBtn) openBtn.style.display = 'block';
+}, 1500);
 
 async function doInstall() {
   if (!deferredPrompt) return;
@@ -613,10 +626,15 @@ async function doInstall() {
 window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
   if (installBtn) installBtn.style.display = 'none';
+  if (openBtn) openBtn.style.display = 'none';
   if (installNote) {
-    installNote.textContent = '🎉 Installed! Open “Rafay Chat” from your home screen.';
+    installNote.textContent = '🎉 Installed! Opening Rafay Chat…';
     installNote.style.display = 'block';
   }
+  // Open the chat automatically right after it installs.
+  setTimeout(() => {
+    window.location.href = 'https://www.rafaytravelsworldwide.com/chat-app.html';
+  }, 900);
 });
 
 // If it's already installed and opened from the home screen, say so.

@@ -513,6 +513,8 @@
       font-size: 12px; color: var(--text-secondary);
       font-style: italic; min-height: 18px;
     }
+    /* When nobody is typing the bar is empty — collapse it so no gray strip shows */
+    .typing-bar:empty { min-height: 0; padding: 0; }
 
     /* ─── Input area ─── */
     .input-wrap {
@@ -1734,11 +1736,25 @@
     // ════════════════════════════════════════════════════════════════════
     //  Online users
     // ════════════════════════════════════════════════════════════════════
+    let prevOnlineKeys = null;   // who was online on the previous update (baseline)
     function listenToOnlineUsers() {
       db.ref("online_users").on("value", (snap) => {
         onlineUsers = snap.val() || {};
+        const currentKeys = Object.keys(onlineUsers);
+
+        // Someone NEW just came online → play the login chime.
+        // prevOnlineKeys is null on the very first run, so we don't chime
+        // for everyone who was already online when we opened the app.
+        if (prevOnlineKeys !== null) {
+          const newcomers = currentKeys.filter(
+            u => !prevOnlineKeys.includes(u) && u !== currentUserName
+          );
+          if (newcomers.length > 0) playLogin();
+        }
+        prevOnlineKeys = currentKeys;
+
         document.getElementById("onlineCountLabel").innerText =
-          `${Object.keys(onlineUsers).length} online`;
+          `${currentKeys.length} online`;
         renderOnlineUsersList();
         renderPriorityBar();  // priority bar reacts to online changes
         renderFamilyBar();    // family bar reacts too
@@ -1800,7 +1816,7 @@
       if (!ts) return "";
       const d = new Date(ts);
       const fmt = new Intl.DateTimeFormat("en-US", {
-        weekday: "short", day: "2-digit", month: "short", year: "2-digit",
+        weekday: "short", day: "2-digit", month: "short", year: "numeric",
         hour: "numeric", minute: "2-digit", hour12: true
       });
       const parts = fmt.formatToParts(d);
@@ -2089,18 +2105,49 @@
       } catch (e) { /* ignore */ }
     }
 
+    // Login chime — a short friendly two-note sound made in the browser itself
+    // (no sound file needed). Plays only when the app is open/active.
+    let _audioCtx = null;
+    function playLogin() {
+      if (document.hidden) return;            // only when the app is active/open
+      try {
+        _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        const ctx = _audioCtx;
+        if (ctx.state === "suspended") ctx.resume();
+        const now = ctx.currentTime;
+        [[880, now], [1320, now + 0.12]].forEach(([freq, t]) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+          osc.connect(gain).connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.2);
+        });
+      } catch (e) { /* ignore */ }
+    }
+
     // Unlock audio on mobile — browsers block sound until the user taps something.
     // This plays a silent "touch" on the first tap so future pings work automatically.
     (function unlockAudio() {
       let unlocked = false;
       function doUnlock() {
-        if (unlocked) return;
+        // Unlock the message-ping sound file
         const a = document.getElementById("pingSound");
-        if (a) {
+        if (a && !unlocked) {
           a.muted = true;
-          a.play().then(() => { a.pause(); a.muted = false; a.currentTime = 0; unlocked = true; })
+          a.play().then(() => { a.pause(); a.muted = false; a.currentTime = 0; })
                   .catch(() => {});
         }
+        // Wake up / create the Web Audio used for the login chime
+        try {
+          _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+          if (_audioCtx.state === "suspended") _audioCtx.resume();
+        } catch (e) { /* ignore */ }
+        unlocked = true;
       }
       document.addEventListener("touchstart", doUnlock, { once: false });
       document.addEventListener("click", doUnlock, { once: false });
@@ -2296,10 +2343,11 @@
         mic.className = "mute-ic";
         mic.innerText = "🔇";
         mic.style.display = mutedUsers[dn] ? "inline" : "none";
+        mic.style.marginLeft = "4px";
         const nameSpan = document.createElement("span");
         nameSpan.innerText = dn;
-        s.appendChild(mic);
         s.appendChild(nameSpan);
+        s.appendChild(mic);
         s.style.color = colorFor(dn);
         s.onclick = (e) => { e.stopPropagation(); openUserProfile(data.user); };
         bubble.appendChild(s);
