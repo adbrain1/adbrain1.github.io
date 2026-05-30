@@ -1530,15 +1530,7 @@
       try {
         const permission = await Notification.requestPermission();
         if (permission !== "granted") return;
-        // Use OUR sw.js to receive background pushes, so it can set the icon badge
-        // when the app is closed. (If the worker isn't ready yet, getToken falls
-        // back to Firebase's default — still fine.)
-        let swReg = null;
-        try { swReg = await navigator.serviceWorker.ready; } catch (e) {}
-        const token = await messaging.getToken(
-          swReg ? { vapidKey: VAPID_PUBLIC_KEY, serviceWorkerRegistration: swReg }
-                : { vapidKey: VAPID_PUBLIC_KEY }
-        );
+        const token = await messaging.getToken({ vapidKey: VAPID_PUBLIC_KEY });
         if (!token) return;
         await db.ref(`fcm_tokens/${userName}/${token}`).set(true);
         messaging.onMessage((payload) => {
@@ -1638,9 +1630,7 @@
       keepAlive();
       // Refresh FCM token if permission still granted (token can rotate)
       if (messaging && "Notification" in window && Notification.permission === "granted") {
-        navigator.serviceWorker.ready.then((swReg) => {
-          return messaging.getToken({ vapidKey: VAPID_PUBLIC_KEY, serviceWorkerRegistration: swReg });
-        }).then((token) => {
+        messaging.getToken({ vapidKey: VAPID_PUBLIC_KEY }).then((token) => {
           if (token) db.ref(`fcm_tokens/${currentUserName}/${token}`).set(true);
         }).catch(() => {});
       }
@@ -2229,11 +2219,15 @@
       }
       fabUnreadCount = 0;
       updateFabBadge();
-      // Also reset the icon badge the service worker keeps for closed-app pushes
+      // Reset the unread count that the push worker keeps for the icon badge,
+      // and clear the icon badge itself, now that the user is looking at the app.
       try {
-        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({ type: "clearBadge" });
+        if ("caches" in window) {
+          caches.open("rafay-badge")
+            .then((c) => c.put("/__rafay_badge_count__", new Response("0")))
+            .catch(() => {});
         }
+        if ("clearAppBadge" in navigator) navigator.clearAppBadge().catch(() => {});
       } catch (e) {}
     }
 
