@@ -942,11 +942,12 @@
        Hidden by default → phones are completely unaffected.
        The media query at the end only switches on when the screen is BOTH
        wide AND tall, which is true for tablets and desktops but never for a
-       phone (a phone is always short in one dimension, even held sideways).
+       phone (a phone is always short in one dimension — under ~450px tall even
+       held sideways — so the 500px height rule keeps phones on the mobile view).
        ───────────────────────────────────────────────────────────────── */
     .desktop-sidebar { display: none; }
 
-    @media (min-width: 768px) and (min-height: 600px) {
+    @media (min-width: 768px) and (min-height: 500px) {
       /* Push the whole chat to the right, leaving room for the sidebar */
       #appScreen.show { padding-left: 340px; }
 
@@ -1210,7 +1211,7 @@
 
     <!-- Desktop / tablet sidebar: vertical user list (wide screens only) -->
     <aside class="desktop-sidebar" id="desktopSidebar">
-      <div class="ds-header">Rafay Chat</div>
+      <div class="ds-header">Family</div>
       <div class="ds-list" id="desktopSidebarList"></div>
     </aside>
 
@@ -2089,7 +2090,15 @@
         info.className = "ds-info";
         const nameEl = document.createElement("div");
         nameEl.className = "ds-name";
-        nameEl.innerText = (isStar ? "⭐ " : "") + displayNameOf(user);
+        const dn = displayNameOf(user);
+        nameEl.innerText = (isStar ? "⭐ " : "") + dn;
+        // 🔇 reminder — same as in chat — when I have muted this person
+        if (mutedUsers[dn]) {
+          const mic = document.createElement("span");
+          mic.innerText = " 🔇";
+          mic.style.marginLeft = "4px";
+          nameEl.appendChild(mic);
+        }
         info.appendChild(nameEl);
 
         const statusEl = document.createElement("div");
@@ -3394,6 +3403,7 @@
         const ic = row.querySelector(".mute-ic");
         if (ic) ic.style.display = mutedUsers[id] ? "inline" : "none";
       });
+      renderDesktopSidebar(); // keep the left list's 🔇 icons in sync too
     }
 
     function toggleMuteUser() {
