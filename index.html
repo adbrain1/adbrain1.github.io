@@ -95,8 +95,9 @@
   <!-- Styles for this section live here so it's all in one place -->
   <style>
     .whats-new {
-      max-width: 1100px;
-      margin: -30px auto 50px;         /* pulls section up; make this number more negative to go higher */
+      max-width: 900px;                /* same width as your main card */
+      width: 100%;
+      margin: -100px auto 160px;       /* top pulls it up under the card (less negative = lower); bottom keeps it clear of the flags bar */
       padding: 38px 24px 42px;
       background: linear-gradient(160deg, #3d0a63 0%, #2e0249 100%);
       border-radius: 28px;
@@ -133,6 +134,7 @@
       border-radius: 20px;
       box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
       width: 290px;
+      max-width: 100%;                 /* lets cards shrink to fit small screens */
       overflow: hidden;
       text-align: center;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -164,6 +166,15 @@
     }
     .play-link:hover img { transform: scale(1.05); }
     .news-item .play-link { display: inline-block; margin-bottom: 22px; }
+
+    /* Small screens / phones */
+    @media (max-width: 800px) {
+      .whats-new {
+        margin: -60px auto 140px;
+        padding: 32px 18px 36px;
+      }
+      .whats-new h2 { font-size: 1.8rem; }
+    }
   </style>
 
   <section class="whats-new">
