@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Games – Abdul Rafay’s Adventures</title>
   <link rel="icon" type="image/png" href="./favicon.png">
-
   <meta name="theme-color" content="#2e0249">
 
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -18,98 +17,29 @@
   <link rel="stylesheet" href="style.css">
 
   <style>
-    /* ===== Games page styling (matches the site's purple theme) ===== */
-    .games-wrap {
-      max-width: 900px;
-      width: 100%;
-      margin: 30px auto 160px;
-      padding: 38px 24px 42px;
-      background: linear-gradient(160deg, #3d0a63 0%, #2e0249 100%);
-      border-radius: 28px;
-      box-shadow: 0 16px 40px rgba(46, 2, 73, 0.28);
-      font-family: 'Nunito', sans-serif;
+    /* Small tweaks so the site's card centres its games list nicely */
+    .games-card {
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
     }
-    .games-wrap .eyebrow {
-      display: inline-block;
-      background: rgba(255, 255, 255, 0.15);
-      color: #fff;
-      font-family: 'Fredoka', sans-serif;
-      font-size: 0.8rem;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      padding: 6px 16px;
-      border-radius: 30px;
-      margin-bottom: 12px;
-    }
-    .games-wrap h1 {
-      font-family: 'Fredoka', sans-serif;
-      color: #fff;
-      font-size: 2.3rem;
-      margin: 0 0 8px;
-    }
-    .games-wrap .subtitle {
-      color: #e3d4f5;
-      font-size: 1.05rem;
-      margin: 0 0 30px;
-    }
-    .games-grid {
+    .games-card .eyebrow { align-self: center; }
+    .games-card p { margin: 0 auto; }
+
+    .games-list {
       display: flex;
       flex-wrap: wrap;
-      gap: 22px;
+      gap: 18px;
       justify-content: center;
+      margin-top: 10px;
+      width: 100%;
     }
-    .game-card {
-      background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
-      width: 290px;
-      max-width: 100%;
-      overflow: hidden;
-      text-align: center;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .game-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
-    }
-    .game-card .game-top {
-      height: 8px;
-      background: linear-gradient(135deg, #8a37d6, #2e0249);
-    }
-    .game-card .game-emoji {
-      font-size: 3rem;
-      margin: 22px 0 6px;
-    }
-    .game-card h3 {
-      font-family: 'Fredoka', sans-serif;
-      color: #2e0249;
-      font-size: 1.35rem;
-      margin: 6px 18px 10px;
-    }
-    .game-card p {
-      color: #555;
-      font-size: 0.98rem;
-      line-height: 1.55;
-      margin: 0 18px 18px;
-    }
-    .play-btn {
-      display: inline-block;
-      margin-bottom: 22px;
-      background: #8a37d6;
-      color: #fff;
-      font-family: 'Fredoka', sans-serif;
+    /* Reuse the site's .trip-btn look, just make it work as a link */
+    .games-list .trip-btn {
       text-decoration: none;
-      padding: 12px 30px;
-      border-radius: 30px;
-      font-size: 1.05rem;
-      transition: transform 0.2s ease, background 0.2s ease;
-    }
-    .play-btn:hover { transform: scale(1.05); background: #9a4be0; }
-
-    @media (max-width: 800px) {
-      .games-wrap { margin: 20px auto 140px; padding: 32px 18px 36px; }
-      .games-wrap h1 { font-size: 1.9rem; }
+      margin: 0;
     }
   </style>
 </head>
@@ -117,12 +47,9 @@
 <body>
 
   <button id="hamburgerBtn" class="hamburger">&#9776;</button>
-
   <div class="menu-overlay" id="menuOverlay"></div>
-
   <div class="slide-menu" id="slideMenu">
     <button class="close-menu" id="closeMenuBtn">&times;</button>
-
     <a href="index.html" class="menu-item">Home</a>
     <a href="stories.html" class="menu-item">My Stories</a>
     <a href="learning.html" class="menu-item">Fun Learning</a>
@@ -131,47 +58,51 @@
     <a href="about.html" class="menu-item">About Me</a>
   </div>
 
-  <div class="flags-bar">
-    <div class="flags-track" id="flagsTrack"></div>
+  <div class="top-wrapper">
+    <div class="top-info">
+      <span class="location-text">Where I now live</span>
+      <div class="region"><img src="https://flagcdn.com/w20/gb.png" alt="UK Flag"></div>
+      <div class="time" id="time-uk"></div>
+      <div class="date" id="date-uk"></div>
+      <div class="weather" id="weather-uk">Loading…</div>
+    </div>
+    <div class="top-info">
+      <span class="location-text">Where I came from</span>
+      <div class="region"><img src="https://flagcdn.com/w20/pk.png" alt="Pakistan Flag"></div>
+      <div class="time" id="time-pk"></div>
+      <div class="date" id="date-pk"></div>
+      <div class="weather" id="weather-pk">Loading…</div>
+    </div>
   </div>
 
-  <section class="games-wrap">
+  <div class="learning-card games-card">
     <div class="eyebrow">My Games</div>
     <h1>🎮 Play my games!</h1>
-    <p class="subtitle">I’ve made <strong>2 games</strong> so far. Tap one to play!</p>
+    <p>I’ve made <strong>2 games</strong> so far. Tap one to start playing!</p>
 
-    <div class="games-grid">
+    <div class="games-list">
+      <!-- ===== GAME: copy one block to add another game later ===== -->
+      <a href="moving-the-sprite.html" class="trip-btn">
+        <span class="btn-id">1</span>
+        <span class="btn-text">🟢 Moving the Sprite Game</span>
+      </a>
+      <!-- ===== END GAME ===== -->
 
-      <!-- ===== GAME CARD: copy everything between the two "GAME CARD" lines to add a new game ===== -->
-      <div class="game-card">
-        <div class="game-top"></div>
-        <div class="game-emoji">🟢</div>
-        <h3>Moving the Sprite Game</h3>
-        <p>Use your keys to move the sprite around the screen. My very first game!</p>
-        <a href="moving-the-sprite.html" class="play-btn">Play ▶</a>
-      </div>
-      <!-- ===== END GAME CARD ===== -->
-
-      <!-- ===== GAME CARD ===== -->
-      <div class="game-card">
-        <div class="game-top"></div>
-        <div class="game-emoji">🐤</div>
-        <h3>Flappy Bird Game</h3>
-        <p>Tap to flap and fly through the gaps. How far can you get?</p>
-        <a href="flappy-bird.html" class="play-btn">Play ▶</a>
-      </div>
-      <!-- ===== END GAME CARD ===== -->
-
+      <!-- ===== GAME ===== -->
+      <a href="flappy-bird.html" class="trip-btn">
+        <span class="btn-id">2</span>
+        <span class="btn-text">🐤 Flappy Bird Game</span>
+      </a>
+      <!-- ===== END GAME ===== -->
     </div>
-  </section>
+  </div>
 
   <script>
-    /* ===== MENU FUNCTIONALITY ===== */
+    /* ===== MENU ===== */
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const closeMenuBtn = document.getElementById('closeMenuBtn');
     const slideMenu = document.getElementById('slideMenu');
     const menuOverlay = document.getElementById('menuOverlay');
-
     function toggleMenu() {
       slideMenu.classList.toggle('open');
       menuOverlay.classList.toggle('active');
@@ -180,37 +111,36 @@
     closeMenuBtn.addEventListener('click', toggleMenu);
     menuOverlay.addEventListener('click', toggleMenu);
 
-    /* ===== FLAGS (same scrolling bar as the rest of the site) ===== */
-    const countries = [
-      {code:"gb",name:"United Kingdom"},{code:"pk",name:"Pakistan"},{code:"us",name:"United States"},
-      {code:"fr",name:"France"},{code:"de",name:"Germany"},{code:"it",name:"Italy"},{code:"es",name:"Spain"},
-      {code:"jp",name:"Japan"},{code:"cn",name:"China"},{code:"in",name:"India"},{code:"au",name:"Australia"},
-      {code:"ca",name:"Canada"},{code:"br",name:"Brazil"},{code:"za",name:"South Africa"},{code:"ae",name:"UAE"},
-      {code:"tr",name:"Turkey"},{code:"eg",name:"Egypt"},{code:"sa",name:"Saudi Arabia"},{code:"kr",name:"South Korea"},
-      {code:"sg",name:"Singapore"},{code:"my",name:"Malaysia"},{code:"th",name:"Thailand"},{code:"id",name:"Indonesia"}
-    ];
-
-    const track = document.getElementById("flagsTrack");
-    if (track) {
-      const all = [...countries, ...countries];
-      let activeFlag = null;
-      all.forEach(c => {
-        const div = document.createElement("div");
-        div.className = "flag";
-        div.innerHTML = `<img src="https://flagcdn.com/w80/${c.code}.png" alt="${c.name}"><span>${c.name}</span>`;
-        track.appendChild(div);
-        div.addEventListener("mouseenter", () => { track.classList.add("paused"); div.classList.add("show"); });
-        div.addEventListener("mouseleave", () => { if(activeFlag===null){ track.classList.remove("paused"); div.classList.remove("show"); } });
-        div.addEventListener("pointerdown", () => {
-          if(/Mobi|Android/i.test(navigator.userAgent)){
-            if(activeFlag && activeFlag!==div) return;
-            const isActive = div.classList.contains("show");
-            if(isActive){ div.classList.remove("show"); track.classList.remove("paused"); activeFlag=null; }
-            else { div.classList.add("show"); track.classList.add("paused"); activeFlag=div; }
-          }
-        });
-      });
+    /* ===== TIME & WEATHER (same as home page) ===== */
+    function updateTime(zone, timeId, dateId){
+      const now = new Date();
+      document.getElementById(timeId).textContent =
+        now.toLocaleTimeString("en-GB",{hour:"numeric",minute:"2-digit",second:"2-digit",hour12:true,timeZone:zone});
+      document.getElementById(dateId).textContent =
+        now.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:zone});
     }
+    setInterval(()=>{
+      updateTime("Europe/London","time-uk","date-uk");
+      updateTime("Asia/Karachi","time-pk","date-pk");
+    },1000);
+
+    function loadWeather(lat,lon,elId,label){
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+        .then(res=>res.json())
+        .then(data=>{
+          const temp=Math.round(data.current_weather.temperature);
+          const code=data.current_weather.weathercode;
+          let icon="☀️";
+          if([1,2,3].includes(code)) icon="⛅";
+          if([45,48].includes(code)) icon="🌫️";
+          if([51,53,55,61,63,65,80].includes(code)) icon="🌧️";
+          if([71,73,75,85].includes(code)) icon="❄️";
+          if([95,96,99].includes(code)) icon="⛈️";
+          document.getElementById(elId).textContent=`${label} ${icon} ${temp}°C`;
+        });
+    }
+    loadWeather(52.57,-1.82,"weather-uk","Birmingham");
+    loadWeather(33.69,73.06,"weather-pk","Islamabad");
   </script>
 </body>
 </html>
