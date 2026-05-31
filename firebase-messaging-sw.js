@@ -25,7 +25,8 @@ const messaging = firebase.messaging();
 // Use absolute URL for the icon so it always resolves correctly,
 // regardless of which page registered the worker.
 const ICON_URL = "https://www.rafaytravelsworldwide.com/icon-192.png";
-
+// Small status-bar icon (must be a flat WHITE-on-transparent PNG, ~72x72).
+const BADGE_ICON_URL = "https://www.rafaytravelsworldwide.com/badge-72.png";
 // ── Unread badge count ─────────────────────────────────────────────────────
 // A service worker can be shut down at any time, so we cannot keep the count
 // in a normal variable. We store it in the browser cache, which both this
@@ -33,7 +34,6 @@ const ICON_URL = "https://www.rafaytravelsworldwide.com/icon-192.png";
 // "/__rafay_badge_count__" in cache "rafay-badge") when you open the app.
 const BADGE_CACHE = "rafay-badge";
 const BADGE_URL = "/__rafay_badge_count__";
-
 async function readBadgeCount() {
   try {
     const c = await caches.open(BADGE_CACHE);
@@ -62,7 +62,6 @@ async function clearIconBadge() {
     if ("clearAppBadge" in self.navigator) await self.navigator.clearAppBadge();
   } catch (e) {}
 }
-
 // Read from payload.data (data-only payload from our Cloud Function).
 messaging.onBackgroundMessage((payload) => {
   const data = payload.data || {};
@@ -71,7 +70,9 @@ messaging.onBackgroundMessage((payload) => {
   const options = {
     body,
     icon: ICON_URL,
-    tag: "rafay-chat", // collapses rapid duplicates into one entry
+    badge: BADGE_ICON_URL, // small white icon shown in the status bar
+    tag: "rafay-chat",     // collapses rapid duplicates into one entry
+    renotify: true,        // re-alert (sound/vibration) on each new message
     requireInteraction: false,
     data: {
       url: data.link || "/chat-app.html",
