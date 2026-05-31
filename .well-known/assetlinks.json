@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.rafaytravelsworldwide.www.twa",
+        "sha256_cert_fingerprints": ["0C:8F:34:9E:5C:1D:78:6C:83:7D:E6:2A:DD:7E:CA:15:A6:1A:73:46:97:E5:7F:AD:D8:54:50:47:51:B0:0E:88"]
+      }
+    }]
