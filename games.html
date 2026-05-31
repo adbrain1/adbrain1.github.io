@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Games – Abdul Rafay’s Adventures</title>
+  <link rel="icon" type="image/png" href="./favicon.png">
+
+  <meta name="theme-color" content="#2e0249">
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* ===== Games page styling (matches the site's purple theme) ===== */
+    .games-wrap {
+      max-width: 900px;
+      width: 100%;
+      margin: 30px auto 160px;
+      padding: 38px 24px 42px;
+      background: linear-gradient(160deg, #3d0a63 0%, #2e0249 100%);
+      border-radius: 28px;
+      box-shadow: 0 16px 40px rgba(46, 2, 73, 0.28);
+      font-family: 'Nunito', sans-serif;
+      text-align: center;
+    }
+    .games-wrap .eyebrow {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 30px;
+      margin-bottom: 12px;
+    }
+    .games-wrap h1 {
+      font-family: 'Fredoka', sans-serif;
+      color: #fff;
+      font-size: 2.3rem;
+      margin: 0 0 8px;
+    }
+    .games-wrap .subtitle {
+      color: #e3d4f5;
+      font-size: 1.05rem;
+      margin: 0 0 30px;
+    }
+    .games-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px;
+      justify-content: center;
+    }
+    .game-card {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+      width: 290px;
+      max-width: 100%;
+      overflow: hidden;
+      text-align: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .game-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+    }
+    .game-card .game-top {
+      height: 8px;
+      background: linear-gradient(135deg, #8a37d6, #2e0249);
+    }
+    .game-card .game-emoji {
+      font-size: 3rem;
+      margin: 22px 0 6px;
+    }
+    .game-card h3 {
+      font-family: 'Fredoka', sans-serif;
+      color: #2e0249;
+      font-size: 1.35rem;
+      margin: 6px 18px 10px;
+    }
+    .game-card p {
+      color: #555;
+      font-size: 0.98rem;
+      line-height: 1.55;
+      margin: 0 18px 18px;
+    }
+    .play-btn {
+      display: inline-block;
+      margin-bottom: 22px;
+      background: #8a37d6;
+      color: #fff;
+      font-family: 'Fredoka', sans-serif;
+      text-decoration: none;
+      padding: 12px 30px;
+      border-radius: 30px;
+      font-size: 1.05rem;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .play-btn:hover { transform: scale(1.05); background: #9a4be0; }
+
+    @media (max-width: 800px) {
+      .games-wrap { margin: 20px auto 140px; padding: 32px 18px 36px; }
+      .games-wrap h1 { font-size: 1.9rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <button id="hamburgerBtn" class="hamburger">&#9776;</button>
+
+  <div class="menu-overlay" id="menuOverlay"></div>
+
+  <div class="slide-menu" id="slideMenu">
+    <button class="close-menu" id="closeMenuBtn">&times;</button>
+
+    <a href="index.html" class="menu-item">Home</a>
+    <a href="stories.html" class="menu-item">My Stories</a>
+    <a href="learning.html" class="menu-item">Fun Learning</a>
+    <a href="games.html" class="menu-item">My Games</a>
+    <a href="chat.html" class="menu-item">Chat</a>
+    <a href="about.html" class="menu-item">About Me</a>
+  </div>
+
+  <div class="flags-bar">
+    <div class="flags-track" id="flagsTrack"></div>
+  </div>
+
+  <section class="games-wrap">
+    <div class="eyebrow">My Games</div>
+    <h1>🎮 Play my games!</h1>
+    <p class="subtitle">I’ve made <strong>2 games</strong> so far. Tap one to play!</p>
+
+    <div class="games-grid">
+
+      <!-- ===== GAME CARD: copy everything between the two "GAME CARD" lines to add a new game ===== -->
+      <div class="game-card">
+        <div class="game-top"></div>
+        <div class="game-emoji">🟢</div>
+        <h3>Moving the Sprite Game</h3>
+        <p>Use your keys to move the sprite around the screen. My very first game!</p>
+        <a href="moving-the-sprite.html" class="play-btn">Play ▶</a>
+      </div>
+      <!-- ===== END GAME CARD ===== -->
+
+      <!-- ===== GAME CARD ===== -->
+      <div class="game-card">
+        <div class="game-top"></div>
+        <div class="game-emoji">🐤</div>
+        <h3>Flappy Bird Game</h3>
+        <p>Tap to flap and fly through the gaps. How far can you get?</p>
+        <a href="flappy-bird.html" class="play-btn">Play ▶</a>
+      </div>
+      <!-- ===== END GAME CARD ===== -->
+
+    </div>
+  </section>
+
+  <script>
+    /* ===== MENU FUNCTIONALITY ===== */
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const closeMenuBtn = document.getElementById('closeMenuBtn');
+    const slideMenu = document.getElementById('slideMenu');
+    const menuOverlay = document.getElementById('menuOverlay');
+
+    function toggleMenu() {
+      slideMenu.classList.toggle('open');
+      menuOverlay.classList.toggle('active');
+    }
+    hamburgerBtn.addEventListener('click', toggleMenu);
+    closeMenuBtn.addEventListener('click', toggleMenu);
+    menuOverlay.addEventListener('click', toggleMenu);
+
+    /* ===== FLAGS (same scrolling bar as the rest of the site) ===== */
+    const countries = [
+      {code:"gb",name:"United Kingdom"},{code:"pk",name:"Pakistan"},{code:"us",name:"United States"},
+      {code:"fr",name:"France"},{code:"de",name:"Germany"},{code:"it",name:"Italy"},{code:"es",name:"Spain"},
+      {code:"jp",name:"Japan"},{code:"cn",name:"China"},{code:"in",name:"India"},{code:"au",name:"Australia"},
+      {code:"ca",name:"Canada"},{code:"br",name:"Brazil"},{code:"za",name:"South Africa"},{code:"ae",name:"UAE"},
+      {code:"tr",name:"Turkey"},{code:"eg",name:"Egypt"},{code:"sa",name:"Saudi Arabia"},{code:"kr",name:"South Korea"},
+      {code:"sg",name:"Singapore"},{code:"my",name:"Malaysia"},{code:"th",name:"Thailand"},{code:"id",name:"Indonesia"}
+    ];
+
+    const track = document.getElementById("flagsTrack");
+    if (track) {
+      const all = [...countries, ...countries];
+      let activeFlag = null;
+      all.forEach(c => {
+        const div = document.createElement("div");
+        div.className = "flag";
+        div.innerHTML = `<img src="https://flagcdn.com/w80/${c.code}.png" alt="${c.name}"><span>${c.name}</span>`;
+        track.appendChild(div);
+        div.addEventListener("mouseenter", () => { track.classList.add("paused"); div.classList.add("show"); });
+        div.addEventListener("mouseleave", () => { if(activeFlag===null){ track.classList.remove("paused"); div.classList.remove("show"); } });
+        div.addEventListener("pointerdown", () => {
+          if(/Mobi|Android/i.test(navigator.userAgent)){
+            if(activeFlag && activeFlag!==div) return;
+            const isActive = div.classList.contains("show");
+            if(isActive){ div.classList.remove("show"); track.classList.remove("paused"); activeFlag=null; }
+            else { div.classList.add("show"); track.classList.add("paused"); activeFlag=div; }
+          }
+        });
+      });
+    }
+  </script>
+</body>
+</html>

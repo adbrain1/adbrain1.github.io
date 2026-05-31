@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moving the Sprite Game – Abdul Rafay’s Adventures</title>
+  <link rel="icon" type="image/png" href="./favicon.png">
+  <meta name="theme-color" content="#2e0249">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* ===== Full-screen, no-scroll game layout ===== */
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    body.game-page {
+      height: 100dvh;
+      overflow: hidden;                 /* no scrolling */
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(160deg, #3d0a63 0%, #2e0249 100%);
+      font-family: 'Nunito', sans-serif;
+    }
+    .game-header {
+      flex: 0 0 auto;
+      text-align: center;
+      padding: 14px 16px 6px;
+      color: #fff;
+    }
+    .game-header h1 {
+      font-family: 'Fredoka', sans-serif;
+      font-size: clamp(1.1rem, 4vw, 1.8rem);
+      margin: 0;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 6px;
+      color: #e3d4f5;
+      font-family: 'Fredoka', sans-serif;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    .back-link:hover { color: #fff; }
+
+    .game-area {
+      flex: 1 1 auto;
+      min-height: 0;                    /* lets it shrink so nothing overflows */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 10px 14px;
+    }
+    .game-stage {
+      height: 100%;
+      aspect-ratio: 485 / 402;          /* keeps the game's shape */
+      max-width: 96vw;                  /* fits narrow phones */
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 14px 36px rgba(0,0,0,0.35);
+      overflow: hidden;
+    }
+    .game-stage iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+  </style>
+</head>
+
+<body class="game-page">
+
+  <button id="hamburgerBtn" class="hamburger">&#9776;</button>
+  <div class="menu-overlay" id="menuOverlay"></div>
+  <div class="slide-menu" id="slideMenu">
+    <button class="close-menu" id="closeMenuBtn">&times;</button>
+    <a href="index.html" class="menu-item">Home</a>
+    <a href="stories.html" class="menu-item">My Stories</a>
+    <a href="learning.html" class="menu-item">Fun Learning</a>
+    <a href="games.html" class="menu-item">My Games</a>
+    <a href="chat.html" class="menu-item">Chat</a>
+    <a href="about.html" class="menu-item">About Me</a>
+  </div>
+
+  <div class="game-header">
+    <h1>🟢 Moving the Sprite Game</h1>
+    <a href="games.html" class="back-link">← Back to all games</a>
+  </div>
+
+  <div class="game-area">
+    <div class="game-stage">
+      <iframe src="https://scratch.mit.edu/projects/1323890693/embed"
+              allowtransparency="true" frameborder="0" scrolling="no" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <script>
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const closeMenuBtn = document.getElementById('closeMenuBtn');
+    const slideMenu = document.getElementById('slideMenu');
+    const menuOverlay = document.getElementById('menuOverlay');
+    function toggleMenu() {
+      slideMenu.classList.toggle('open');
+      menuOverlay.classList.toggle('active');
+    }
+    hamburgerBtn.addEventListener('click', toggleMenu);
+    closeMenuBtn.addEventListener('click', toggleMenu);
+    menuOverlay.addEventListener('click', toggleMenu);
+  </script>
+</body>
+</html>
