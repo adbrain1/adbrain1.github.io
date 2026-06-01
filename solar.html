@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Khan House Solar Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a1020; --bg2:#0f172a; --card:#141f38; --card2:#18254220;
+    --line:#243353; --muted:#8aa0c2; --text:#e8eefb;
+    --gold:#f5b13d; --teal:#2ed3c6; --green:#34d399; --red:#ef4444; --violet:#a78bfa;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:'Manrope',system-ui,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 500px at 100% -10%, #16306022, transparent),
+      radial-gradient(900px 500px at -10% 0%, #3a2a0822, transparent),
+      var(--bg);
+    color:var(--text); -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:680px;margin:0 auto;padding:16px 14px 40px}
+  h1{font-family:'Sora',sans-serif;font-size:22px;text-align:center;margin:6px 0 4px;letter-spacing:.2px}
+  .sub{text-align:center;color:var(--muted);font-size:12px;margin-bottom:16px}
+
+  /* ---------- settings ---------- */
+  .settings{
+    display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:12px;margin-bottom:16px;box-shadow:var(--shadow);
+  }
+  .field{display:flex;align-items:center;gap:8px;white-space:nowrap}
+  .field label{color:var(--muted);font-size:12px}
+  .field input,.field select{
+    padding:8px;border-radius:9px;border:1px solid var(--line);
+    background:var(--bg2);color:var(--text);font-size:14px;width:70px;text-align:center;
+  }
+  .field button{
+    padding:8px 12px;border:0;border-radius:9px;cursor:pointer;font-weight:700;font-size:13px;
+    background:linear-gradient(180deg,#3b82f6,#2563eb);color:#fff;
+  }
+  .ok{color:var(--green);font-size:13px;min-width:14px}
+
+  /* ---------- alarm banner ---------- */
+  #banner{
+    display:none;background:linear-gradient(180deg,#dc2626,#b91c1c);color:#fff;text-align:center;
+    padding:16px;font-weight:800;border-radius:14px;margin-bottom:16px;font-size:18px;
+    box-shadow:0 0 0 3px #ef444455, var(--shadow);
+  }
+  #banner small{display:block;font-weight:600;font-size:13px;opacity:.9;margin-top:4px}
+  body.alarm{animation:flash 1s infinite}
+  @keyframes flash{0%,100%{background-color:var(--bg)}50%{background-color:#3a0d0d}}
+  .soundbtn{
+    display:none;margin:0 auto 14px;padding:10px 16px;border:0;border-radius:10px;cursor:pointer;
+    background:var(--gold);color:#1a1205;font-weight:800;
+  }
+
+  /* ---------- cards ---------- */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .card{
+    background:linear-gradient(180deg,var(--card),#101a30);
+    border:1px solid var(--line);border-radius:16px;padding:16px 12px;text-align:center;
+    box-shadow:var(--shadow);
+  }
+  .card.hot{background:linear-gradient(180deg,#7f1d1d,#5c1414);border-color:#ef4444}
+  .label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.6px}
+  .big{font-family:'Sora',sans-serif;font-size:26px;font-weight:800;margin-top:6px;line-height:1.1}
+  .unit{color:var(--muted);font-size:11px;margin-top:2px}
+
+  /* ---------- comparison cards ---------- */
+  .cmp{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+  .cmp .card{text-align:left;padding:14px}
+  .cmp .title{font-family:'Sora',sans-serif;font-size:13px;font-weight:700;margin-bottom:8px}
+  .cmp .pct{font-family:'Sora',sans-serif;font-size:24px;font-weight:800}
+  .cmp .rows{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.6}
+  .cmp .rows b{color:var(--text);font-weight:700}
+  .up{color:var(--green)} .down{color:var(--red)}
+
+  /* ---------- sections ---------- */
+  .section{
+    background:linear-gradient(180deg,var(--card),#101a30);
+    border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:14px;box-shadow:var(--shadow);
+  }
+  .section h2{font-family:'Sora',sans-serif;font-size:14px;margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .nav{display:flex;align-items:center;gap:6px}
+  .nav button{
+    width:32px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--bg2);
+    color:var(--text);font-size:16px;cursor:pointer;line-height:1
+  }
+  .nav button:disabled{opacity:.3;cursor:default}
+
+  /* ---------- bar charts (HTML/CSS) ---------- */
+  .chart{position:relative;height:180px;display:flex;align-items:flex-end;gap:3px;padding-top:26px}
+  .col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;cursor:pointer}
+  .bar{width:72%;border-radius:5px 5px 2px 2px;transition:filter .15s;min-height:2px}
+  .bar.empty{background:#1c2a47 !important;min-height:3px}
+  .col:hover .bar{filter:brightness(1.25)}
+  .col.sel .bar{outline:2px solid #fff;outline-offset:1px}
+  .col .x{font-size:9px;color:var(--muted);margin-top:5px;white-space:nowrap}
+  .col .v{
+    position:absolute;top:0;transform:translateX(-50%);
+    background:#0b1424;border:1px solid var(--line);border-radius:8px;
+    padding:4px 8px;font-size:11px;font-weight:700;white-space:nowrap;display:none;z-index:5;
+    box-shadow:var(--shadow)
+  }
+  .col.sel .v{display:block}
+  .inbar{font-size:9px;font-weight:800;color:#0b1424;margin-bottom:2px;writing-mode:vertical-rl;transform:rotate(180deg)}
+  .total-line{color:var(--muted);font-size:12px;margin-top:10px;text-align:center}
+
+  /* ---------- today curve / moon ---------- */
+  .moon{
+    text-align:center;padding:26px 10px;border-radius:14px;
+    background:linear-gradient(180deg,#0d1530,#0a1020);border:1px dashed var(--line)
+  }
+  .moon .icon{font-size:52px}
+  .moon .t1{font-family:'Sora',sans-serif;font-size:18px;font-weight:800;margin-top:6px}
+  .moon .t2{color:var(--muted);font-size:13px;margin-top:4px}
+
+  /* ---------- temperature footer ---------- */
+  .tempbox{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .tempbig{font-family:'Sora',sans-serif;font-size:46px;font-weight:800;color:var(--gold);line-height:1}
+  .tempbox .desc{color:var(--muted);font-size:13px;max-width:340px;line-height:1.5}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+  td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:center}
+  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+
+  .muted{color:var(--muted);font-size:12px;text-align:center;margin-top:18px;line-height:1.7}
+
+  @media (max-width:520px){
+    .cmp{grid-template-columns:1fr}
+    .big{font-size:22px}
+    .tempbig{font-size:38px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>☀️ Khan House Solar Monitor</h1>
+  <div class="sub">Live performance &amp; health of your solar system</div>
+
+  <!-- SETTINGS -->
+  <div class="settings">
+    <div class="field">
+      <label>Temp limit °C</label>
+      <input id="limitInput" type="number">
+      <button onclick="saveLimit()">Save</button><span id="limitMsg" class="ok"></span>
+    </div>
+    <div class="field">
+      <label>Check every</label>
+      <select id="freqInput">
+        <option value="5">5 min</option><option value="10">10 min</option>
+        <option value="15">15 min</option><option value="30">30 min</option><option value="60">60 min</option>
+      </select>
+      <button onclick="saveFreq()">Save</button><span id="freqMsg" class="ok"></span>
+    </div>
+  </div>
+
+  <!-- ALARM -->
+  <div id="banner">⚠️ HIGH INVERTER TEMPERATURE<small id="bannerSub"></small></div>
+  <button id="soundBtn" class="soundbtn" onclick="enableSound()">🔔 Tap to enable alarm sound</button>
+
+  <!-- LIVE CARDS -->
+  <div class="grid">
+    <div class="card"><div class="label">Power Now</div><div class="big" id="power">—</div><div class="unit">watts</div></div>
+    <div class="card" id="tempCard"><div class="label">Inverter Temp</div><div class="big" id="temp">—</div><div class="unit">°C · limit <span id="limit">—</span></div></div>
+    <div class="card"><div class="label">Today</div><div class="big" id="today">—</div><div class="unit">kWh</div></div>
+  </div>
+
+  <!-- COMPARISONS -->
+  <div class="cmp">
+    <div class="card">
+      <div class="title">📅 Month so far</div>
+      <div class="pct" id="mtdPct">—</div>
+      <div class="rows" id="mtdRows">vs same days last year</div>
+    </div>
+    <div class="card">
+      <div class="title">🗓️ Year so far</div>
+      <div class="pct" id="ytdPct">—</div>
+      <div class="rows" id="ytdRows">vs same period last year</div>
+    </div>
+    <div class="card">
+      <div class="title">🩺 Last 7 days</div>
+      <div class="pct" id="trendPct">—</div>
+      <div class="rows" id="trendRows">vs previous 7 days</div>
+    </div>
+  </div>
+
+  <!-- TODAY CURVE -->
+  <div class="section">
+    <h2>Today — Power Through the Day (W)</h2>
+    <div id="curveBox"></div>
+  </div>
+
+  <!-- DAILY GENERATION (month navigation) -->
+  <div class="section">
+    <h2><span id="dailyTitle">Daily Generation</span>
+      <span class="nav"><button id="dPrev" onclick="stepMonth(-1)">‹</button><button id="dNext" onclick="stepMonth(1)">›</button></span>
+    </h2>
+    <div class="chart" id="dailyChart"></div>
+    <div class="total-line" id="dailyTotal"></div>
+  </div>
+
+  <!-- MONTHLY GENERATION (year navigation) -->
+  <div class="section">
+    <h2><span id="monthlyTitle">Monthly Generation</span>
+      <span class="nav"><button id="mPrev" onclick="stepYear(-1)">‹</button><button id="mNext" onclick="stepYear(1)">›</button></span>
+    </h2>
+    <div class="chart" id="monthlyChart"></div>
+    <div class="total-line" id="monthlyTotal"></div>
+  </div>
+
+  <!-- YEARLY GENERATION -->
+  <div class="section" id="yearSection" style="display:none">
+    <h2>Yearly Generation (kWh)</h2>
+    <div class="chart" id="yearlyChart"></div>
+  </div>
+
+  <!-- TEMPERATURE FOOTER -->
+  <div class="section">
+    <h2>Hottest the Inverter Got</h2>
+    <div class="tempbox">
+      <div class="tempbig" id="monthMaxTemp">—</div>
+      <div class="desc">Highest inverter temperature recorded in <b id="tempMonthLabel">this month</b>. We log the daily peak; this is the single hottest reading so far. The table below shows the record high for each month.</div>
+    </div>
+    <table><thead><tr><th>Month</th><th>Highest °C</th><th>Days logged</th></tr></thead><tbody id="tempMonths"></tbody></table>
+  </div>
+
+  <div class="muted" id="updated"></div>
+</div>
+
+<script>
+/* =======================================================================
+   STEP 1 — PASTE YOUR WEB APP URL BELOW (it ends with /exec)
+   Get it from Apps Script:  Deploy ▸ Manage deployments ▸ copy the URL.
+   ======================================================================= */
+var API_URL = "https://script.google.com/macros/s/AKfycbysmJ49s5Fq_ybHaeE3fiKFhqrTFVPLNC4b-uibRJce-CkgIMLy0H4vlGrmiFPAuQy1/exec";
+
+/* ---- talk to Google (works from any website) ---- */
+function api(action, params, cb){
+  params = params || {};
+  var name = "cb_" + Math.random().toString(36).slice(2);
+  var qs = "action=" + encodeURIComponent(action) + "&callback=" + name + "&_=" + Date.now();
+  for (var k in params) qs += "&" + k + "=" + encodeURIComponent(params[k]);
+  var s = document.createElement("script");
+  window[name] = function(d){ try{ cb && cb(d); } finally { delete window[name]; s.remove(); } };
+  s.onerror = function(){ delete window[name]; s.remove(); };
+  s.src = API_URL + (API_URL.indexOf("?")>=0 ? "&" : "?") + qs;
+  document.body.appendChild(s);
+}
+
+/* ---- helpers ---- */
+function fmt(n, dp){
+  if (n == null || isNaN(n)) return "—";
+  return Number(n).toLocaleString(undefined, {minimumFractionDigits:dp||0, maximumFractionDigits:dp||0});
+}
+function note(id,msg){ var e=document.getElementById(id); e.textContent=msg; setTimeout(function(){e.textContent="";},2500); }
+var MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+/* ---- settings ---- */
+function saveLimit(){
+  var v=document.getElementById("limitInput").value;
+  api("saveLimit",{value:v},function(r){
+    if(r&&r.error){note("limitMsg","✕");return;}
+    document.getElementById("limit").textContent=r.value; note("limitMsg","✔");
+  });
+}
+function saveFreq(){
+  var v=document.getElementById("freqInput").value;
+  api("saveFreq",{value:v},function(r){ note("freqMsg", r&&r.error?"✕":"✔"); });
+}
+
+/* ===================== ALARM (sound + red flash) ===================== */
+var audioCtx=null, alarmTimer=null, soundReady=false;
+function enableSound(){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==="suspended") audioCtx.resume();
+    soundReady=true;
+    document.getElementById("soundBtn").style.display="none";
+    beep(); // confirm it works
+  }catch(e){}
+}
+function beep(){
+  if(!audioCtx) return;
+  var o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type="square"; o.frequency.value=880;
+  o.connect(g); g.connect(audioCtx.destination);
+  g.gain.setValueAtTime(0.0001,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.35,audioCtx.currentTime+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.4);
+  o.start(); o.stop(audioCtx.currentTime+0.45);
+}
+function startAlarm(){
+  document.body.classList.add("alarm");
+  if(soundReady){ if(!alarmTimer){ beep(); alarmTimer=setInterval(beep,1200);} }
+  else { document.getElementById("soundBtn").style.display="block"; }
+}
+function stopAlarm(){
+  document.body.classList.remove("alarm");
+  if(alarmTimer){ clearInterval(alarmTimer); alarmTimer=null; }
+}
+/* prime audio on the very first tap anywhere (browser rule) */
+document.addEventListener("click", function once(){ enableSound(); document.removeEventListener("click",once); }, {once:true});
+
+/* ===================== BAR CHARTS (clickable) ===================== */
+function clearSel(chart){ var s=chart.querySelector(".col.sel"); if(s) s.classList.remove("sel"); }
+
+function renderBars(elId, items, opts){
+  // items: [{x:"label", v:number|null, bubble:"text"}]  opts:{color, alwaysLabel}
+  var chart=document.getElementById(elId);
+  chart.innerHTML="";
+  var max=0; items.forEach(function(it){ if(it.v!=null && it.v>max) max=it.v; });
+  if(max<=0) max=1;
+  items.forEach(function(it){
+    var col=document.createElement("div"); col.className="col";
+    var bub=document.createElement("div"); bub.className="v"; bub.textContent=it.bubble||"";
+    var bar=document.createElement("div"); bar.className="bar";
+    if(it.v==null){ bar.classList.add("empty"); bar.style.height="3px"; }
+    else {
+      bar.style.height=Math.max(2,(it.v/max)*150)+"px";
+      bar.style.background="linear-gradient(180deg,"+opts.color+",rgba(255,255,255,0))";
+    }
+    if(opts.alwaysLabel && it.v!=null && it.v>0){
+      var inb=document.createElement("div"); inb.className="inbar"; inb.textContent=fmt(it.v);
+      bar.appendChild(inb);
+    }
+    var x=document.createElement("div"); x.className="x"; x.textContent=it.x;
+    col.appendChild(bub); col.appendChild(bar); col.appendChild(x);
+    col.onclick=function(){ var sel=col.classList.contains("sel"); clearSel(chart); if(!sel) col.classList.add("sel"); };
+    chart.appendChild(col);
+  });
+}
+
+/* ===================== TODAY CURVE (SVG line) ===================== */
+function renderCurve(curve){
+  var box=document.getElementById("curveBox");
+  var pts=(curve&&curve.points)?curve.points:[];
+  if(!pts.length){
+    box.innerHTML='<div class="moon"><div class="icon">🌙</div><div class="t1">The sun has set</div>'+
+                  '<div class="t2">Your system is resting. Live data returns at sunrise.</div></div>';
+    return;
+  }
+  var max=0; pts.forEach(function(p){ if(p.y>max) max=p.y; }); if(max<=0) max=1;
+  var n=pts.length, denom=n>1?n-1:1, poly="", area="";
+  pts.forEach(function(p,i){
+    var x=40+(i/denom)*(620-40), y=176-(p.y/max)*150;
+    poly+=(i?" ":"")+x.toFixed(1)+","+y.toFixed(1);
+  });
+  area="40,176 "+poly+" 620,176";
+  box.innerHTML=
+    '<svg viewBox="0 0 640 200" width="100%" preserveAspectRatio="xMidYMid meet">'+
+    '<line x1="40" y1="10" x2="40" y2="176" stroke="#243353"/>'+
+    '<line x1="40" y1="176" x2="624" y2="176" stroke="#243353"/>'+
+    '<text x="36" y="18" fill="#8aa0c2" font-size="10" text-anchor="end">'+fmt(Math.round(max))+'</text>'+
+    '<polygon points="'+area+'" fill="#2ed3c61f"/>'+
+    '<polyline fill="none" stroke="#2ed3c6" stroke-width="2.5" points="'+poly+'"/>'+
+    '</svg>';
+}
+
+/* ===================== DAILY (month navigation) ===================== */
+var curMonth=null, plantMonth=null;
+function loadDaily(month){
+  api("monthDaily",{month:month||""},function(d){
+    if(!d||d.error) return;
+    curMonth=d.month;
+    document.getElementById("dailyTitle").textContent="Daily Generation — "+d.label;
+    var items=d.bars.map(function(b){
+      return { x:String(b.day), v:b.kwh,
+               bubble:b.day+" "+monthFromYM(d.month)+": "+(b.kwh==null?"—":fmt(b.kwh,1))+" kWh" };
+    });
+    renderBars("dailyChart", items, {color:"#34d399"});
+    document.getElementById("dailyTotal").textContent="Month total: "+fmt(d.total,1)+" kWh";
+    // disable "next" if we're at the current month
+    document.getElementById("dNext").disabled = (d.month>=plantMonth);
+  });
+}
+function stepMonth(dir){
+  var p=curMonth.split("-"); var dt=new Date(parseInt(p[0],10), parseInt(p[1],10)-1+dir, 1);
+  var ym=dt.getFullYear()+"-"+pad(dt.getMonth()+1);
+  if(ym>plantMonth) return;
+  loadDaily(ym);
+}
+
+/* ===================== MONTHLY (year navigation) ===================== */
+var curYear=null, plantYear=null;
+function loadMonthly(year){
+  api("yearMonthly",{year:year||""},function(d){
+    if(!d||d.error) return;
+    curYear=d.year;
+    document.getElementById("monthlyTitle").textContent="Monthly Generation — "+d.year;
+    var items=d.bars.map(function(b){
+      return { x:MONTHS[b.month-1], v:b.kwh,
+               bubble:MONTHS[b.month-1]+" "+d.year+": "+(b.kwh==null?"—":fmt(b.kwh,1))+" kWh" };
+    });
+    renderBars("monthlyChart", items, {color:"#f5b13d"});
+    document.getElementById("monthlyTotal").textContent="Year total: "+fmt(d.total,1)+" kWh";
+    document.getElementById("mNext").disabled = (d.year>=plantYear);
+  });
+}
+function stepYear(dir){
+  var y=String(parseInt(curYear,10)+dir);
+  if(y>plantYear) return;
+  loadMonthly(y);
+}
+
+/* ===================== COMPARISON CARDS ===================== */
+function pctText(elPct, elRows, c, lineThis, lineLast){
+  if(!c){ document.getElementById(elPct).textContent="—"; return; }
+  var p=document.getElementById(elPct);
+  if(c.pct==null){ p.textContent="—"; p.className="pct"; }
+  else { p.textContent=(c.pct>=0?"+":"")+fmt(c.pct,1)+"%"; p.className="pct "+(c.pct>=0?"up":"down"); }
+  document.getElementById(elRows).innerHTML =
+    lineThis+": <b>"+fmt(c.thisYear,1)+"</b> kWh<br>"+lineLast+": <b>"+fmt(c.lastYear,1)+"</b> kWh";
+}
+
+/* ===================== MAIN REFRESH ===================== */
+var first=true;
+function refresh(){
+  api("dashboard",{},function(d){
+    if(!d||d.error){ document.getElementById("updated").textContent="Cannot reach data service — check the web app URL."; return; }
+    plantMonth=d.plantMonth; plantYear=d.plantYear;
+
+    document.getElementById("power").textContent = d.power==null?"—":fmt(d.power);
+    document.getElementById("today").textContent = d.today==null?"—":fmt(d.today,1);
+    document.getElementById("temp").textContent  = d.temp==null?"—":fmt(d.temp,1);
+    document.getElementById("limit").textContent = fmt(d.limit);
+
+    /* ALARM logic */
+    var over = (d.temp!=null && d.temp>d.limit);
+    document.getElementById("tempCard").className = over?"card hot":"card";
+    var banner=document.getElementById("banner");
+    if(over){
+      banner.style.display="block";
+      document.getElementById("bannerSub").textContent = "Now "+fmt(d.temp,1)+"°C — limit is "+fmt(d.limit)+"°C";
+      startAlarm();
+    } else { banner.style.display="none"; stopAlarm(); }
+
+    /* comparisons */
+    var c=d.comparisons||{};
+    pctText("mtdPct","mtdRows",c.mtd, "This year", "Last year");
+    pctText("ytdPct","ytdRows",c.ytd, "This year", "Last year");
+    pctText("trendPct","trendRows",c.trend7, "Last 7 days", "Previous 7");
+
+    /* today curve / moon */
+    renderCurve(d.curve);
+
+    /* yearly bars (totals always shown) */
+    if(d.yearly&&d.yearly.points&&d.yearly.points.length){
+      document.getElementById("yearSection").style.display="block";
+      var ys=d.yearly.points.map(function(p){
+        return { x:String(p.x).slice(0,4), v:p.y, bubble:p.x+": "+fmt(p.y,1)+" kWh" };
+      });
+      renderBars("yearlyChart", ys, {color:"#a78bfa", alwaysLabel:true});
+    }
+
+    /* temperature footer */
+    document.getElementById("tempMonthLabel").textContent = d.tempMonthLabel;
+    document.getElementById("monthMaxTemp").textContent = d.tempThisMonthMax==null?"—":fmt(d.tempThisMonthMax,1)+"°";
+    var tb=""; (d.tempMonths||[]).forEach(function(r){
+      tb+="<tr><td>"+r.month+"</td><td>"+fmt(r.max,1)+"</td><td>"+r.days+"</td></tr>";
+    });
+    document.getElementById("tempMonths").innerHTML = tb || '<tr><td colspan="3" style="color:#8aa0c2">No data logged yet</td></tr>';
+
+    /* footer time — local + UK */
+    var local="—", tz="";
+    try{
+      var dt=new Date(d.iso);
+      local=dt.toLocaleString(undefined,{day:"2-digit",month:"short",year:"numeric",hour:"numeric",minute:"2-digit"});
+      tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"";
+    }catch(e){}
+    document.getElementById("updated").innerHTML =
+      "Last reading: <b>"+local+"</b> (your time"+(tz?" · "+tz:"")+")<br>"+
+      "UK time: "+d.ukTime;
+
+    if(first){
+      document.getElementById("limitInput").value=d.limit;
+      document.getElementById("freqInput").value=d.freq;
+      loadDaily("");    // current month
+      loadMonthly("");  // current year
+      first=false;
+    }
+  });
+}
+
+/* small date helpers */
+function pad(n){ return n<10?"0"+n:""+n; }
+function monthFromYM(ym){ return MONTHS[parseInt(ym.split("-")[1],10)-1]; }
+
+refresh();
+setInterval(refresh, 60000);
+</script>
+</body>
+</html>
