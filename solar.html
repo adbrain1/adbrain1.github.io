@@ -72,12 +72,17 @@
   .unit{color:var(--muted);font-size:11px;margin-top:2px}
 
   /* ---------- comparison cards ---------- */
-  .cmp{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
-  .cmp .card{text-align:left;padding:14px}
-  .cmp .title{font-family:'Sora',sans-serif;font-size:13px;font-weight:700;margin-bottom:8px}
-  .cmp .pct{font-family:'Sora',sans-serif;font-size:24px;font-weight:800}
-  .cmp .rows{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.6}
-  .cmp .rows b{color:var(--text);font-weight:700}
+  .cmp{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
+  .cmp .card{text-align:center;padding:16px 14px}
+  .cmp .title{font-family:'Sora',sans-serif;font-size:14px;font-weight:700;margin-bottom:6px}
+  .cmp .pct{font-family:'Sora',sans-serif;font-size:30px;font-weight:800;color:var(--gold);line-height:1}
+  .cmp .unit{font-size:11px;color:var(--muted);margin-top:2px}
+  .cmp .vs{font-size:12px;margin-top:8px;color:var(--muted)}
+  .cmp .rows{margin-top:10px;border-top:1px solid var(--line);padding-top:8px;font-size:12.5px}
+  .cmp .r{display:flex;justify-content:space-between;gap:10px;padding:3px 0;color:var(--muted)}
+  .cmp .r b{color:var(--text);font-weight:700}
+  .cmp .r.rc{color:var(--gold);font-weight:700}
+  .cmp .r.rc b{color:var(--gold)}
   .up{color:var(--green)} .down{color:var(--red)}
 
   /* ---------- sections ---------- */
@@ -94,21 +99,20 @@
   .nav button:disabled{opacity:.3;cursor:default}
 
   /* ---------- bar charts (HTML/CSS) ---------- */
-  .chart{position:relative;height:180px;display:flex;align-items:flex-end;gap:3px;padding-top:26px}
+  .readout{
+    text-align:center;font-size:13px;font-weight:700;color:var(--text);
+    background:var(--bg2);border:1px solid var(--line);border-radius:9px;
+    padding:7px 10px;margin-bottom:10px;min-height:34px
+  }
+  .readout .dim{color:var(--muted);font-weight:600}
+  .chart{position:relative;height:175px;display:flex;align-items:flex-end;gap:3px}
   .col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;cursor:pointer}
-  .bar{width:72%;border-radius:5px 5px 2px 2px;transition:filter .15s;min-height:2px}
+  .bar{width:72%;border-radius:5px 5px 2px 2px;transition:filter .15s;min-height:2px;display:flex;align-items:flex-start;justify-content:center;overflow:visible}
   .bar.empty{background:#1c2a47 !important;min-height:3px}
   .col:hover .bar{filter:brightness(1.25)}
   .col.sel .bar{outline:2px solid #fff;outline-offset:1px}
   .col .x{font-size:9px;color:var(--muted);margin-top:5px;white-space:nowrap}
-  .col .v{
-    position:absolute;top:0;transform:translateX(-50%);
-    background:#0b1424;border:1px solid var(--line);border-radius:8px;
-    padding:4px 8px;font-size:11px;font-weight:700;white-space:nowrap;display:none;z-index:5;
-    box-shadow:var(--shadow)
-  }
-  .col.sel .v{display:block}
-  .inbar{font-size:9px;font-weight:800;color:#0b1424;margin-bottom:2px;writing-mode:vertical-rl;transform:rotate(180deg)}
+  .inbar{font-size:13px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.85);margin-top:6px;line-height:1.05;text-align:center}
   .total-line{color:var(--muted);font-size:12px;margin-top:10px;text-align:center}
 
   /* ---------- today curve / moon ---------- */
@@ -173,19 +177,18 @@
   <!-- COMPARISONS -->
   <div class="cmp">
     <div class="card">
-      <div class="title">📅 Month so far</div>
-      <div class="pct" id="mtdPct">—</div>
-      <div class="rows" id="mtdRows">vs same days last year</div>
+      <div class="title" id="mtdTitle">📅 Month so far</div>
+      <div class="pct" id="mtdBig">—</div>
+      <div class="unit">kWh generated this month so far</div>
+      <div class="vs" id="mtdVs"></div>
+      <div class="rows" id="mtdRows"></div>
     </div>
     <div class="card">
       <div class="title">🗓️ Year so far</div>
-      <div class="pct" id="ytdPct">—</div>
-      <div class="rows" id="ytdRows">vs same period last year</div>
-    </div>
-    <div class="card">
-      <div class="title">🩺 Last 7 days</div>
-      <div class="pct" id="trendPct">—</div>
-      <div class="rows" id="trendRows">vs previous 7 days</div>
+      <div class="pct" id="ytdBig">—</div>
+      <div class="unit">kWh generated this year so far</div>
+      <div class="vs" id="ytdVs"></div>
+      <div class="rows" id="ytdRows"></div>
     </div>
   </div>
 
@@ -200,6 +203,7 @@
     <h2><span id="dailyTitle">Daily Generation</span>
       <span class="nav"><button id="dPrev" onclick="stepMonth(-1)">‹</button><button id="dNext" onclick="stepMonth(1)">›</button></span>
     </h2>
+    <div class="readout" id="dailyReadout">Tap a bar to see that day's total</div>
     <div class="chart" id="dailyChart"></div>
     <div class="total-line" id="dailyTotal"></div>
   </div>
@@ -209,6 +213,7 @@
     <h2><span id="monthlyTitle">Monthly Generation</span>
       <span class="nav"><button id="mPrev" onclick="stepYear(-1)">‹</button><button id="mNext" onclick="stepYear(1)">›</button></span>
     </h2>
+    <div class="readout" id="monthlyReadout">Tap a bar to see that month's total</div>
     <div class="chart" id="monthlyChart"></div>
     <div class="total-line" id="monthlyTotal"></div>
   </div>
@@ -224,9 +229,9 @@
     <h2>Hottest the Inverter Got</h2>
     <div class="tempbox">
       <div class="tempbig" id="monthMaxTemp">—</div>
-      <div class="desc">Highest inverter temperature recorded in <b id="tempMonthLabel">this month</b>. We log the daily peak; this is the single hottest reading so far. The table below shows the record high for each month.</div>
+      <div class="desc">Highest inverter temperature recorded in <b id="tempMonthLabel">this month</b>.</div>
     </div>
-    <table><thead><tr><th>Month</th><th>Highest °C</th><th>Days logged</th></tr></thead><tbody id="tempMonths"></tbody></table>
+    <table><thead><tr><th>Month</th><th>Highest °C</th></tr></thead><tbody id="tempMonths"></tbody></table>
   </div>
 
   <div class="muted" id="updated"></div>
@@ -310,14 +315,15 @@ document.addEventListener("click", function once(){ enableSound(); document.remo
 function clearSel(chart){ var s=chart.querySelector(".col.sel"); if(s) s.classList.remove("sel"); }
 
 function renderBars(elId, items, opts){
-  // items: [{x:"label", v:number|null, bubble:"text"}]  opts:{color, alwaysLabel}
+  // items: [{x:"label", v:number|null, info:"text"}]  opts:{color, alwaysLabel, readoutId, hint}
   var chart=document.getElementById(elId);
+  var readout=opts.readoutId?document.getElementById(opts.readoutId):null;
   chart.innerHTML="";
+  if(readout && opts.hint) readout.innerHTML='<span class="dim">'+opts.hint+'</span>';
   var max=0; items.forEach(function(it){ if(it.v!=null && it.v>max) max=it.v; });
   if(max<=0) max=1;
   items.forEach(function(it){
     var col=document.createElement("div"); col.className="col";
-    var bub=document.createElement("div"); bub.className="v"; bub.textContent=it.bubble||"";
     var bar=document.createElement("div"); bar.className="bar";
     if(it.v==null){ bar.classList.add("empty"); bar.style.height="3px"; }
     else {
@@ -329,19 +335,24 @@ function renderBars(elId, items, opts){
       bar.appendChild(inb);
     }
     var x=document.createElement("div"); x.className="x"; x.textContent=it.x;
-    col.appendChild(bub); col.appendChild(bar); col.appendChild(x);
-    col.onclick=function(){ var sel=col.classList.contains("sel"); clearSel(chart); if(!sel) col.classList.add("sel"); };
+    col.appendChild(bar); col.appendChild(x);
+    col.onclick=function(){
+      var was=col.classList.contains("sel"); clearSel(chart);
+      if(!was){ col.classList.add("sel"); if(readout) readout.innerHTML=it.info; }
+      else if(readout && opts.hint){ readout.innerHTML='<span class="dim">'+opts.hint+'</span>'; }
+    };
     chart.appendChild(col);
   });
 }
 
 /* ===================== TODAY CURVE (SVG line) ===================== */
-function renderCurve(curve){
+function renderCurve(curve, sunrise){
   var box=document.getElementById("curveBox");
   var pts=(curve&&curve.points)?curve.points:[];
   if(!pts.length){
+    var srTxt = sunrise ? (" at <b>"+sunrise+"</b>") : "";
     box.innerHTML='<div class="moon"><div class="icon">🌙</div><div class="t1">The sun has set</div>'+
-                  '<div class="t2">Your system is resting. Live data returns at sunrise.</div></div>';
+                  '<div class="t2">Your system is resting. Live data returns at sunrise'+srTxt+' (Islamabad time).</div></div>';
     return;
   }
   var max=0; pts.forEach(function(p){ if(p.y>max) max=p.y; }); if(max<=0) max=1;
@@ -370,9 +381,9 @@ function loadDaily(month){
     document.getElementById("dailyTitle").textContent="Daily Generation — "+d.label;
     var items=d.bars.map(function(b){
       return { x:String(b.day), v:b.kwh,
-               bubble:b.day+" "+monthFromYM(d.month)+": "+(b.kwh==null?"—":fmt(b.kwh,1))+" kWh" };
+               info:'<span class="dim">'+b.day+" "+monthFromYM(d.month)+" "+d.month.slice(0,4)+':</span> '+(b.kwh==null?"—":fmt(b.kwh,1))+" kWh" };
     });
-    renderBars("dailyChart", items, {color:"#34d399"});
+    renderBars("dailyChart", items, {color:"#34d399", readoutId:"dailyReadout", hint:"Tap a bar to see that day's total"});
     document.getElementById("dailyTotal").textContent="Month total: "+fmt(d.total,1)+" kWh";
     // disable "next" if we're at the current month
     document.getElementById("dNext").disabled = (d.month>=plantMonth);
@@ -394,9 +405,9 @@ function loadMonthly(year){
     document.getElementById("monthlyTitle").textContent="Monthly Generation — "+d.year;
     var items=d.bars.map(function(b){
       return { x:MONTHS[b.month-1], v:b.kwh,
-               bubble:MONTHS[b.month-1]+" "+d.year+": "+(b.kwh==null?"—":fmt(b.kwh,1))+" kWh" };
+               info:'<span class="dim">'+MONTHS[b.month-1]+" "+d.year+':</span> '+(b.kwh==null?"—":fmt(b.kwh,1))+" kWh" };
     });
-    renderBars("monthlyChart", items, {color:"#f5b13d"});
+    renderBars("monthlyChart", items, {color:"#f5b13d", readoutId:"monthlyReadout", hint:"Tap a bar to see that month's total"});
     document.getElementById("monthlyTotal").textContent="Year total: "+fmt(d.total,1)+" kWh";
     document.getElementById("mNext").disabled = (d.year>=plantYear);
   });
@@ -408,13 +419,39 @@ function stepYear(dir){
 }
 
 /* ===================== COMPARISON CARDS ===================== */
-function pctText(elPct, elRows, c, lineThis, lineLast){
-  if(!c){ document.getElementById(elPct).textContent="—"; return; }
-  var p=document.getElementById(elPct);
-  if(c.pct==null){ p.textContent="—"; p.className="pct"; }
-  else { p.textContent=(c.pct>=0?"+":"")+fmt(c.pct,1)+"%"; p.className="pct "+(c.pct>=0?"up":"down"); }
-  document.getElementById(elRows).innerHTML =
-    lineThis+": <b>"+fmt(c.thisYear,1)+"</b> kWh<br>"+lineLast+": <b>"+fmt(c.lastYear,1)+"</b> kWh";
+function renderCompare(d){
+  var c=d.comparisons||{};
+  var ml=c.monthLabel||"", dom=c.dom||"";
+
+  // MONTH so far
+  var mtd=c.mtd||[];
+  document.getElementById("mtdTitle").textContent = "📅 "+ml+" so far (days 1–"+dom+")";
+  var curM=findCurrent(mtd);
+  document.getElementById("mtdBig").textContent = curM ? fmt(curM.kwh,1) : "—";
+  setVs("mtdVs", mtd, ml+" ");
+  document.getElementById("mtdRows").innerHTML = mtd.map(function(r){
+    return rowHtml(ml+" "+r.year, r.kwh, r.current);
+  }).join("");
+
+  // YEAR so far
+  var ytd=c.ytd||[];
+  var curY=findCurrent(ytd);
+  document.getElementById("ytdBig").textContent = curY ? fmt(curY.kwh,1) : "—";
+  setVs("ytdVs", ytd, "");
+  document.getElementById("ytdRows").innerHTML = ytd.map(function(r){
+    return rowHtml(r.year, r.kwh, r.current);
+  }).join("");
+}
+function findCurrent(arr){ for(var i=0;i<arr.length;i++) if(arr[i].current) return arr[i]; return null; }
+function rowHtml(label, kwh, cur){
+  return '<div class="r'+(cur?' rc':'')+'"><span>'+label+(cur?" (now)":"")+'</span><span><b>'+fmt(kwh,1)+'</b> kWh</span></div>';
+}
+function setVs(id, arr, prefix){
+  var el=document.getElementById(id);
+  // arr is newest-first; [0] = current year, [1] = previous year
+  if(arr.length<2 || !arr[0].current || !arr[1] || arr[1].kwh<=0){ el.innerHTML=""; return; }
+  var p=Math.round((arr[0].kwh-arr[1].kwh)/arr[1].kwh*1000)/10;
+  el.innerHTML='<span class="'+(p>=0?"up":"down")+'">'+(p>=0?"▲ +":"▼ ")+fmt(Math.abs(p),1)+'%</span> vs '+prefix+arr[1].year;
 }
 
 /* ===================== MAIN REFRESH ===================== */
@@ -440,19 +477,16 @@ function refresh(){
     } else { banner.style.display="none"; stopAlarm(); }
 
     /* comparisons */
-    var c=d.comparisons||{};
-    pctText("mtdPct","mtdRows",c.mtd, "This year", "Last year");
-    pctText("ytdPct","ytdRows",c.ytd, "This year", "Last year");
-    pctText("trendPct","trendRows",c.trend7, "Last 7 days", "Previous 7");
+    renderCompare(d);
 
-    /* today curve / moon */
-    renderCurve(d.curve);
+    /* today curve / moon (with next Islamabad sunrise) */
+    renderCurve(d.curve, d.sunrise);
 
     /* yearly bars (totals always shown) */
     if(d.yearly&&d.yearly.points&&d.yearly.points.length){
       document.getElementById("yearSection").style.display="block";
       var ys=d.yearly.points.map(function(p){
-        return { x:String(p.x).slice(0,4), v:p.y, bubble:p.x+": "+fmt(p.y,1)+" kWh" };
+        return { x:String(p.x).slice(0,4), v:p.y, info:String(p.x).slice(0,4)+": "+fmt(p.y,1)+" kWh" };
       });
       renderBars("yearlyChart", ys, {color:"#a78bfa", alwaysLabel:true});
     }
@@ -461,20 +495,19 @@ function refresh(){
     document.getElementById("tempMonthLabel").textContent = d.tempMonthLabel;
     document.getElementById("monthMaxTemp").textContent = d.tempThisMonthMax==null?"—":fmt(d.tempThisMonthMax,1)+"°";
     var tb=""; (d.tempMonths||[]).forEach(function(r){
-      tb+="<tr><td>"+r.month+"</td><td>"+fmt(r.max,1)+"</td><td>"+r.days+"</td></tr>";
+      tb+="<tr><td>"+r.month+"</td><td>"+fmt(r.max,1)+"</td></tr>";
     });
-    document.getElementById("tempMonths").innerHTML = tb || '<tr><td colspan="3" style="color:#8aa0c2">No data logged yet</td></tr>';
+    document.getElementById("tempMonths").innerHTML = tb || '<tr><td colspan="2" style="color:#8aa0c2">No data logged yet</td></tr>';
 
-    /* footer time — local + UK */
+    /* footer time — viewer's own local time only */
     var local="—", tz="";
     try{
       var dt=new Date(d.iso);
-      local=dt.toLocaleString(undefined,{day:"2-digit",month:"short",year:"numeric",hour:"numeric",minute:"2-digit"});
+      local=dt.toLocaleString(undefined,{weekday:"short",day:"2-digit",month:"short",year:"numeric",hour:"numeric",minute:"2-digit"});
       tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"";
     }catch(e){}
     document.getElementById("updated").innerHTML =
-      "Last reading: <b>"+local+"</b> (your time"+(tz?" · "+tz:"")+")<br>"+
-      "UK time: "+d.ukTime;
+      "Last reading: <b>"+local+"</b>"+(tz?" ("+tz+")":"");
 
     if(first){
       document.getElementById("limitInput").value=d.limit;
