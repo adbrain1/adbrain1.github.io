@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Live Ride Tracker · Rafay Travels</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;700&display=swap');
+  :root{
+    --bg:#2e0249; --card:#570a57; --text:#fff; --muted:#fbc7ff;
+    --accent:#ffcc00; --border-color:#a91079;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh;
+    background-color:var(--bg);
+    background-image:radial-gradient(#a91079 1px, transparent 1px);
+    background-size:30px 30px;
+    color:var(--text); font-family:'Nunito',sans-serif;
+    padding:24px; overflow-x:hidden;
+  }
+  .wrap{max-width:1000px; margin:0 auto;}
+  .eyebrow{
+    display:inline-block; text-transform:uppercase; letter-spacing:0.12em;
+    font-size:0.9rem; color:var(--accent); font-weight:bold;
+    background:rgba(0,0,0,0.3); padding:5px 12px; border-radius:20px; margin-bottom:10px;
+  }
+  h1{font-family:'Fredoka',sans-serif; font-size:clamp(2.2rem,5vw,3.2rem); margin:0 0 6px; text-shadow:2px 2px 0 #000;}
+  .sub{color:var(--muted); font-size:1.1rem; margin:0 0 20px;}
+  h2{font-family:'Fredoka',sans-serif; font-size:1.6rem; margin:30px 0 14px; text-shadow:2px 2px 0 #000;}
+
+  .unit-toggle{display:inline-flex; background:rgba(0,0,0,0.35); border-radius:14px; padding:4px; margin-bottom:18px; border:2px solid var(--accent);}
+  .unit-toggle button{font-family:'Fredoka',sans-serif; font-weight:700; border:none; background:transparent; color:var(--muted); padding:8px 18px; border-radius:10px; cursor:pointer; font-size:1rem;}
+  .unit-toggle button.active{background:var(--accent); color:#000;}
+
+  .live-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px;}
+  .rider-card{background:var(--card); border:4px solid #fff; border-radius:24px; padding:22px; box-shadow:8px 8px 0 rgba(0,0,0,0.35);}
+  .rider-head{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .rider-name{font-family:'Fredoka',sans-serif; font-size:1.5rem; font-weight:700;}
+  .live-dot{width:12px;height:12px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 0 rgba(74,222,128,0.7);animation:pulse 1.5s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(74,222,128,0.7);}70%{box-shadow:0 0 0 10px rgba(74,222,128,0);}100%{box-shadow:0 0 0 0 rgba(74,222,128,0);}}
+  .big-speed{font-family:'Fredoka',sans-serif; font-size:3.4rem; font-weight:700; color:var(--accent); line-height:1; text-shadow:2px 2px 0 #000;}
+  .big-speed span{font-size:1.1rem; color:var(--text);}
+  .animal{font-weight:700; margin:6px 0 14px;}
+  .mini-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .mini{background:rgba(0,0,0,0.25); border-radius:12px; padding:8px 12px;}
+  .mini .lab{font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;}
+  .mini .val{font-family:'Fredoka',sans-serif; font-weight:700; font-size:1.25rem;}
+
+  #map{height:420px; width:100%; border:4px solid #fff; border-radius:20px; box-shadow:8px 8px 0 rgba(0,0,0,0.35); margin-bottom:10px; background:#ddd;}
+  .rider-tip, .leaflet-tooltip{font-family:'Fredoka',sans-serif; font-weight:700;}
+
+  .date-group{margin-bottom:24px;}
+  .date-head{font-family:'Fredoka',sans-serif; font-size:1.2rem; color:var(--accent); background:rgba(0,0,0,0.3); display:inline-block; padding:6px 14px; border-radius:20px; margin-bottom:12px;}
+  .ride-card{background:var(--card); border:3px solid var(--accent); border-radius:16px; padding:16px 18px; box-shadow:6px 6px 0 #000; margin-bottom:14px;}
+  .ride-top{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;}
+  .ride-who{font-family:'Fredoka',sans-serif; font-weight:700; font-size:1.2rem;}
+  .ride-when{color:var(--muted); font-size:0.9rem;}
+  .ride-stats{display:flex; flex-wrap:wrap; gap:8px;}
+  .pill{background:rgba(0,0,0,0.3); border-radius:20px; padding:6px 12px; font-size:0.9rem;}
+  .pill b{color:var(--accent); font-family:'Fredoka',sans-serif;}
+  .route-btn{margin-top:12px; background:var(--accent); color:#000; border:2px solid #000; font-family:'Fredoka',sans-serif; font-weight:700; padding:8px 16px; border-radius:10px; cursor:pointer; box-shadow:3px 3px 0 #000;}
+  .route-btn:active{transform:translate(2px,2px); box-shadow:1px 1px 0 #000;}
+  .empty{background:rgba(0,0,0,0.3); border:2px dashed var(--muted); border-radius:16px; padding:24px; text-align:center; color:var(--muted); font-size:1.1rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="eyebrow">Rafay Travels Worldwide</span>
+  <h1>🚴 Live Ride Tracker</h1>
+  <p class="sub">Follow the adventure in real time — and explore past rides on the map!</p>
+
+  <div class="unit-toggle">
+    <button id="btnMi" class="active" onclick="setUnit('mi')">MILES</button>
+    <button id="btnKm" onclick="setUnit('km')">KM</button>
+  </div>
+
+  <h2>🔴 Riding Now</h2>
+  <div id="liveWrap" class="live-grid"></div>
+
+  <h2>🗺️ Map</h2>
+  <div id="map"></div>
+
+  <h2>📅 Past Rides</h2>
+  <div id="historyWrap"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDyULp4egjGIXoR9t0v0_KF8Cf4_2VfdqE",
+    authDomain: "abdulrafaychat.firebaseapp.com",
+    databaseURL: "https://abdulrafaychat-default-rtdb.firebaseio.com",
+    projectId: "abdulrafaychat",
+    storageBucket: "abdulrafaychat.firebasestorage.app",
+    messagingSenderId: "1078346470566",
+    appId: "1:1078346470566:web:489a0d85d89216e5e39067",
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  let unit = 'mi';
+  let liveData = {};
+  let historyData = {};
+  let allRides = [];
+
+  // ---- unit helpers ----
+  function toSpeed(mps){ return (mps||0) * (unit==='km' ? 3.6 : 2.23694); }
+  function toDist(m){ return (m||0) / (unit==='km' ? 1000 : 1609.34); }
+  function speedUnit(){ return unit==='km' ? 'km/h' : 'mph'; }
+  function distUnit(){ return unit==='km' ? 'km' : 'mi'; }
+  function f1(v){ return v.toFixed(1); }
+
+  function fmtDuration(sec){
+    sec = Math.round(sec||0);
+    const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+    const pad = (n)=>String(n).padStart(2,'0');
+    return h>0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+  }
+  function fmtDate(d){
+    const dt = new Date(d + 'T00:00:00');
+    return dt.toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short', year:'numeric'});
+  }
+  function fmtTime(ts){
+    if(!ts) return '';
+    return new Date(ts).toLocaleTimeString('en-GB',{hour:'2-digit', minute:'2-digit'});
+  }
+  function speedAnimal(mph){
+    if(mph<3) return '🐢 Tortoise pace';
+    if(mph<8) return '🐕 Faster than a jogging dog!';
+    if(mph<12) return '🐔 Faster than a chicken!';
+    if(mph<18) return '🐿️ Faster than a squirrel!';
+    if(mph<25) return '🐇 Faster than a rabbit!';
+    return '🐆 Cheetah speed!!';
+  }
+
+  function setUnit(u){
+    unit = u;
+    document.getElementById('btnMi').classList.toggle('active', u==='mi');
+    document.getElementById('btnKm').classList.toggle('active', u==='km');
+    renderLive(); renderHistory();
+  }
+
+  // ---- Map ----
+  const map = L.map('map').setView([52.563, -1.824], 13); // default near Sutton Coldfield
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap', maxZoom:19
+  }).addTo(map);
+
+  let liveMarkers = {};
+  function updateLiveMarkers(){
+    const now = Date.now();
+    const active = {};
+    Object.entries(liveData).forEach(([key, r])=>{
+      if(!r || !r.updatedAt || (now - r.updatedAt) >= 20000) return;
+      if(typeof r.lat !== 'number') return;
+      active[key] = true;
+      const pos = [r.lat, r.lng];
+      if(liveMarkers[key]){ liveMarkers[key].setLatLng(pos); }
+      else{
+        const m = L.circleMarker(pos,{radius:9,color:'#000',weight:2,fillColor:'#ffcc00',fillOpacity:1}).addTo(map);
+        m.bindTooltip(r.name || key,{permanent:true, direction:'top'});
+        liveMarkers[key] = m;
+      }
+    });
+    Object.keys(liveMarkers).forEach(key=>{
+      if(!active[key]){ map.removeLayer(liveMarkers[key]); delete liveMarkers[key]; }
+    });
+  }
+
+  let routeLayer = null;
+  function viewRoute(idx){
+    const ride = allRides[idx];
+    if(!ride){ return; }
+    const pts = Object.values(ride.route || {})
+      .filter(p=>p && typeof p.lat==='number')
+      .sort((a,b)=>(a.t||0)-(b.t||0))
+      .map(p=>[p.lat, p.lng]);
+    if(routeLayer){ map.removeLayer(routeLayer); routeLayer=null; }
+    if(pts.length===0){ alert('No route was saved for this ride.'); return; }
+    routeLayer = L.layerGroup().addTo(map);
+    const line = L.polyline(pts,{color:'#ffcc00', weight:5}).addTo(routeLayer);
+    L.circleMarker(pts[0],{radius:8,color:'#000',weight:2,fillColor:'#4ade80',fillOpacity:1}).addTo(routeLayer).bindTooltip('Start');
+    L.circleMarker(pts[pts.length-1],{radius:8,color:'#000',weight:2,fillColor:'#ff4d4d',fillOpacity:1}).addTo(routeLayer).bindTooltip('Finish');
+    map.fitBounds(line.getBounds(),{padding:[30,30]});
+    document.getElementById('map').scrollIntoView({behavior:'smooth', block:'center'});
+  }
+
+  // ---- Live ----
+  function renderLive(){
+    const wrap = document.getElementById('liveWrap');
+    const now = Date.now();
+    const riders = Object.values(liveData).filter(r=> r && r.updatedAt && (now - r.updatedAt) < 20000);
+    if(riders.length===0){
+      wrap.innerHTML = '<div class="empty">😴 No one is riding right now. Check back during a ride!</div>';
+      return;
+    }
+    wrap.innerHTML = riders.map(r=>{
+      const topMph = (r.topMps||0)*2.23694;
+      return `
+      <div class="rider-card">
+        <div class="rider-head"><span class="live-dot"></span><span class="rider-name">${r.name||'Rider'}</span></div>
+        <div class="big-speed">${f1(toSpeed(r.speedMps))}<span> ${speedUnit()}</span></div>
+        <div class="animal">${speedAnimal(topMph)}</div>
+        <div class="mini-grid">
+          <div class="mini"><div class="lab">⏱️ Time</div><div class="val">${fmtDuration(r.seconds)}</div></div>
+          <div class="mini"><div class="lab">📏 Distance</div><div class="val">${f1(toDist(r.distanceM))} ${distUnit()}</div></div>
+          <div class="mini"><div class="lab">📊 Avg</div><div class="val">${f1(toSpeed(r.avgMps))} ${speedUnit()}</div></div>
+          <div class="mini"><div class="lab">🏆 Top</div><div class="val">${f1(toSpeed(r.topMps))} ${speedUnit()}</div></div>
+          <div class="mini"><div class="lab">🍌 Energy</div><div class="val">${Math.floor((r.distanceM||0)/1000)} bananas</div></div>
+          <div class="mini"><div class="lab">⚽ Pitches</div><div class="val">${Math.round((r.distanceM||0)/105)}</div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ---- History ----
+  function renderHistory(){
+    allRides = [];
+    Object.entries(historyData).forEach(([rider, dates])=>{
+      Object.entries(dates||{}).forEach(([date, rides])=>{
+        Object.entries(rides||{}).forEach(([key, ride])=>{
+          if(ride && ride.summary){
+            allRides.push({rider, date, key, summary:ride.summary, route:ride.route||{}});
+          }
+        });
+      });
+    });
+    const byDate = {};
+    allRides.forEach((r,i)=>{ (byDate[r.date]=byDate[r.date]||[]).push({...r, idx:i}); });
+    const dates = Object.keys(byDate).sort().reverse();
+    const wrap = document.getElementById('historyWrap');
+    if(dates.length===0){
+      wrap.innerHTML = '<div class="empty">No past rides saved yet. Go for a ride! 🚴</div>';
+      return;
+    }
+    wrap.innerHTML = dates.map(d=>{
+      const rides = byDate[d].sort((a,b)=>(b.summary.startTs||0)-(a.summary.startTs||0));
+      const cards = rides.map(r=>{
+        const s = r.summary;
+        const topMph = (s.topMps||0)*2.23694;
+        return `
+        <div class="ride-card">
+          <div class="ride-top">
+            <span class="ride-who">${s.name||r.rider}</span>
+            <span class="ride-when">Started ${fmtTime(s.startTs)} · ${speedAnimal(topMph)}</span>
+          </div>
+          <div class="ride-stats">
+            <span class="pill">⏱️ <b>${fmtDuration(s.durationSec)}</b></span>
+            <span class="pill">📏 <b>${f1(toDist(s.distanceM))} ${distUnit()}</b></span>
+            <span class="pill">📊 <b>${f1(toSpeed(s.avgMps))} ${speedUnit()}</b> avg</span>
+            <span class="pill">🏆 <b>${f1(toSpeed(s.topMps))} ${speedUnit()}</b> top</span>
+            <span class="pill">🍌 <b>${s.bananas||0}</b></span>
+            <span class="pill">⚽ <b>${s.pitches||0}</b></span>
+          </div>
+          <button class="route-btn" onclick="viewRoute(${r.idx})">🗺️ View route on map</button>
+        </div>`;
+      }).join('');
+      return `<div class="date-group"><div class="date-head">📅 ${fmtDate(d)}</div>${cards}</div>`;
+    }).join('');
+  }
+
+  // ---- Firebase listeners ----
+  db.ref('cycling_trips/live').on('value', (snap)=>{ liveData = snap.val() || {}; renderLive(); updateLiveMarkers(); });
+  db.ref('cycling_trips/history').on('value', (snap)=>{ historyData = snap.val() || {}; renderHistory(); });
+
+  // Re-check "live" status every 5s so finished riders drop off
+  setInterval(()=>{ renderLive(); updateLiveMarkers(); }, 5000);
+</script>
+</body>
+</html>
