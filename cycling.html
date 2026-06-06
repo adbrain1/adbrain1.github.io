@@ -50,18 +50,24 @@
 
   #map{height:420px; width:100%; border:4px solid #fff; border-radius:20px; box-shadow:8px 8px 0 rgba(0,0,0,0.35); margin-bottom:10px; background:#ddd;}
   .rider-tip, .leaflet-tooltip{font-family:'Fredoka',sans-serif; font-weight:700;}
+  .home-marker{font-size:26px; line-height:26px; text-align:center; text-shadow:0 0 4px #000;}
 
-  .date-group{margin-bottom:24px;}
+  /* ---- Past rides: ONE table per date ---- */
+  .date-group{margin-bottom:28px;}
   .date-head{font-family:'Fredoka',sans-serif; font-size:1.2rem; color:var(--accent); background:rgba(0,0,0,0.3); display:inline-block; padding:6px 14px; border-radius:20px; margin-bottom:12px;}
-  .ride-card{background:var(--card); border:3px solid var(--accent); border-radius:16px; padding:16px 18px; box-shadow:6px 6px 0 #000; margin-bottom:14px;}
-  .ride-top{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;}
-  .ride-who{font-family:'Fredoka',sans-serif; font-weight:700; font-size:1.2rem;}
-  .ride-when{color:var(--muted); font-size:0.9rem;}
-  .ride-stats{display:flex; flex-wrap:wrap; gap:8px;}
-  .pill{background:rgba(0,0,0,0.3); border-radius:20px; padding:6px 12px; font-size:0.9rem;}
-  .pill b{color:var(--accent); font-family:'Fredoka',sans-serif;}
-  .route-btn{margin-top:12px; background:var(--accent); color:#000; border:2px solid #000; font-family:'Fredoka',sans-serif; font-weight:700; padding:8px 16px; border-radius:10px; cursor:pointer; box-shadow:3px 3px 0 #000;}
+  .table-scroll{overflow-x:auto; border:4px solid #fff; border-radius:18px; box-shadow:8px 8px 0 rgba(0,0,0,0.35); background:var(--card); -webkit-overflow-scrolling:touch;}
+  .ride-table{width:100%; border-collapse:collapse; min-width:680px;}
+  .ride-table th{font-family:'Fredoka',sans-serif; background:rgba(0,0,0,0.35); color:var(--accent); padding:12px 14px; text-align:left; font-size:0.95rem; white-space:nowrap; border-bottom:3px solid var(--accent);}
+  .ride-table td{padding:12px 14px; font-size:1rem; border-bottom:1px solid rgba(255,255,255,0.12); white-space:nowrap; vertical-align:middle;}
+  .ride-table tbody tr:nth-child(even){background:rgba(0,0,0,0.18);}
+  .ride-table tbody tr:last-child td{border-bottom:none;}
+  .c-rider{display:flex; flex-direction:column; gap:2px;}
+  .r-name{font-family:'Fredoka',sans-serif; font-weight:700; font-size:1.15rem;}
+  .r-animal{font-size:0.8rem; color:var(--muted);}
+  .num b{color:var(--accent); font-family:'Fredoka',sans-serif;}
+  .route-btn{background:var(--accent); color:#000; border:2px solid #000; font-family:'Fredoka',sans-serif; font-weight:700; padding:7px 14px; border-radius:10px; cursor:pointer; box-shadow:3px 3px 0 #000; white-space:nowrap;}
   .route-btn:active{transform:translate(2px,2px); box-shadow:1px 1px 0 #000;}
+
   .empty{background:rgba(0,0,0,0.3); border:2px dashed var(--muted); border-radius:16px; padding:24px; text-align:center; color:var(--muted); font-size:1.1rem;}
 </style>
 </head>
@@ -124,9 +130,10 @@
     const dt = new Date(d + 'T00:00:00');
     return dt.toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short', year:'numeric'});
   }
+  // 12-hour UK time, e.g. "5:44 PM"
   function fmtTime(ts){
     if(!ts) return '';
-    return new Date(ts).toLocaleTimeString('en-GB',{hour:'2-digit', minute:'2-digit'});
+    return new Date(ts).toLocaleTimeString('en-GB',{hour:'numeric', minute:'2-digit', hour12:true}).toUpperCase();
   }
   function speedAnimal(mph){
     if(mph<3) return '🐢 Tortoise pace';
@@ -145,10 +152,29 @@
   }
 
   // ---- Map ----
-  const map = L.map('map').setView([52.563, -1.824], 13); // default near Sutton Coldfield
+  // Fallback point in Walmley / Sutton Coldfield (used only if the postcode
+  // lookup ever fails). The real B76 2SH point is fetched below.
+  const HOME_FALLBACK = [52.5546, -1.7905];
+  const map = L.map('map').setView(HOME_FALLBACK, 14);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
     attribution:'© OpenStreetMap', maxZoom:19
   }).addTo(map);
+
+  // 🏠 Home marker — centres the map on B76 2SH and labels it "Home"
+  const homeIcon = L.divIcon({ html:'🏠', className:'home-marker', iconSize:[30,30], iconAnchor:[15,15] });
+  let homeMarker = null;
+  function setHome(lat, lng){
+    if(homeMarker) map.removeLayer(homeMarker);
+    homeMarker = L.marker([lat,lng], {icon: homeIcon}).addTo(map);
+    homeMarker.bindTooltip('🏠 Home', {permanent:true, direction:'top', className:'rider-tip'});
+    map.setView([lat,lng], 14);
+  }
+  setHome(HOME_FALLBACK[0], HOME_FALLBACK[1]);
+  // Free, no-key UK postcode lookup to get the exact point for B76 2SH
+  fetch('https://api.postcodes.io/postcodes/B762SH')
+    .then(r=>r.json())
+    .then(d=>{ if(d && d.result && typeof d.result.latitude==='number'){ setHome(d.result.latitude, d.result.longitude); } })
+    .catch(()=>{ /* keep the fallback Home point */ });
 
   let liveMarkers = {};
   function updateLiveMarkers(){
@@ -217,7 +243,7 @@
     }).join('');
   }
 
-  // ---- History ----
+  // ---- History: ONE table per date (handles multiple rides on the same day) ----
   function renderHistory(){
     allRides = [];
     Object.entries(historyData).forEach(([rider, dates])=>{
@@ -229,37 +255,65 @@
         });
       });
     });
+
+    // Group every ride under its date
     const byDate = {};
     allRides.forEach((r,i)=>{ (byDate[r.date]=byDate[r.date]||[]).push({...r, idx:i}); });
     const dates = Object.keys(byDate).sort().reverse();
+
     const wrap = document.getElementById('historyWrap');
     if(dates.length===0){
       wrap.innerHTML = '<div class="empty">No past rides saved yet. Go for a ride! 🚴</div>';
       return;
     }
+
     wrap.innerHTML = dates.map(d=>{
+      // Newest ride first within the day
       const rides = byDate[d].sort((a,b)=>(b.summary.startTs||0)-(a.summary.startTs||0));
-      const cards = rides.map(r=>{
+      const rows = rides.map(r=>{
         const s = r.summary;
         const topMph = (s.topMps||0)*2.23694;
         return `
-        <div class="ride-card">
-          <div class="ride-top">
-            <span class="ride-who">${s.name||r.rider}</span>
-            <span class="ride-when">Started ${fmtTime(s.startTs)} · ${speedAnimal(topMph)}</span>
-          </div>
-          <div class="ride-stats">
-            <span class="pill">⏱️ <b>${fmtDuration(s.durationSec)}</b></span>
-            <span class="pill">📏 <b>${f1(toDist(s.distanceM))} ${distUnit()}</b></span>
-            <span class="pill">📊 <b>${f1(toSpeed(s.avgMps))} ${speedUnit()}</b> avg</span>
-            <span class="pill">🏆 <b>${f1(toSpeed(s.topMps))} ${speedUnit()}</b> top</span>
-            <span class="pill">🍌 <b>${s.bananas||0}</b></span>
-            <span class="pill">⚽ <b>${s.pitches||0}</b></span>
-          </div>
-          <button class="route-btn" onclick="viewRoute(${r.idx})">🗺️ View route on map</button>
-        </div>`;
+        <tr>
+          <td>
+            <div class="c-rider">
+              <span class="r-name">${s.name||r.rider}</span>
+              <span class="r-animal">${speedAnimal(topMph)}</span>
+            </div>
+          </td>
+          <td>${fmtTime(s.startTs)}</td>
+          <td class="num"><b>${fmtDuration(s.durationSec)}</b></td>
+          <td class="num"><b>${f1(toDist(s.distanceM))}</b> ${distUnit()}</td>
+          <td class="num"><b>${f1(toSpeed(s.avgMps))}</b> ${speedUnit()}</td>
+          <td class="num"><b>${f1(toSpeed(s.topMps))}</b> ${speedUnit()}</td>
+          <td class="num"><b>${s.bananas||0}</b> 🍌</td>
+          <td class="num"><b>${s.pitches||0}</b> ⚽</td>
+          <td><button class="route-btn" onclick="viewRoute(${r.idx})">🗺️ View</button></td>
+        </tr>`;
       }).join('');
-      return `<div class="date-group"><div class="date-head">📅 ${fmtDate(d)}</div>${cards}</div>`;
+
+      return `
+      <div class="date-group">
+        <div class="date-head">📅 ${fmtDate(d)}</div>
+        <div class="table-scroll">
+          <table class="ride-table">
+            <thead>
+              <tr>
+                <th>Rider</th>
+                <th>Started</th>
+                <th>⏱️ Time</th>
+                <th>📏 Distance</th>
+                <th>📊 Avg Speed</th>
+                <th>🏆 Top Speed</th>
+                <th>🍌 Energy</th>
+                <th>⚽ Pitches</th>
+                <th>🗺️ Route</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
     }).join('');
   }
 
