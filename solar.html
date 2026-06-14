@@ -198,6 +198,12 @@
     <div id="curveBox"></div>
   </div>
 
+  <!-- TODAY TEMPERATURE CURVE (NEW) -->
+  <div class="section">
+    <h2>Today — Inverter Temperature Through the Day (°C)</h2>
+    <div id="tempCurveBox"></div>
+  </div>
+
   <!-- DAILY GENERATION (month navigation) -->
   <div class="section">
     <h2><span id="dailyTitle">Daily Generation</span>
@@ -221,6 +227,7 @@
   <!-- YEARLY GENERATION -->
   <div class="section" id="yearSection" style="display:none">
     <h2>Yearly Generation (kWh)</h2>
+    <div class="readout" id="yearlyReadout">Tap a bar to see that year's total</div>
     <div class="chart" id="yearlyChart"></div>
   </div>
 
@@ -229,9 +236,9 @@
     <h2>Hottest the Inverter Got</h2>
     <div class="tempbox">
       <div class="tempbig" id="monthMaxTemp">—</div>
-      <div class="desc">Highest inverter temperature recorded in <b id="tempMonthLabel">this month</b>.</div>
+      <div class="desc">Highest inverter temperature recorded in <b id="tempMonthLabel">this month</b>.<span id="monthMaxWhen"></span><span id="todayHigh"></span></div>
     </div>
-    <table><thead><tr><th>Month</th><th>Highest °C</th></tr></thead><tbody id="tempMonths"></tbody></table>
+    <table><thead><tr><th>Month</th><th>Highest °C</th><th>When (Pakistan time)</th></tr></thead><tbody id="tempMonths"></tbody></table>
   </div>
 
   <div class="muted" id="updated"></div>
@@ -372,6 +379,36 @@ function renderCurve(curve, sunrise){
     '</svg>';
 }
 
+/* ===================== TODAY TEMPERATURE CURVE (SVG line, NEW) ===================== */
+function renderTempCurve(tc){
+  var box=document.getElementById("tempCurveBox");
+  var pts=(tc&&tc.points)?tc.points:[];
+  if(!pts.length){
+    box.innerHTML='<div class="moon"><div class="icon">🌡️</div><div class="t1">No temperature readings yet today</div>'+
+                  '<div class="t2">The inverter reports its temperature while it is generating. Readings appear during daylight.</div></div>';
+    return;
+  }
+  var lo=Infinity, hi=-Infinity;
+  pts.forEach(function(p){ if(p.y<lo) lo=p.y; if(p.y>hi) hi=p.y; });
+  if(lo===hi){ lo-=1; hi+=1; }
+  var pad=(hi-lo)*0.12; lo-=pad; hi+=pad;
+  var n=pts.length, denom=n>1?n-1:1, poly="", area="";
+  pts.forEach(function(p,i){
+    var x=40+(i/denom)*(620-40), y=176-((p.y-lo)/(hi-lo))*150;
+    poly+=(i?" ":"")+x.toFixed(1)+","+y.toFixed(1);
+  });
+  area="40,176 "+poly+" 620,176";
+  box.innerHTML=
+    '<svg viewBox="0 0 640 200" width="100%" preserveAspectRatio="xMidYMid meet">'+
+    '<line x1="40" y1="10" x2="40" y2="176" stroke="#243353"/>'+
+    '<line x1="40" y1="176" x2="624" y2="176" stroke="#243353"/>'+
+    '<text x="36" y="18" fill="#8aa0c2" font-size="10" text-anchor="end">'+fmt(hi,0)+'°</text>'+
+    '<text x="36" y="174" fill="#8aa0c2" font-size="10" text-anchor="end">'+fmt(lo,0)+'°</text>'+
+    '<polygon points="'+area+'" fill="#f5b13d1f"/>'+
+    '<polyline fill="none" stroke="#f5b13d" stroke-width="2.5" points="'+poly+'"/>'+
+    '</svg>';
+}
+
 /* ===================== DAILY (month navigation) ===================== */
 var curMonth=null, plantMonth=null;
 function loadDaily(month){
@@ -482,22 +519,41 @@ function refresh(){
     /* today curve / moon (with next Islamabad sunrise) */
     renderCurve(d.curve, d.sunrise);
 
-    /* yearly bars (totals always shown) */
+    /* today temperature curve (NEW) */
+    renderTempCurve(d.tempCurve);
+
+    /* yearly bars (tap to read, no in-bar labels) */
     if(d.yearly&&d.yearly.points&&d.yearly.points.length){
       document.getElementById("yearSection").style.display="block";
       var ys=d.yearly.points.map(function(p){
-        return { x:String(p.x).slice(0,4), v:p.y, info:String(p.x).slice(0,4)+": "+fmt(p.y,1)+" kWh" };
+        return { x:String(p.x).slice(0,4), v:p.y, info:'<span class="dim">'+String(p.x).slice(0,4)+':</span> '+fmt(p.y,1)+" kWh" };
       });
-      renderBars("yearlyChart", ys, {color:"#a78bfa", alwaysLabel:true});
+      renderBars("yearlyChart", ys, {color:"#a78bfa", readoutId:"yearlyReadout", hint:"Tap a bar to see that year's total"});
     }
 
-    /* temperature footer */
+    /* temperature footer (with date + time) */
     document.getElementById("tempMonthLabel").textContent = d.tempMonthLabel;
     document.getElementById("monthMaxTemp").textContent = d.tempThisMonthMax==null?"—":fmt(d.tempThisMonthMax,1)+"°";
+
+    var when="";
+    if(d.tempThisMonthDate){
+      when=" Reached on <b>"+d.tempThisMonthDate+"</b>";
+      if(d.tempThisMonthTime) when+=" at <b>"+d.tempThisMonthTime+"</b> (Pakistan time)";
+      when+=".";
+    }
+    document.getElementById("monthMaxWhen").innerHTML = when;
+
+    var th="";
+    if(d.todayMax && d.todayMax.max!=null){
+      th="<br>Today's high so far: <b>"+fmt(d.todayMax.max,1)+"°C</b>"+(d.todayMax.time?" at <b>"+d.todayMax.time+"</b> (Pakistan time)":"")+".";
+    }
+    document.getElementById("todayHigh").innerHTML = th;
+
     var tb=""; (d.tempMonths||[]).forEach(function(r){
-      tb+="<tr><td>"+r.month+"</td><td>"+fmt(r.max,1)+"</td></tr>";
+      var w=""; if(r.date) w+=r.date; if(r.time) w+=(w?", ":"")+r.time; if(!w) w="—";
+      tb+="<tr><td>"+r.month+"</td><td>"+fmt(r.max,1)+"</td><td>"+w+"</td></tr>";
     });
-    document.getElementById("tempMonths").innerHTML = tb || '<tr><td colspan="2" style="color:#8aa0c2">No data logged yet</td></tr>';
+    document.getElementById("tempMonths").innerHTML = tb || '<tr><td colspan="3" style="color:#8aa0c2">No data logged yet</td></tr>';
 
     /* footer time — viewer's own local time only */
     var local="—", tz="";
