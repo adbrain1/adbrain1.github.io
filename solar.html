@@ -198,7 +198,7 @@
     <div id="curveBox"></div>
   </div>
 
-  <!-- TODAY TEMPERATURE CURVE (NEW) -->
+  <!-- TODAY TEMPERATURE CURVE -->
   <div class="section">
     <h2>Today — Inverter Temperature Through the Day (°C)</h2>
     <div id="tempCurveBox"></div>
@@ -234,9 +234,22 @@
   <!-- TEMPERATURE FOOTER -->
   <div class="section">
     <h2>Hottest the Inverter Got</h2>
-    <div class="tempbox">
-      <div class="tempbig" id="monthMaxTemp">—</div>
-      <div class="desc">Highest inverter temperature recorded in <b id="tempMonthLabel">this month</b>.<span id="monthMaxWhen"></span><span id="todayHigh"></span></div>
+    <div class="grid">
+      <div class="card">
+        <div class="label">All-time high</div>
+        <div class="big" id="allTimeMaxTemp">—</div>
+        <div class="unit" id="allTimeMaxWhen">°C</div>
+      </div>
+      <div class="card">
+        <div class="label">This month</div>
+        <div class="big" id="monthMaxTemp">—</div>
+        <div class="unit" id="monthMaxWhen">°C</div>
+      </div>
+      <div class="card">
+        <div class="label">Today</div>
+        <div class="big" id="todayMaxTemp">—</div>
+        <div class="unit" id="todayMaxWhen">°C</div>
+      </div>
     </div>
     <table><thead><tr><th>Month</th><th>Highest °C</th><th>When (Pakistan time)</th></tr></thead><tbody id="tempMonths"></tbody></table>
   </div>
@@ -379,7 +392,7 @@ function renderCurve(curve, sunrise){
     '</svg>';
 }
 
-/* ===================== TODAY TEMPERATURE CURVE (SVG line, NEW) ===================== */
+/* ===================== TODAY TEMPERATURE CURVE (SVG line) ===================== */
 function renderTempCurve(tc){
   var box=document.getElementById("tempCurveBox");
   var pts=(tc&&tc.points)?tc.points:[];
@@ -519,7 +532,7 @@ function refresh(){
     /* today curve / moon (with next Islamabad sunrise) */
     renderCurve(d.curve, d.sunrise);
 
-    /* today temperature curve (NEW) */
+    /* today temperature curve */
     renderTempCurve(d.tempCurve);
 
     /* yearly bars (tap to read, no in-bar labels) */
@@ -531,23 +544,24 @@ function refresh(){
       renderBars("yearlyChart", ys, {color:"#a78bfa", readoutId:"yearlyReadout", hint:"Tap a bar to see that year's total"});
     }
 
-    /* temperature footer (with date + time) */
-    document.getElementById("tempMonthLabel").textContent = d.tempMonthLabel;
-    document.getElementById("monthMaxTemp").textContent = d.tempThisMonthMax==null?"—":fmt(d.tempThisMonthMax,1)+"°";
+    /* temperature footer: all-time / this month / today */
+    document.getElementById("allTimeMaxTemp").textContent =
+      d.tempAllTimeMax==null ? "—" : fmt(d.tempAllTimeMax,1)+"°";
+    document.getElementById("allTimeMaxWhen").textContent =
+      d.tempAllTimeDate ? d.tempAllTimeDate + (d.tempAllTimeTime ? " · "+d.tempAllTimeTime : "") : "°C";
 
-    var when="";
-    if(d.tempThisMonthDate){
-      when=" Reached on <b>"+d.tempThisMonthDate+"</b>";
-      if(d.tempThisMonthTime) when+=" at <b>"+d.tempThisMonthTime+"</b> (Pakistan time)";
-      when+=".";
-    }
-    document.getElementById("monthMaxWhen").innerHTML = when;
+    document.getElementById("monthMaxTemp").textContent =
+      d.tempThisMonthMax==null ? "—" : fmt(d.tempThisMonthMax,1)+"°";
+    document.getElementById("monthMaxWhen").textContent =
+      d.tempThisMonthDate ? d.tempThisMonthDate + (d.tempThisMonthTime ? " · "+d.tempThisMonthTime : "") : "°C";
 
-    var th="";
     if(d.todayMax && d.todayMax.max!=null){
-      th="<br>Today's high so far: <b>"+fmt(d.todayMax.max,1)+"°C</b>"+(d.todayMax.time?" at <b>"+d.todayMax.time+"</b> (Pakistan time)":"")+".";
+      document.getElementById("todayMaxTemp").textContent = fmt(d.todayMax.max,1)+"°";
+      document.getElementById("todayMaxWhen").textContent = d.todayMax.time ? d.todayMax.time+" (PKT)" : "°C";
+    } else {
+      document.getElementById("todayMaxTemp").textContent = "—";
+      document.getElementById("todayMaxWhen").textContent = "°C";
     }
-    document.getElementById("todayHigh").innerHTML = th;
 
     var tb=""; (d.tempMonths||[]).forEach(function(r){
       var w=""; if(r.date) w+=r.date; if(r.time) w+=(w?", ":"")+r.time; if(!w) w="—";
