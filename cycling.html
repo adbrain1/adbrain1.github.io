@@ -3,13 +3,15 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Live Ride Tracker · Rafay Travels</title>
+<title>RafayRide · Live Ride Tracker</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;700&display=swap');
   :root{
     --bg:#2e0249; --card:#570a57; --text:#fff; --muted:#fbc7ff;
     --accent:#ffcc00; --border-color:#a91079;
+    /* RafayRide brand accents (from the logo) */
+    --r-red:#ea4335; --r-yellow:#ffcc00; --r-green:#34a853; --r-blue:#4285f4;
   }
   *{box-sizing:border-box;}
   body{
@@ -20,31 +22,64 @@
     color:var(--text); font-family:'Nunito',sans-serif;
     padding:24px; overflow-x:hidden;
   }
-  .wrap{max-width:1000px; margin:0 auto;}
+  .wrap{max-width:1000px; margin:0 auto; position:relative; z-index:1;}
+
+  /* ---- Floating background decorations (drift slowly behind everything) ---- */
+  .bg-deco{position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0;}
+  .bg-deco span{
+    position:absolute; font-size:42px; opacity:0.10;
+    animation:drift linear infinite;
+  }
+  @keyframes drift{
+    0%{transform:translateY(20px) rotate(0deg);}
+    50%{transform:translateY(-30px) rotate(8deg);}
+    100%{transform:translateY(20px) rotate(0deg);}
+  }
+
   .eyebrow{
     display:inline-block; text-transform:uppercase; letter-spacing:0.12em;
     font-size:0.9rem; color:var(--accent); font-weight:bold;
     background:rgba(0,0,0,0.3); padding:5px 12px; border-radius:20px; margin-bottom:10px;
+    animation:fadeUp 0.6s ease both;
   }
-  h1{font-family:'Fredoka',sans-serif; font-size:clamp(2.2rem,5vw,3.2rem); margin:0 0 6px; text-shadow:2px 2px 0 #000;}
-  .sub{color:var(--muted); font-size:1.1rem; margin:0 0 20px;}
+  h1{
+    font-family:'Fredoka',sans-serif; font-size:clamp(2.2rem,5vw,3.2rem); margin:0 0 6px;
+    text-shadow:2px 2px 0 #000; animation:fadeUp 0.6s ease 0.08s both;
+  }
+  h1 .bike{display:inline-block; animation:wiggle 2.4s ease-in-out infinite; transform-origin:60% 80%;}
+  /* RafayRide wordmark using the brand colours, on the dark site background */
+  .rr-r{color:var(--r-yellow);} .rr-rest{color:#fff;}
+  .sub{color:var(--muted); font-size:1.1rem; margin:0 0 20px; animation:fadeUp 0.6s ease 0.16s both;}
   h2{font-family:'Fredoka',sans-serif; font-size:1.6rem; margin:30px 0 14px; text-shadow:2px 2px 0 #000;}
 
-  .unit-toggle{display:inline-flex; background:rgba(0,0,0,0.35); border-radius:14px; padding:4px; margin-bottom:18px; border:2px solid var(--accent);}
-  .unit-toggle button{font-family:'Fredoka',sans-serif; font-weight:700; border:none; background:transparent; color:var(--muted); padding:8px 18px; border-radius:10px; cursor:pointer; font-size:1rem;}
+  @keyframes fadeUp{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);}}
+  @keyframes popIn{0%{opacity:0; transform:scale(0.85);} 60%{transform:scale(1.04);} 100%{opacity:1; transform:scale(1);}}
+  @keyframes wiggle{0%,100%{transform:rotate(-6deg);} 50%{transform:rotate(8deg);}}
+  @keyframes cardLeave{to{opacity:0; transform:scale(0.9);}}
+
+  .unit-toggle{display:inline-flex; background:rgba(0,0,0,0.35); border-radius:14px; padding:4px; margin-bottom:18px; border:2px solid var(--accent); animation:fadeUp 0.6s ease 0.2s both;}
+  .unit-toggle button{font-family:'Fredoka',sans-serif; font-weight:700; border:none; background:transparent; color:var(--muted); padding:8px 18px; border-radius:10px; cursor:pointer; font-size:1rem; transition:transform 0.12s, background 0.2s, color 0.2s;}
+  .unit-toggle button:hover{transform:translateY(-1px);}
   .unit-toggle button.active{background:var(--accent); color:#000;}
 
   .live-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px;}
-  .rider-card{background:var(--card); border:4px solid #fff; border-radius:24px; padding:22px; box-shadow:8px 8px 0 rgba(0,0,0,0.35);}
+  .rider-card{
+    background:var(--card); border:4px solid #fff; border-radius:24px; padding:22px;
+    box-shadow:8px 8px 0 rgba(0,0,0,0.35); animation:popIn 0.45s cubic-bezier(.2,1.2,.3,1) both;
+    transition:transform 0.18s, box-shadow 0.18s;
+  }
+  .rider-card:hover{transform:translate(-2px,-2px); box-shadow:11px 11px 0 rgba(0,0,0,0.35);}
+  .rider-card.leaving{animation:cardLeave 0.35s ease forwards;}
   .rider-head{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
   .rider-name{font-family:'Fredoka',sans-serif; font-size:1.5rem; font-weight:700;}
   .live-dot{width:12px;height:12px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 0 rgba(74,222,128,0.7);animation:pulse 1.5s infinite;}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(74,222,128,0.7);}70%{box-shadow:0 0 0 10px rgba(74,222,128,0);}100%{box-shadow:0 0 0 0 rgba(74,222,128,0);}}
   .big-speed{font-family:'Fredoka',sans-serif; font-size:3.4rem; font-weight:700; color:var(--accent); line-height:1; text-shadow:2px 2px 0 #000;}
-  .big-speed span{font-size:1.1rem; color:var(--text);}
+  .big-speed .bs-unit{font-size:1.1rem; color:var(--text);}
   .animal{font-weight:700; margin:6px 0 14px;}
   .mini-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-  .mini{background:rgba(0,0,0,0.25); border-radius:12px; padding:8px 12px;}
+  .mini{background:rgba(0,0,0,0.25); border-radius:12px; padding:8px 12px; transition:background 0.2s;}
+  .mini:hover{background:rgba(0,0,0,0.38);}
   .mini .lab{font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;}
   .mini .val{font-family:'Fredoka',sans-serif; font-weight:700; font-size:1.25rem;}
 
@@ -59,22 +94,33 @@
   .ride-table{width:100%; border-collapse:collapse; min-width:680px;}
   .ride-table th{font-family:'Fredoka',sans-serif; background:rgba(0,0,0,0.35); color:var(--accent); padding:12px 14px; text-align:left; font-size:0.95rem; white-space:nowrap; border-bottom:3px solid var(--accent);}
   .ride-table td{padding:12px 14px; font-size:1rem; border-bottom:1px solid rgba(255,255,255,0.12); white-space:nowrap; vertical-align:middle;}
+  .ride-table tbody tr{animation:fadeUp 0.4s ease both;}
   .ride-table tbody tr:nth-child(even){background:rgba(0,0,0,0.18);}
   .ride-table tbody tr:last-child td{border-bottom:none;}
+  .ride-table tbody tr:hover{background:rgba(255,204,0,0.10);}
   .c-rider{display:flex; flex-direction:column; gap:2px;}
   .r-name{font-family:'Fredoka',sans-serif; font-weight:700; font-size:1.15rem;}
   .r-animal{font-size:0.8rem; color:var(--muted);}
   .num b{color:var(--accent); font-family:'Fredoka',sans-serif;}
-  .route-btn{background:var(--accent); color:#000; border:2px solid #000; font-family:'Fredoka',sans-serif; font-weight:700; padding:7px 14px; border-radius:10px; cursor:pointer; box-shadow:3px 3px 0 #000; white-space:nowrap;}
+  .route-btn{background:var(--accent); color:#000; border:2px solid #000; font-family:'Fredoka',sans-serif; font-weight:700; padding:7px 14px; border-radius:10px; cursor:pointer; box-shadow:3px 3px 0 #000; white-space:nowrap; transition:transform 0.1s, box-shadow 0.1s;}
+  .route-btn:hover{transform:translate(-1px,-1px); box-shadow:4px 4px 0 #000;}
   .route-btn:active{transform:translate(2px,2px); box-shadow:1px 1px 0 #000;}
 
-  .empty{background:rgba(0,0,0,0.3); border:2px dashed var(--muted); border-radius:16px; padding:24px; text-align:center; color:var(--muted); font-size:1.1rem;}
+  .empty{background:rgba(0,0,0,0.3); border:2px dashed var(--muted); border-radius:16px; padding:24px; text-align:center; color:var(--muted); font-size:1.1rem; animation:fadeUp 0.5s ease both;}
+
+  /* Respect users who prefer less motion */
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
 </style>
 </head>
 <body>
+<!-- drifting background bikes/wheels -->
+<div class="bg-deco" id="bgDeco"></div>
+
 <div class="wrap">
   <span class="eyebrow">Rafay Travels Worldwide</span>
-  <h1>🚴 Live Ride Tracker</h1>
+  <h1><span class="bike">🚴</span> <span class="rr-r">Rafay</span><span class="rr-rest">Ride</span></h1>
   <p class="sub">Follow the adventure in real time — and explore past rides on the map!</p>
 
   <div class="unit-toggle">
@@ -96,6 +142,22 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+  // ---- Sprinkle a few drifting bikes/wheels in the background ----
+  (function(){
+    const deco = document.getElementById('bgDeco');
+    const icons = ['🚴','🚲','⚡','🏁','🛞'];
+    for(let i=0;i<8;i++){
+      const s = document.createElement('span');
+      s.textContent = icons[i % icons.length];
+      s.style.left = Math.round(Math.random()*92) + 'vw';
+      s.style.top = Math.round(Math.random()*88) + 'vh';
+      s.style.fontSize = (28 + Math.random()*34) + 'px';
+      s.style.animationDuration = (9 + Math.random()*8) + 's';
+      s.style.animationDelay = (-Math.random()*8) + 's';
+      deco.appendChild(s);
+    }
+  })();
+
   const firebaseConfig = {
     apiKey: "AIzaSyDyULp4egjGIXoR9t0v0_KF8Cf4_2VfdqE",
     authDomain: "abdulrafaychat.firebaseapp.com",
@@ -144,6 +206,22 @@
     return '🐆 Cheetah speed!!';
   }
 
+  // ---- smooth count-up for a number element ----
+  function animateNumber(el, to, decimals){
+    if(!el) return;
+    const from = parseFloat(el.dataset.val || '0');
+    el.dataset.val = to;
+    if(Math.abs(from - to) < 0.05){ el.textContent = to.toFixed(decimals); return; }
+    const start = performance.now(), dur = 500;
+    function step(now){
+      const p = Math.min(1, (now - start) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = (from + (to - from) * eased).toFixed(decimals);
+      if(p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
   function setUnit(u){
     unit = u;
     document.getElementById('btnMi').classList.toggle('active', u==='mi');
@@ -152,8 +230,6 @@
   }
 
   // ---- Map ----
-  // Fallback point in Walmley / Sutton Coldfield (used only if the postcode
-  // lookup ever fails). The real B76 2SH point is fetched below.
   const HOME_FALLBACK = [52.5546, -1.7905];
   const map = L.map('map').setView(HOME_FALLBACK, 14);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
@@ -170,7 +246,6 @@
     map.setView([lat,lng], 14);
   }
   setHome(HOME_FALLBACK[0], HOME_FALLBACK[1]);
-  // Free, no-key UK postcode lookup to get the exact point for B76 2SH
   fetch('https://api.postcodes.io/postcodes/B762SH')
     .then(r=>r.json())
     .then(d=>{ if(d && d.result && typeof d.result.latitude==='number'){ setHome(d.result.latitude, d.result.longitude); } })
@@ -215,32 +290,87 @@
     document.getElementById('map').scrollIntoView({behavior:'smooth', block:'center'});
   }
 
-  // ---- Live ----
+  // ---- Live (diff-based so cards pop in once, then numbers update smoothly) ----
+  const liveCards = {};          // key -> { card, els }
+  function makeCard(key, r){
+    const card = document.createElement('div');
+    card.className = 'rider-card';
+    card.innerHTML =
+      '<div class="rider-head"><span class="live-dot"></span><span class="rider-name"></span></div>' +
+      '<div class="big-speed"><span class="bs-num" data-val="0">0.0</span><span class="bs-unit"> mph</span></div>' +
+      '<div class="animal"></div>' +
+      '<div class="mini-grid">' +
+        '<div class="mini"><div class="lab">⏱️ Time</div><div class="val v-time">00:00</div></div>' +
+        '<div class="mini"><div class="lab">📏 Distance</div><div class="val v-dist">0.0</div></div>' +
+        '<div class="mini"><div class="lab">📊 Avg</div><div class="val v-avg">0.0</div></div>' +
+        '<div class="mini"><div class="lab">🏆 Top</div><div class="val v-top">0.0</div></div>' +
+        '<div class="mini"><div class="lab">🍌 Energy</div><div class="val v-ban">0 bananas</div></div>' +
+        '<div class="mini"><div class="lab">⚽ Pitches</div><div class="val v-pit">0</div></div>' +
+      '</div>';
+    const els = {
+      card,
+      name: card.querySelector('.rider-name'),
+      bsNum: card.querySelector('.bs-num'),
+      bsUnit: card.querySelector('.bs-unit'),
+      animal: card.querySelector('.animal'),
+      time: card.querySelector('.v-time'),
+      dist: card.querySelector('.v-dist'),
+      avg: card.querySelector('.v-avg'),
+      top: card.querySelector('.v-top'),
+      ban: card.querySelector('.v-ban'),
+      pit: card.querySelector('.v-pit'),
+    };
+    liveCards[key] = els;
+    document.getElementById('liveWrap').appendChild(card);
+    return els;
+  }
+  function updateCard(els, r){
+    const topMph = (r.topMps||0)*2.23694;
+    els.name.textContent = r.name || 'Rider';
+    els.bsUnit.textContent = ' ' + speedUnit();
+    animateNumber(els.bsNum, toSpeed(r.speedMps), 1);
+    els.animal.textContent = speedAnimal(topMph);
+    els.time.textContent = fmtDuration(r.seconds);
+    els.dist.textContent = f1(toDist(r.distanceM)) + ' ' + distUnit();
+    els.avg.textContent  = f1(toSpeed(r.avgMps)) + ' ' + speedUnit();
+    els.top.textContent  = f1(toSpeed(r.topMps)) + ' ' + speedUnit();
+    els.ban.textContent  = Math.floor((r.distanceM||0)/1000) + ' bananas';
+    els.pit.textContent  = Math.round((r.distanceM||0)/105);
+  }
   function renderLive(){
     const wrap = document.getElementById('liveWrap');
     const now = Date.now();
-    const riders = Object.values(liveData).filter(r=> r && r.updatedAt && (now - r.updatedAt) < 20000);
-    if(riders.length===0){
+    const active = {};
+    Object.entries(liveData).forEach(([key, r])=>{
+      if(r && r.updatedAt && (now - r.updatedAt) < 20000){ active[key] = r; }
+    });
+    const keys = Object.keys(active);
+
+    // Remove the empty-state message if a rider is now active
+    const emptyEl = wrap.querySelector('.empty');
+    if(keys.length > 0 && emptyEl) emptyEl.remove();
+
+    // Drop cards for riders who stopped (with a little fade-out)
+    Object.keys(liveCards).forEach(key=>{
+      if(!active[key]){
+        const els = liveCards[key];
+        els.card.classList.add('leaving');
+        const c = els.card;
+        setTimeout(()=>{ if(c.parentNode) c.parentNode.removeChild(c); }, 350);
+        delete liveCards[key];
+      }
+    });
+
+    // Add / update active riders
+    keys.forEach(key=>{
+      const els = liveCards[key] || makeCard(key, active[key]);
+      updateCard(els, active[key]);
+    });
+
+    // Show empty state when nobody is riding
+    if(keys.length === 0 && !wrap.querySelector('.empty')){
       wrap.innerHTML = '<div class="empty">😴 No one is riding right now. Check back during a ride!</div>';
-      return;
     }
-    wrap.innerHTML = riders.map(r=>{
-      const topMph = (r.topMps||0)*2.23694;
-      return `
-      <div class="rider-card">
-        <div class="rider-head"><span class="live-dot"></span><span class="rider-name">${r.name||'Rider'}</span></div>
-        <div class="big-speed">${f1(toSpeed(r.speedMps))}<span> ${speedUnit()}</span></div>
-        <div class="animal">${speedAnimal(topMph)}</div>
-        <div class="mini-grid">
-          <div class="mini"><div class="lab">⏱️ Time</div><div class="val">${fmtDuration(r.seconds)}</div></div>
-          <div class="mini"><div class="lab">📏 Distance</div><div class="val">${f1(toDist(r.distanceM))} ${distUnit()}</div></div>
-          <div class="mini"><div class="lab">📊 Avg</div><div class="val">${f1(toSpeed(r.avgMps))} ${speedUnit()}</div></div>
-          <div class="mini"><div class="lab">🏆 Top</div><div class="val">${f1(toSpeed(r.topMps))} ${speedUnit()}</div></div>
-          <div class="mini"><div class="lab">🍌 Energy</div><div class="val">${Math.floor((r.distanceM||0)/1000)} bananas</div></div>
-          <div class="mini"><div class="lab">⚽ Pitches</div><div class="val">${Math.round((r.distanceM||0)/105)}</div></div>
-        </div>
-      </div>`;
-    }).join('');
   }
 
   // ---- History: ONE table per date (handles multiple rides on the same day) ----
@@ -270,11 +400,11 @@
     wrap.innerHTML = dates.map(d=>{
       // Newest ride first within the day
       const rides = byDate[d].sort((a,b)=>(b.summary.startTs||0)-(a.summary.startTs||0));
-      const rows = rides.map(r=>{
+      const rows = rides.map((r,ri)=>{
         const s = r.summary;
         const topMph = (s.topMps||0)*2.23694;
         return `
-        <tr>
+        <tr style="animation-delay:${ri*60}ms">
           <td>
             <div class="c-rider">
               <span class="r-name">${s.name||r.rider}</span>
