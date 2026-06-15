@@ -292,6 +292,13 @@ function fmtWhen(ms){
   var d=new Date(t); if(isNaN(d.getTime())) return "";
   return d.toLocaleString(undefined,{day:"numeric",month:"short",year:"numeric",hour:"numeric",minute:"2-digit",hour12:true});
 }
+/* same, but time only (used for Today) */
+function fmtTimeOnly(ms){
+  if(ms==null || ms==="") return "";
+  var t=Number(ms); if(isNaN(t)) return "";
+  var d=new Date(t); if(isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit",hour12:true});
+}
 
 /* ---- settings ---- */
 function saveLimit(){
@@ -556,16 +563,16 @@ function refresh(){
     document.getElementById("allTimeMaxTemp").textContent =
       d.tempAllTimeMax==null ? "—" : fmt(d.tempAllTimeMax,1)+"°";
     document.getElementById("allTimeMaxWhen").textContent =
-      d.tempAllTimeMax==null ? "°C" : (fmtWhen(d.tempAllTimeAt) || "°C");
+      d.tempAllTimeMax==null ? "°C" : (fmtWhen(d.tempAllTimeAt) || "no time on record");
 
     document.getElementById("monthMaxTemp").textContent =
       d.tempThisMonthMax==null ? "—" : fmt(d.tempThisMonthMax,1)+"°";
     document.getElementById("monthMaxWhen").textContent =
-      d.tempThisMonthMax==null ? "°C" : (fmtWhen(d.tempThisMonthAt) || "°C");
+      d.tempThisMonthMax==null ? "°C" : (fmtWhen(d.tempThisMonthAt) || "no time on record");
 
     if(d.todayMax && d.todayMax.max!=null){
       document.getElementById("todayMaxTemp").textContent = fmt(d.todayMax.max,1)+"°";
-      document.getElementById("todayMaxWhen").textContent = fmtWhen(d.todayMax.at) || "°C";
+      document.getElementById("todayMaxWhen").textContent = fmtTimeOnly(d.todayMax.at) || "°C";
     } else {
       document.getElementById("todayMaxTemp").textContent = "—";
       document.getElementById("todayMaxWhen").textContent = "°C";
