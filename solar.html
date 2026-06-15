@@ -251,7 +251,7 @@
         <div class="unit" id="todayMaxWhen">°C</div>
       </div>
     </div>
-    <table><thead><tr><th>Month</th><th>Highest °C</th><th>When (Pakistan time)</th></tr></thead><tbody id="tempMonths"></tbody></table>
+    <div class="muted" style="margin-top:12px">Date &amp; time shown in your own local time — the moment the inverter physically peaked.</div>
   </div>
 
   <div class="muted" id="updated"></div>
@@ -284,6 +284,14 @@ function fmt(n, dp){
 }
 function note(id,msg){ var e=document.getElementById(id); e.textContent=msg; setTimeout(function(){e.textContent="";},2500); }
 var MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+/* turn a timestamp (ms) into the viewer's OWN local time, 12-hour */
+function fmtWhen(ms){
+  if(ms==null || ms==="") return "";
+  var t=Number(ms); if(isNaN(t)) return "";
+  var d=new Date(t); if(isNaN(d.getTime())) return "";
+  return d.toLocaleString(undefined,{day:"numeric",month:"short",year:"numeric",hour:"numeric",minute:"2-digit",hour12:true});
+}
 
 /* ---- settings ---- */
 function saveLimit(){
@@ -544,30 +552,24 @@ function refresh(){
       renderBars("yearlyChart", ys, {color:"#a78bfa", readoutId:"yearlyReadout", hint:"Tap a bar to see that year's total"});
     }
 
-    /* temperature footer: all-time / this month / today */
+    /* temperature footer: all-time / this month / today (times in viewer's local time) */
     document.getElementById("allTimeMaxTemp").textContent =
       d.tempAllTimeMax==null ? "—" : fmt(d.tempAllTimeMax,1)+"°";
     document.getElementById("allTimeMaxWhen").textContent =
-      d.tempAllTimeDate ? d.tempAllTimeDate + (d.tempAllTimeTime ? " · "+d.tempAllTimeTime : "") : "°C";
+      d.tempAllTimeMax==null ? "°C" : (fmtWhen(d.tempAllTimeAt) || "°C");
 
     document.getElementById("monthMaxTemp").textContent =
       d.tempThisMonthMax==null ? "—" : fmt(d.tempThisMonthMax,1)+"°";
     document.getElementById("monthMaxWhen").textContent =
-      d.tempThisMonthDate ? d.tempThisMonthDate + (d.tempThisMonthTime ? " · "+d.tempThisMonthTime : "") : "°C";
+      d.tempThisMonthMax==null ? "°C" : (fmtWhen(d.tempThisMonthAt) || "°C");
 
     if(d.todayMax && d.todayMax.max!=null){
       document.getElementById("todayMaxTemp").textContent = fmt(d.todayMax.max,1)+"°";
-      document.getElementById("todayMaxWhen").textContent = d.todayMax.time ? d.todayMax.time+" (PKT)" : "°C";
+      document.getElementById("todayMaxWhen").textContent = fmtWhen(d.todayMax.at) || "°C";
     } else {
       document.getElementById("todayMaxTemp").textContent = "—";
       document.getElementById("todayMaxWhen").textContent = "°C";
     }
-
-    var tb=""; (d.tempMonths||[]).forEach(function(r){
-      var w=""; if(r.date) w+=r.date; if(r.time) w+=(w?", ":"")+r.time; if(!w) w="—";
-      tb+="<tr><td>"+r.month+"</td><td>"+fmt(r.max,1)+"</td><td>"+w+"</td></tr>";
-    });
-    document.getElementById("tempMonths").innerHTML = tb || '<tr><td colspan="3" style="color:#8aa0c2">No data logged yet</td></tr>';
 
     /* footer time — viewer's own local time only */
     var local="—", tz="";
