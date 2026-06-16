@@ -655,7 +655,7 @@ function refresh(){
 
     if(d.todayMax && d.todayMax.max!=null){
       document.getElementById("todayMaxTemp").textContent = fmt(d.todayMax.max,1)+"°";
-      var tt = fmtTimeOnly(d.todayMax.at);
+      var tt = fmtTimeOnly(d.todayMax.at) || (d.todayMax.atText || "");
       document.getElementById("todayMaxWhen").textContent = tt ? ("at "+tt) : "°C";
     } else {
       document.getElementById("todayMaxTemp").textContent = "—";
@@ -666,7 +666,7 @@ function refresh(){
     var local="—", tz="";
     try{
       var dt=new Date(d.iso);
-      local=dt.toLocaleString(undefined,{weekday:"short",day:"2-digit",month:"short",year:"numeric",hour:"numeric",minute:"2-digit"});
+      local=dt.toLocaleString(undefined,{weekday:"short",day:"2-digit",month:"short",year:"numeric",hour:"numeric",minute:"2-digit",hour12:true});
       tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"";
     }catch(e){}
     document.getElementById("updated").innerHTML =
