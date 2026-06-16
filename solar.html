@@ -492,10 +492,16 @@ function renderCurve(curve, sunrise){
 /* ===================== TODAY TEMPERATURE CURVE (SVG line) ===================== */
 function renderTempCurve(tc){
   var box=document.getElementById("tempCurveBox");
-  var pts=(tc&&tc.points)?tc.points:[];
+  var raw=(tc&&tc.points)?tc.points:[];
+  /* Keep only REAL readings. When the inverter is off (sun has set) it reports
+     0 °C, which would otherwise be drawn as a flat line along the bottom of the
+     chart. Drop any zero / blank readings so that:
+       - a normal day shows a clean curve, and
+       - a night-time / no-data state shows a friendly message instead. */
+  var pts=raw.filter(function(p){ return p && p.y!=null && !isNaN(p.y) && p.y>0; });
   if(!pts.length){
-    box.innerHTML='<div class="moon"><div class="icon">🌡️</div><div class="t1">No temperature readings yet today</div>'+
-                  '<div class="t2">The inverter reports its temperature while it is generating. Readings appear during daylight.</div></div>';
+    box.innerHTML='<div class="moon"><div class="icon">🌡️</div><div class="t1">Inverter has cooled down</div>'+
+                  '<div class="t2">It only reports its temperature while the panels are working. The readings will warm back up once the sun is out.</div></div>';
     return;
   }
   var lo=Infinity, hi=-Infinity;
