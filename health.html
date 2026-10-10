@@ -232,6 +232,9 @@
       section { margin-top: 0 !important; }
     }
   </style>
+  <!-- jsPDF for client-side PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
   <header class="app-header">
@@ -323,8 +326,8 @@
               <span>Loading…</span>
             </span>
             <button id="print-btn" class="btn btn-outline btn-print" type="button" style="display:none;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-              <span>Print</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+              <span>PDF</span>
             </button>
           </div>
         </div>
@@ -822,19 +825,98 @@
       });
     }
 
-    // ---- Print ----
+    // ---- PDF download ----
     function handlePrint() {
       if (readings.length === 0) {
-        toast("Nothing to print", "Add a reading first.", "error");
+        toast("Nothing to export", "Add a reading first.", "error");
         return;
       }
-      // Populate the print-only header with the current date/time and count
-      var now = new Date();
+      // Check if jsPDF is loaded; fall back to browser print if not
+      if (typeof window.jspdf === "undefined" || !window.jspdf.jsPDF) {
+        toast("PDF library loading", "Try again in a moment, or use your browser's print to PDF.", "error");
+        // Fallback: open browser print dialog
+        var now0 = new Date();
+        var months0 = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        $("print-date").textContent = now0.getDate() + " " + months0[now0.getMonth()] + " " + now0.getFullYear();
+        $("print-count").textContent = readings.length + (readings.length === 1 ? " BP reading" : " BP readings");
+        setTimeout(function () { window.print(); }, 50);
+        return;
+      }
+
+      var jsPDF = window.jspdf.jsPDF;
+      var doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      var pageWidth = doc.internal.pageSize.getWidth();
       var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-      $("print-date").textContent = now.getDate() + " " + months[now.getMonth()] + " " + now.getFullYear();
-      $("print-count").textContent = readings.length + (readings.length === 1 ? " BP reading" : " BP readings");
-      // Give the browser a tick to render the print header, then print
-      setTimeout(function () { window.print(); }, 50);
+      var now = new Date();
+
+      // --- Title ---
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0);
+      doc.text("Naghmana Sattar's Health Log", 14, 18);
+
+      // --- Subtitle (date + count) ---
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(120);
+      var dateStr = now.getDate() + " " + months[now.getMonth()] + " " + now.getFullYear();
+      doc.text("Printed on " + dateStr + "  \u00b7  " + readings.length + (readings.length === 1 ? " reading" : " readings"), 14, 24);
+
+      // --- Table ---
+      var sorted = readings.slice().sort(function (a, b) { return new Date(b.recordedAt) - new Date(a.recordedAt); });
+      var body = sorted.map(function (r) {
+        var d = new Date(r.recordedAt);
+        var when = formatDate(d) + ", " + formatTime(d);
+        var bp = (r.systolic != null && r.diastolic != null) ? r.systolic + "/" + r.diastolic + " mmHg" : "\u2014";
+        var sugar = r.sugar != null ? String(r.sugar) : "\u2014";
+        var meal = r.mealTiming ? (r.mealTiming === "before" ? "Before meal" : "After meal") : "\u2014";
+        return [when, bp, sugar, meal];
+      });
+
+      doc.autoTable({
+        startY: 30,
+        head: [["When", "BP", "Sugar", "Meal"]],
+        body: body,
+        theme: "grid",
+        headStyles: {
+          fillColor: [225, 29, 72],
+          textColor: 255,
+          fontStyle: "bold",
+          fontSize: 10,
+          halign: "left"
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 2.5,
+          textColor: [30, 30, 30],
+          lineColor: [210, 210, 210],
+          lineWidth: 0.1
+        },
+        alternateRowStyles: {
+          fillColor: [248, 248, 248]
+        },
+        columnStyles: {
+          0: { cellWidth: 55 },
+          1: { cellWidth: 35 },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 33 }
+        },
+        margin: { left: 14, right: 14, top: 30, bottom: 18 },
+        didDrawPage: function (data) {
+          // Footer: page number + source
+          var pageHeight = doc.internal.pageSize.getHeight();
+          doc.setFontSize(7);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(160);
+          doc.text("Page " + doc.internal.getNumberOfPages(), pageWidth - 20, pageHeight - 8);
+          doc.text("Health Log", 14, pageHeight - 8);
+        }
+      });
+
+      // --- Download ---
+      var filename = "health-log-" + now.getFullYear() + "-" + pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + ".pdf";
+      doc.save(filename);
+      toast("PDF downloaded \u2713", filename);
     }
 
     function init() {
