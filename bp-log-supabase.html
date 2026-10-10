@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>BP Log — Blood Pressure Tracker</title>
+  <meta name="description" content="Log, review and edit blood pressure readings." />
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20width%3D%22512%22%20height%3D%22512%22%20viewBox%3D%220%200%20512%20512%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22512%22%20y2%3D%22512%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%23e11d48%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23be123c%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22url(%23bg)%22%2F%3E%3Cpath%20d%3D%22M256%20392c-12%200-23.5-4.5-32.5-12.5l-95-86c-30-27-30-73%200-100%2027-24%2067-22%2092%204l35.5%2037%2035.5-37c25-26%2065-28%2092-4%2030%2027%2030%2073%200%20100l-95%2086c-9%208-20.5%2012.5-32.5%2012.5z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.95%22%2F%3E%3Cpath%20d%3D%22M120%20256h58l24-54%2040%20108%2028-72%2022%2042h100%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20width%3D%22512%22%20height%3D%22512%22%20viewBox%3D%220%200%20512%20512%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22512%22%20y2%3D%22512%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%23e11d48%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23be123c%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22url(%23bg)%22%2F%3E%3Cpath%20d%3D%22M256%20392c-12%200-23.5-4.5-32.5-12.5l-95-86c-30-27-30-73%200-100%2027-24%2067-22%2092%204l35.5%2037%2035.5-37c25-26%2065-28%2092-4%2030%2027%2030%2073%200%20100l-95%2086c-9%208-20.5%2012.5-32.5%2012.5z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.95%22%2F%3E%3Cpath%20d%3D%22M120%20256h58l24-54%2040%20108%2028-72%2022%2042h100%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E" />
+
+  <meta name="theme-color" content="#e11d48" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="BP Log" />
+
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: oklch(0.99 0.004 15);
+      --fg: oklch(0.18 0.02 15);
+      --card: #fff;
+      --muted: oklch(0.965 0.008 15);
+      --muted-fg: oklch(0.5 0.02 15);
+      --border: oklch(0.92 0.008 15);
+      --primary: oklch(0.55 0.2 18);
+      --primary-fg: oklch(0.99 0.005 15);
+      --accent: oklch(0.95 0.03 15);
+      --ring: oklch(0.55 0.2 18);
+      --danger: oklch(0.577 0.245 27.325);
+      --danger-fg: #fff;
+      --radius: 0.75rem;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: oklch(0.16 0.01 15);
+        --fg: oklch(0.97 0.005 15);
+        --card: oklch(0.21 0.015 15);
+        --muted: oklch(0.26 0.01 15);
+        --muted-fg: oklch(0.72 0.015 15);
+        --border: oklch(1 0 0 / 12%);
+        --accent: oklch(0.3 0.03 15);
+      }
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--fg); line-height: 1.5;
+      -webkit-font-smoothing: antialiased; min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+    .wrap { width: 100%; max-width: 48rem; margin: 0 auto; padding: 0 1rem; }
+    header.app-header {
+      position: sticky; top: 0; z-index: 30;
+      background: color-mix(in oklch, var(--bg) 88%, transparent);
+      backdrop-filter: blur(10px); border-bottom: 1px solid var(--border);
+    }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 1rem; max-width: 48rem; margin: 0 auto; }
+    .brand { display: flex; align-items: center; gap: 0.6rem; }
+    .brand-icon { width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: var(--primary); color: var(--primary-fg); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
+    .brand-icon svg { width: 1.25rem; height: 1.25rem; }
+    .brand-title { font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.1; }
+    .brand-sub { font-size: 0.7rem; color: var(--muted-fg); line-height: 1.1; }
+    .status-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; display: inline-block; }
+    .status-dot.connected { background: #10b981; }
+    .status-dot.connecting { background: #f59e0b; animation: pulse 1.2s infinite; }
+    .status-dot.error { background: var(--danger); }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .status-text { font-size: 0.65rem; color: var(--muted-fg); display: flex; align-items: center; gap: 0.3rem; }
+
+    main { flex: 1; padding: 1.25rem 0 1.5rem; }
+    footer.app-footer { margin-top: auto; border-top: 1px solid var(--border); background: color-mix(in oklch, var(--bg) 88%, transparent); backdrop-filter: blur(10px); }
+    .footer-inner { padding: 0.9rem 1rem; max-width: 48rem; margin: 0 auto; text-align: center; }
+    .footer-inner p { margin: 0; font-size: 0.7rem; color: var(--muted-fg); }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 1rem; box-shadow: var(--shadow); padding: 1rem; }
+    @media (min-width: 640px) { .card { padding: 1.25rem; } }
+    .section-title { font-size: 0.875rem; font-weight: 600; margin: 0 0 0.75rem; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .field { display: flex; flex-direction: column; gap: 0.35rem; }
+    .field-full { grid-column: 1 / -1; }
+    label.lab { font-size: 0.72rem; font-weight: 500; color: var(--muted-fg); display: flex; align-items: center; gap: 0.25rem; }
+    label.lab svg { width: 0.85rem; height: 0.85rem; color: var(--primary); }
+    .hint { font-size: 0.65rem; color: var(--muted-fg); }
+
+    input.input, select.select {
+      width: 100%; height: 3rem; border: 1px solid var(--border); border-radius: 0.5rem;
+      background: transparent; color: var(--fg); font-size: 1.1rem; font-weight: 600;
+      padding: 0 0.75rem; outline: none; transition: border-color .15s, box-shadow .15s; font-family: inherit;
+    }
+    select.select { font-weight: 500; font-size: 1rem; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 0.75rem center; padding-right: 2.25rem;
+    }
+    input.input:focus, select.select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 25%, transparent); }
+    input.input::placeholder { color: color-mix(in oklch, var(--muted-fg) 40%, transparent); font-weight: 500; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; height: 3rem; padding: 0 1rem; border: none; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: background .15s, opacity .15s, transform .05s; text-decoration: none; }
+    .btn:active { transform: scale(0.99); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-primary { background: var(--primary); color: var(--primary-fg); width: 100%; }
+    .btn-primary:hover:not(:disabled) { background: color-mix(in oklch, var(--primary) 90%, #000); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--fg); height: 2.25rem; font-size: 0.85rem; }
+    .btn-outline:hover:not(:disabled) { background: var(--accent); }
+    .btn-ghost { background: transparent; color: var(--fg); height: 2.25rem; font-size: 0.85rem; }
+    .btn-ghost:hover:not(:disabled) { background: var(--accent); }
+    .btn-danger { background: var(--danger); color: var(--danger-fg); height: 2.5rem; }
+    .btn-danger:hover:not(:disabled) { background: color-mix(in oklch, var(--danger) 90%, #000); }
+    .btn-icon { width: 2.25rem; height: 2.25rem; padding: 0; border-radius: 0.5rem; background: transparent; color: var(--muted-fg); border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background .15s, color .15s; }
+    .btn-icon:hover { background: var(--accent); color: var(--fg); }
+    .btn-icon.danger:hover { background: color-mix(in oklch, var(--danger) 12%, transparent); color: var(--danger); }
+    .btn-sm { height: 2rem; font-size: 0.8rem; padding: 0 0.65rem; }
+    .spinner { width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .banner { margin-top: 1rem; border-radius: 1rem; overflow: hidden; background: color-mix(in oklch, #10b981 8%, var(--card)); border: 1px solid color-mix(in oklch, #10b981 35%, transparent); }
+    .banner-inner { display: flex; gap: 0.75rem; padding: 1rem; align-items: flex-start; }
+    .banner-check { width: 2rem; height: 2rem; border-radius: 50%; flex-shrink: 0; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; margin-top: 0.1rem; }
+    .banner-check svg { width: 1.1rem; height: 1.1rem; stroke-width: 3; }
+    .banner-title { font-size: 0.875rem; font-weight: 600; color: #047857; margin: 0 0 0.15rem; }
+    @media (prefers-color-scheme: dark) { .banner-title { color: #6ee7b7; } }
+    .banner-text { font-size: 0.85rem; color: #065f46; margin: 0; }
+    @media (prefers-color-scheme: dark) { .banner-text { color: #a7f3d0; } }
+    .banner-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+    .banner .btn-outline { border-color: color-mix(in oklch, #10b981 45%, transparent); color: #047857; background: var(--card); }
+    @media (prefers-color-scheme: dark) { .banner .btn-outline { color: #6ee7b7; background: transparent; } }
+    .banner .btn-outline:hover { background: color-mix(in oklch, #10b981 14%, transparent); }
+    .banner .btn-ghost { color: #047857; }
+    @media (prefers-color-scheme: dark) { .banner .btn-ghost { color: #6ee7b7; } }
+    .banner .btn-ghost:hover { background: color-mix(in oklch, #10b981 14%, transparent); }
+
+    .list-head { display: flex; align-items: center; justify-content: space-between; padding: 0 0.25rem; margin-bottom: 0.75rem; }
+    .list-head .section-title { margin: 0; }
+    .list-count { font-size: 0.75rem; color: var(--muted-fg); display: flex; align-items: center; gap: 0.4rem; }
+
+    .readings-scroll { max-height: 60vh; overflow-y: auto; padding-right: 0.15rem; }
+    .readings-scroll::-webkit-scrollbar { width: 6px; }
+    .readings-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9999px; }
+    .reading-card { border: 1px solid var(--border); border-radius: 0.75rem; padding: 0.9rem; background: var(--card); box-shadow: var(--shadow); margin-bottom: 0.6rem; transition: border-color .2s, box-shadow .2s; }
+    .reading-card.highlight { border-color: color-mix(in oklch, #10b981 60%, transparent); box-shadow: 0 0 0 2px color-mix(in oklch, #10b981 30%, transparent); }
+    .reading-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+    .reading-val { font-size: 1.5rem; font-weight: 700; line-height: 1; }
+    .reading-val .sep { color: var(--muted-fg); margin: 0 0.1rem; }
+    .reading-unit { font-size: 0.75rem; color: var(--muted-fg); margin-left: 0.25rem; }
+    .reading-badges { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
+    .reading-time { display: flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; color: var(--muted-fg); margin-top: 0.5rem; }
+    .reading-time svg { width: 0.75rem; height: 0.75rem; }
+    .reading-actions { display: flex; flex-direction: column; gap: 0.15rem; flex-shrink: 0; }
+    @media (min-width: 640px) { .reading-actions { flex-direction: row; } }
+
+    .badge { display: inline-flex; align-items: center; gap: 0.25rem; border-radius: 0.375rem; padding: 0.15rem 0.5rem; font-size: 0.7rem; font-weight: 500; border: 1px solid transparent; }
+    .badge svg { width: 0.75rem; height: 0.75rem; }
+    .badge.cat-Normal { background: #d1fae5; color: #047857; border-color: #a7f3d0; }
+    .badge.cat-Elevated { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+    .badge.cat-Stage1 { background: #fef9c3; color: #854d0e; border-color: #fde047; }
+    .badge.cat-Stage2 { background: #ffedd5; color: #9a3412; border-color: #fed7aa; }
+    .badge.cat-Crisis { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .badge.meal { background: var(--muted); color: var(--fg); }
+    @media (prefers-color-scheme: dark) {
+      .badge.cat-Normal { background: rgba(16,185,129,0.18); color:#6ee7b7; border-color: rgba(16,185,129,0.3); }
+      .badge.cat-Elevated { background: rgba(245,158,11,0.18); color:#fcd34d; border-color: rgba(245,158,11,0.3); }
+      .badge.cat-Stage1 { background: rgba(234,179,8,0.18); color:#fde047; border-color: rgba(234,179,8,0.3); }
+      .badge.cat-Stage2 { background: rgba(249,115,22,0.18); color:#fdba74; border-color: rgba(249,115,22,0.3); }
+      .badge.cat-Crisis { background: rgba(239,68,68,0.18); color:#fca5a5; border-color: rgba(239,68,68,0.3); }
+    }
+
+    .table-wrap { display: none; border: 1px solid var(--border); border-radius: 1rem; overflow: hidden; background: var(--card); box-shadow: var(--shadow); }
+    @media (min-width: 640px) { .table-wrap { display: block; } .mobile-list { display: none; } }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    thead tr { background: var(--muted); border-bottom: 1px solid var(--border); }
+    th { text-align: left; padding: 0.75rem 1rem; font-weight: 600; font-size: 0.8rem; }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--muted); }
+    td .t-when-date { font-weight: 600; }
+    td .t-when-time { display: flex; align-items: center; gap: 0.25rem; font-size: 0.72rem; color: var(--muted-fg); }
+    td .t-when-time svg { width: 0.7rem; height: 0.7rem; }
+    td .t-reading { font-size: 1.15rem; font-weight: 700; }
+    td .t-reading .sep { color: var(--muted-fg); }
+    td .t-reading .unit { font-size: 0.7rem; color: var(--muted-fg); margin-left: 0.2rem; font-weight: 400; }
+    td .t-actions { display: flex; gap: 0.25rem; justify-content: flex-end; }
+    tr.highlight { background: color-mix(in oklch, #10b981 8%, transparent); }
+
+    .empty { border: 1px dashed var(--border); border-radius: 1rem; background: var(--card); padding: 2rem 1rem; text-align: center; }
+    .empty-icon { width: 3rem; height: 3rem; border-radius: 50%; background: var(--muted); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; color: var(--muted-fg); }
+    .empty-icon svg { width: 1.5rem; height: 1.5rem; }
+    .empty-title { font-size: 0.9rem; font-weight: 600; margin: 0 0 0.25rem; }
+    .empty-text { font-size: 0.78rem; color: var(--muted-fg); max-width: 18rem; margin: 0 auto; }
+
+    .skeleton { height: 5rem; border-radius: 0.75rem; background: var(--muted); margin-bottom: 0.6rem; animation: skpulse 1.5s ease-in-out infinite; }
+    @keyframes skpulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    .modal-overlay { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; padding: 1rem; animation: fade .15s ease; }
+    .modal-overlay.open { display: flex; }
+    @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 1rem; width: 100%; max-width: 24rem; padding: 1.5rem; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: zoom .15s ease; max-height: 90vh; overflow-y: auto; }
+    @keyframes zoom { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal h3 { margin: 0 0 0.35rem; font-size: 1.05rem; }
+    .modal p { margin: 0 0 1rem; font-size: 0.85rem; color: var(--muted-fg); }
+    .modal-footer { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.25rem; }
+
+    .toast-wrap { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; pointer-events: none; width: 100%; max-width: 24rem; padding: 0 1rem; }
+    .toast { background: var(--card); border: 1px solid var(--border); border-radius: 0.6rem; padding: 0.75rem 1rem; box-shadow: 0 8px 30px rgba(0,0,0,0.15); display: flex; gap: 0.6rem; align-items: flex-start; pointer-events: auto; animation: toastIn .2s ease; width: 100%; }
+    @keyframes toastIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .toast.error { border-color: color-mix(in oklch, var(--danger) 45%, transparent); }
+    .toast-icon { width: 1.25rem; height: 1.25rem; flex-shrink: 0; margin-top: 0.05rem; }
+    .toast-icon.success { color: #10b981; }
+    .toast-icon.error { color: var(--danger); }
+    .toast-body { min-width: 0; }
+    .toast-title { font-size: 0.85rem; font-weight: 600; line-height: 1.2; }
+    .toast-desc { font-size: 0.78rem; color: var(--muted-fg); margin-top: 0.1rem; }
+
+    .config-banner { margin-bottom: 1rem; border-radius: 1rem; padding: 1rem 1.25rem; background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; }
+    .config-banner h2 { margin: 0 0 0.35rem; font-size: 0.95rem; }
+    .config-banner p { margin: 0; font-size: 0.8rem; line-height: 1.4; }
+    .config-banner code { background: rgba(0,0,0,0.08); padding: 0.1rem 0.35rem; border-radius: 0.25rem; font-size: 0.78rem; }
+
+    .top-actions { display: flex; gap: 0.4rem; align-items: center; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    /* ===== Print-only header (hidden on screen, shown when printing) ===== */
+    .print-header { display: none; }
+    .btn-print { height: 2.25rem; font-size: 0.85rem; }
+
+    /* ===== Print styles ===== */
+    @media print {
+      @page { margin: 1.5cm; }
+      body { background: #fff !important; color: #000 !important; font-size: 11pt; }
+      /* Hide everything that's not the print area */
+      .app-header, .app-footer, .config-banner,
+      #bp-form, #banner-container, .list-head,
+      .top-actions, #toast-wrap, .modal-overlay,
+      .reading-actions, .btn-icon, .btn-print,
+      .mobile-list { display: none !important; }
+      /* Show the print header */
+      .print-header { display: block; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #000; }
+      .print-header h1 { margin: 0 0 0.15rem; font-size: 18pt; color: #000; }
+      .print-header p { margin: 0; font-size: 9pt; color: #555; }
+      /* Force the table view for printing (even on mobile) */
+      .table-wrap { display: block !important; border: 1px solid #000 !important; box-shadow: none !important; border-radius: 0 !important; overflow: visible !important; }
+      table { font-size: 10pt; }
+      thead tr { background: #eee !important; }
+      th, td { border: 1px solid #999 !important; padding: 0.4rem 0.5rem !important; color: #000 !important; }
+      th { font-weight: 700; }
+      tbody tr { background: #fff !important; }
+      /* Badges print as simple outlined text */
+      .badge { background: #fff !important; color: #000 !important; border: 1px solid #999 !important; padding: 0.05rem 0.3rem !important; }
+      tr.highlight { background: #fff !important; }
+      /* Hide the Category column when printing */
+      .cat-col { display: none !important; }
+      /* Remove sticky positioning */
+      main { padding: 0 !important; }
+      .wrap { max-width: none !important; padding: 0 !important; }
+      section { margin-top: 0 !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>
+        </div>
+        <div>
+          <div class="brand-title">BP Log</div>
+          <div class="brand-sub">Blood pressure tracker</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="status-text" id="status">
+          <span class="status-dot connecting" id="status-dot"></span>
+          <span id="status-label">Connecting…</span>
+        </span>
+        <button id="install-btn" class="btn btn-outline" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Install</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <div id="config-warning" class="config-banner" style="display:none;">
+        <h2>⚙️ One-time setup needed</h2>
+        <p>Open this file in a text editor and paste your Supabase URL and anon key where indicated (search for <code>PASTE_</code>). See the setup guide that came with this file.</p>
+      </div>
+
+      <section class="card" aria-labelledby="add-heading">
+        <h2 id="add-heading" class="section-title">Add a reading</h2>
+        <form id="bp-form" autocomplete="off" novalidate>
+          <div class="form-grid">
+            <div class="field">
+              <label class="lab" for="systolic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                Systolic
+              </label>
+              <input class="input" id="systolic" name="systolic" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="120" autocomplete="off" />
+              <span class="hint">Top / high number · e.g. 120</span>
+            </div>
+            <div class="field">
+              <label class="lab" for="diastolic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                Diastolic
+              </label>
+              <input class="input" id="diastolic" name="diastolic" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="80" autocomplete="off" />
+              <span class="hint">Bottom / low number · e.g. 80</span>
+            </div>
+            <div class="field field-full">
+              <label class="lab" for="sugar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5 6 22l5-5"/><path d="M15.5 14.5 18 22l-5-5"/><path d="M5 14h14l-1.5-7h-11L5 14Z"/><circle cx="12" cy="5" r="3"/></svg>
+                Blood sugar
+              </label>
+              <input class="input" id="sugar" name="sugar" type="text" inputmode="decimal" placeholder="110" autocomplete="off" />
+              <span class="hint">mg/dL or mmol/L · e.g. 110 mg/dL</span>
+            </div>
+            <div class="field field-full">
+              <label class="lab" for="meal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                Meal timing
+              </label>
+              <select class="select" id="meal" name="meal">
+                <option value="">Before / after meal? (optional)</option>
+                <option value="before">Before meal</option>
+                <option value="after">After meal</option>
+              </select>
+            </div>
+            <div class="field field-full">
+              <button type="submit" class="btn btn-primary" id="submit-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                <span>Save reading</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <div id="banner-container"></div>
+
+      <section style="margin-top: 1.5rem;" aria-labelledby="log-heading">
+        <div class="list-head">
+          <h2 id="log-heading" class="section-title">Your log</h2>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="list-count" id="list-count">
+              <span class="status-dot connecting" style="background:var(--muted-fg)"></span>
+              <span>Loading…</span>
+            </span>
+            <button id="print-btn" class="btn btn-outline btn-print" type="button" style="display:none;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              <span>Print</span>
+            </button>
+          </div>
+        </div>
+        <!-- Print-only header (visible only when printing) -->
+        <div class="print-header">
+          <h1>BP Log — Blood Pressure Readings</h1>
+          <p>Printed on <span id="print-date"></span> · <span id="print-count"></span></p>
+        </div>
+        <div id="list-container">
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <p>Add to home screen to use as an app.</p>
+    </div>
+  </footer>
+
+  <div class="modal-overlay" id="edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-title">
+    <div class="modal">
+      <h3 id="edit-title">Edit reading</h3>
+      <p>Update the values, meal timing, or date/time for this entry.</p>
+      <form id="edit-form" autocomplete="off">
+        <div class="form-grid">
+          <div class="field">
+            <label class="lab" for="edit-systolic">Systolic</label>
+            <input class="input" id="edit-systolic" type="text" inputmode="numeric" pattern="[0-9]*" style="height:2.75rem;font-size:1rem;" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label class="lab" for="edit-diastolic">Diastolic</label>
+            <input class="input" id="edit-diastolic" type="text" inputmode="numeric" pattern="[0-9]*" style="height:2.75rem;font-size:1rem;" autocomplete="off" />
+          </div>
+          <div class="field field-full">
+            <label class="lab" for="edit-sugar">Blood sugar</label>
+            <input class="input" id="edit-sugar" type="text" inputmode="decimal" style="height:2.75rem;font-size:1rem;" autocomplete="off" />
+          </div>
+          <div class="field field-full">
+            <label class="lab" for="edit-meal">Meal timing</label>
+            <select class="select" id="edit-meal" style="height:2.75rem;font-size:0.95rem;">
+              <option value="">Not specified</option>
+              <option value="before">Before meal</option>
+              <option value="after">After meal</option>
+            </select>
+          </div>
+          <div class="field field-full">
+            <label class="lab" for="edit-recordedAt">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Date &amp; time
+            </label>
+            <input class="input" id="edit-recordedAt" type="datetime-local" style="height:2.75rem;font-size:0.95rem;font-weight:500;" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" id="edit-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="edit-save" style="background:var(--primary);color:var(--primary-fg);width:auto;padding:0 1rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Save changes</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="delete-modal" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+    <div class="modal">
+      <h3 id="delete-title">Delete this reading?</h3>
+      <p id="delete-desc"></p>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" id="delete-cancel">Cancel</button>
+        <button type="button" class="btn btn-danger btn-sm" id="delete-confirm" style="width:auto;padding:0 1rem;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span>Delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toast-wrap" aria-live="polite"></div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    /* =========================================================================
+       CONFIG — Paste your Supabase project URL and anon key below.
+       Get these from: Supabase Dashboard → Settings → API
+       ========================================================================= */
+    var SUPABASE_URL = "https://tyvpzycdpemqlfphcmxf.supabase.co/rest/v1/";
+    var SUPABASE_ANON_KEY = "sb_publishable_ssLtJgo5fKrLPpv0VDaZLg_kxbtadTC";
+    /* ========================================================================= */
+
+    var ICON_SVG = "data:image/svg+xml,%3Csvg%20width%3D%22512%22%20height%3D%22512%22%20viewBox%3D%220%200%20512%20512%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22512%22%20y2%3D%22512%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%23e11d48%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23be123c%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22url(%23bg)%22%2F%3E%3Cpath%20d%3D%22M256%20392c-12%200-23.5-4.5-32.5-12.5l-95-86c-30-27-30-73%200-100%2027-24%2067-22%2092%204l35.5%2037%2035.5-37c25-26%2065-28%2092-4%2030%2027%2030%2073%200%20100l-95%2086c-9%208-20.5%2012.5-32.5%2012.5z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.95%22%2F%3E%3Cpath%20d%3D%22M120%20256h58l24-54%2040%20108%2028-72%2022%2042h100%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E";
+
+    // Inject PWA manifest
+    try {
+      var manifest = {
+        name: "BP Log \u2014 Blood Pressure Tracker",
+        short_name: "BP Log",
+        description: "Log, review and edit blood pressure readings.",
+        start_url: ".",
+        scope: ".",
+        display: "standalone",
+        orientation: "portrait",
+        background_color: "#ffffff",
+        theme_color: "#e11d48",
+        categories: ["health", "medical", "lifestyle"],
+        icons: [
+          { src: ICON_SVG, sizes: "any", type: "image/svg+xml", purpose: "any" },
+          { src: ICON_SVG, sizes: "512x512", type: "image/svg+xml", purpose: "maskable" }
+        ]
+      };
+      var blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+      var link = document.createElement("link");
+      link.rel = "manifest";
+      link.href = URL.createObjectURL(blob);
+      document.head.appendChild(link);
+    } catch (e) {}
+
+    var justAddedId = null;
+    var justAddedTimer = null;
+    var lastAdded = null;
+    var readings = [];
+    var editTarget = null;
+    var deleteTarget = null;
+    var deferredPrompt = null;
+    var configured = SUPABASE_URL && SUPABASE_URL !== "PASTE_YOUR_SUPABASE_URL_HERE" && SUPABASE_URL.indexOf("supabase.co") !== -1
+      && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== "PASTE_YOUR_SUPABASE_ANON_KEY_HERE" && SUPABASE_ANON_KEY.length > 30;
+
+    function $(id) { return document.getElementById(id); }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
+    function formatDate(d) {
+      var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      return d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear();
+    }
+    function formatTime(d) {
+      var h = d.getHours(), m = d.getMinutes();
+      var ampm = h >= 12 ? "PM" : "AM";
+      var h12 = h % 12 || 12;
+      return h12 + ":" + (m < 10 ? "0" + m : m) + " " + ampm;
+    }
+    function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+    function toLocalDateTimeInput(date) {
+      var d = new Date(date);
+      return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) + "T" + pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+    }
+    function categoryFor(sys, dia) {
+      if (sys >= 180 || dia >= 120) return "Crisis";
+      if (sys >= 140 || dia >= 90) return "Stage2";
+      if (sys >= 130 || dia >= 80) return "Stage1";
+      if (sys >= 120 && sys < 130 && dia < 80) return "Elevated";
+      return "Normal";
+    }
+    var categoryLabels = { Normal: "Normal", Elevated: "Elevated", Stage1: "Stage 1", Stage2: "Stage 2", Crisis: "Crisis" };
+
+    function setStatus(state, label) {
+      var dot = $("status-dot");
+      dot.className = "status-dot " + state;
+      $("status-label").textContent = label;
+    }
+
+    // ---- Supabase REST API ----
+    // Map DB row (snake_case) → frontend object (camelCase)
+    function mapRow(r) {
+      return {
+        id: r.id,
+        systolic: r.systolic,
+        diastolic: r.diastolic,
+        sugar: r.sugar,
+        mealTiming: r.meal_timing || null,
+        recordedAt: r.recorded_at,
+        createdAt: r.created_at
+      };
+    }
+
+    function sbHeaders(extra) {
+      return Object.assign({
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json"
+      }, extra || {});
+    }
+
+    function fetchReadings() {
+      if (!configured) {
+        $("config-warning").style.display = "block";
+        setStatus("error", "Not configured");
+        renderEmptyConfig();
+        return;
+      }
+      setStatus("connecting", "Loading…");
+      fetch(SUPABASE_URL + "/rest/v1/readings?order=recorded_at.desc&select=id,systolic,diastolic,sugar,meal_timing,recorded_at,created_at", {
+        method: "GET",
+        headers: sbHeaders()
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          readings = (data || []).map(mapRow);
+          setStatus("connected", "Synced");
+          render();
+          // Show the Print button once readings have loaded
+          if (readings.length > 0) { $("print-btn").style.display = "inline-flex"; }
+        })
+        .catch(function (err) {
+          setStatus("error", "Offline");
+          toast("Couldn't load readings", String(err.message || err), "error");
+          renderError();
+        });
+    }
+
+    function toast(title, desc, type) {
+      var wrap = $("toast-wrap");
+      var el = document.createElement("div");
+      el.className = "toast" + (type === "error" ? " error" : "");
+      var iconSvg = type === "error"
+        ? '<svg class="toast-icon error" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+        : '<svg class="toast-icon success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+      el.innerHTML = iconSvg + '<div class="toast-body"><div class="toast-title">' + escapeHtml(title) + '</div>' + (desc ? '<div class="toast-desc">' + escapeHtml(desc) + '</div>' : '') + '</div>';
+      wrap.appendChild(el);
+      setTimeout(function () {
+        el.style.transition = "opacity .25s, transform .25s";
+        el.style.opacity = "0"; el.style.transform = "translateY(8px)";
+        setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 250);
+      }, 3500);
+    }
+
+    function renderEmptyConfig() {
+      $("list-container").innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><p class="empty-title">Setup required</p><p class="empty-text">Paste your Supabase URL and anon key into the file to start logging readings.</p></div>';
+      $("list-count").innerHTML = '<span>—</span>';
+    }
+
+    function renderError() {
+      $("list-container").innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><p class="empty-title">Couldn\'t reach the database</p><p class="empty-text">Check your connection and make sure the Supabase URL and key are correct.</p></div>';
+      $("list-count").innerHTML = '<span>—</span>';
+    }
+
+    function render() {
+      var container = $("list-container");
+      var count = $("list-count");
+      count.innerHTML = '<span class="status-dot connected"></span><span>' + readings.length + (readings.length === 1 ? " entry" : " entries") + '</span>';
+
+      if (readings.length === 0) {
+        container.innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></div><p class="empty-title">No readings yet</p><p class="empty-text">Enter your blood pressure above and tap &ldquo;Save reading&rdquo; to start your log.</p></div>';
+        return;
+      }
+
+      var sorted = readings.slice().sort(function (a, b) { return new Date(b.recordedAt) - new Date(a.recordedAt); });
+
+      var mobileHtml = '<div class="readings-scroll mobile-list">';
+      sorted.forEach(function (r) {
+        var d = new Date(r.recordedAt);
+        var cat = categoryFor(r.systolic, r.diastolic);
+        var hl = r.id === justAddedId ? " highlight" : "";
+        var mealBadgeHtml = r.mealTiming ? '<span class="badge meal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>' + (r.mealTiming === "before" ? "Before meal" : "After meal") + '</span>' : '';
+        var sugarHtml = r.sugar != null ? '<div style="margin-top:0.4rem;font-size:0.8rem;color:var(--muted-fg);">Sugar: <strong style="color:var(--fg);">' + escapeHtml(r.sugar) + '</strong></div>' : '';
+        mobileHtml += '<div class="reading-card' + hl + '" data-id="' + escapeHtml(r.id) + '"><div class="reading-card-top"><div><div><span class="reading-val">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '</span><span class="reading-unit">mmHg</span></div><div class="reading-badges"><span class="badge cat-' + cat + '">' + categoryLabels[cat] + '</span>' + mealBadgeHtml + '</div>' + sugarHtml + '<div class="reading-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatDate(d) + " \u00b7 " + formatTime(d) + '</div></div><div class="reading-actions"><button class="btn-icon" data-action="edit" data-id="' + escapeHtml(r.id) + '" aria-label="Edit reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon danger" data-action="delete" data-id="' + escapeHtml(r.id) + '" aria-label="Delete reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></div></div>';
+      });
+      mobileHtml += '</div>';
+
+      var tableHtml = '<div class="table-wrap"><table><thead><tr><th>When</th><th>Reading</th><th>Sugar</th><th class="cat-col">Category</th><th>Meal</th><th style="text-align:right;">Actions</th></tr></thead><tbody>';
+      sorted.forEach(function (r) {
+        var d = new Date(r.recordedAt);
+        var cat = categoryFor(r.systolic, r.diastolic);
+        var hl = r.id === justAddedId ? " highlight" : "";
+        var mealCellHtml = r.mealTiming ? '<span class="badge meal">' + (r.mealTiming === "before" ? "Before" : "After") + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
+        var sugarCellHtml = r.sugar != null ? '<span style="font-weight:600;">' + escapeHtml(r.sugar) + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
+        tableHtml += '<tr class="' + hl + '"><td><div class="t-when-date">' + formatDate(d) + '</div><div class="t-when-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatTime(d) + '</div></td><td><span class="t-reading">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '<span class="unit">mmHg</span></span></td><td>' + sugarCellHtml + '</td><td class="cat-col"><span class="badge cat-' + cat + '">' + categoryLabels[cat] + '</span></td><td>' + mealCellHtml + '</td><td><div class="t-actions"><button class="btn-icon" data-action="edit" data-id="' + escapeHtml(r.id) + '" aria-label="Edit reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon danger" data-action="delete" data-id="' + escapeHtml(r.id) + '" aria-label="Delete reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></td></tr>';
+      });
+      tableHtml += '</tbody></table></div>';
+
+      container.innerHTML = mobileHtml + tableHtml;
+    }
+
+    function renderBanner() {
+      var c = $("banner-container");
+      if (!lastAdded) { c.innerHTML = ""; return; }
+      var r = lastAdded;
+      var mealText = r.mealTiming ? (r.mealTiming === "before" ? "Before meal" : "After meal") : "Meal not specified";
+      var sugarText = r.sugar != null ? " · Sugar: " + escapeHtml(r.sugar) : "";
+      c.innerHTML = '<div class="banner"><div class="banner-inner"><div class="banner-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div style="min-width:0;flex:1;"><p class="banner-title">Saved to your log</p><p class="banner-text"><strong>' + escapeHtml(r.systolic) + '/' + escapeHtml(r.diastolic) + '</strong> mmHg' + sugarText + ' \u00b7 ' + mealText + '</p><div class="banner-actions"><button class="btn btn-outline btn-sm" id="banner-edit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit this reading</button><button class="btn btn-ghost btn-sm" id="banner-dismiss">Dismiss</button></div></div></div></div>';
+      $("banner-edit").addEventListener("click", function () { openEdit(r); });
+      $("banner-dismiss").addEventListener("click", function () { lastAdded = null; renderBanner(); });
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      if (!configured) { toast("Setup required", "Paste your Supabase URL and key first.", "error"); return; }
+      var sys = $("systolic").value.trim(), dia = $("diastolic").value.trim(), sug = $("sugar").value.trim(), meal = $("meal").value;
+      if (!sys || !dia) { toast("BP values required", "Enter both systolic and diastolic numbers.", "error"); return; }
+      if (!sug) { toast("Blood sugar required", "Enter your blood sugar reading.", "error"); return; }
+      var s = Number(sys), d = Number(dia), sg = Number(sug);
+      if (isNaN(s) || isNaN(d)) { toast("Numbers only", "Blood pressure values must be numeric.", "error"); return; }
+      if (isNaN(sg)) { toast("Invalid sugar", "Blood sugar must be a number.", "error"); return; }
+      if (s < 40 || s > 300 || d < 30 || d > 200) { toast("Out of range", "Systolic 40\u2013300, Diastolic 30\u2013200 mmHg.", "error"); return; }
+      if (sg < 1 || sg > 600) { toast("Sugar out of range", "Blood sugar must be between 1 and 600.", "error"); return; }
+
+      var btn = $("submit-btn");
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span><span>Saving\u2026</span>';
+      setStatus("connecting", "Saving…");
+
+      var payload = { systolic: s, diastolic: d, sugar: sg, meal_timing: meal || null };
+      fetch(SUPABASE_URL + "/rest/v1/readings", {
+        method: "POST",
+        headers: sbHeaders({ "Prefer": "return=representation" }),
+        body: JSON.stringify(payload)
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          if (!data || !data.length) throw new Error("No data returned");
+          var reading = mapRow(data[0]);
+          readings.push(reading);
+          justAddedId = reading.id;
+          lastAdded = reading;
+          if (justAddedTimer) clearTimeout(justAddedTimer);
+          justAddedTimer = setTimeout(function () { justAddedId = null; render(); }, 4000);
+          $("bp-form").reset();
+          setStatus("connected", "Synced");
+          render();
+          renderBanner();
+          // Show the Print button once we have at least one reading
+          $("print-btn").style.display = "inline-flex";
+          toast("Reading saved \u2713", s + "/" + d + " mmHg added to your log.");
+          // Change button to "SAVED" briefly as confirmation
+          btn.style.background = "#10b981";
+          btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>SAVED</span>';
+          setTimeout(function () {
+            btn.disabled = false;
+            btn.style.background = "";
+            btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg><span>Save reading</span>';
+          }, 1800);
+        })
+        .catch(function (err) {
+          setStatus("error", "Error");
+          toast("Couldn't save reading", String(err.message || err), "error");
+          btn.disabled = false;
+          btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg><span>Save reading</span>';
+        });
+    }
+
+    function openEdit(r) {
+      editTarget = r;
+      $("edit-systolic").value = r.systolic;
+      $("edit-diastolic").value = r.diastolic;
+      $("edit-sugar").value = r.sugar != null ? r.sugar : "";
+      $("edit-meal").value = r.mealTiming || "";
+      $("edit-recordedAt").value = toLocalDateTimeInput(r.recordedAt);
+      $("edit-modal").classList.add("open");
+      $("edit-systolic").focus();
+    }
+    function closeEdit() { $("edit-modal").classList.remove("open"); editTarget = null; }
+    function handleEditSubmit(e) {
+      e.preventDefault();
+      if (!editTarget) return;
+      var sys = $("edit-systolic").value.trim(), dia = $("edit-diastolic").value.trim(), sug = $("edit-sugar").value.trim(), meal = $("edit-meal").value;
+      if (!sys || !dia) { toast("Enter valid numbers", "Systolic and diastolic are required.", "error"); return; }
+      if (!sug) { toast("Blood sugar required", "Enter your blood sugar reading.", "error"); return; }
+      var s = Number(sys), d = Number(dia), sg = Number(sug);
+      if (isNaN(s) || isNaN(d)) { toast("Numbers only", "BP values must be numeric.", "error"); return; }
+      if (isNaN(sg)) { toast("Invalid sugar", "Blood sugar must be a number.", "error"); return; }
+      if (s < 40 || s > 300 || d < 30 || d > 200) { toast("Out of range", "Systolic 40\u2013300, Diastolic 30\u2013200 mmHg.", "error"); return; }
+      if (sg < 1 || sg > 600) { toast("Sugar out of range", "Blood sugar must be between 1 and 600.", "error"); return; }
+
+      var recordedAt = $("edit-recordedAt").value;
+      var payload = { systolic: s, diastolic: d, sugar: sg, meal_timing: meal || null };
+      if (recordedAt) payload.recorded_at = new Date(recordedAt).toISOString();
+
+      var btn = $("edit-save");
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span><span>Saving\u2026</span>';
+
+      fetch(SUPABASE_URL + "/rest/v1/readings?id=eq." + encodeURIComponent(editTarget.id) + "&select=id,systolic,diastolic,sugar,meal_timing,recorded_at,created_at", {
+        method: "PATCH",
+        headers: sbHeaders({ "Prefer": "return=representation" }),
+        body: JSON.stringify(payload)
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          if (!data || !data.length) throw new Error("Not found");
+          var updated = mapRow(data[0]);
+          var idx = readings.findIndex(function (r) { return r.id === updated.id; });
+          if (idx !== -1) {
+            readings[idx] = updated;
+            if (lastAdded && lastAdded.id === updated.id) lastAdded = updated;
+          }
+          closeEdit();
+          render();
+          renderBanner();
+          toast("Reading updated \u2713", "Your changes have been saved.");
+        })
+        .catch(function (err) {
+          toast("Couldn't update reading", String(err.message || err), "error");
+        })
+        .finally(function () {
+          btn.disabled = false;
+          btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Save changes</span>';
+        });
+    }
+
+    function openDelete(r) {
+      deleteTarget = r;
+      var d = new Date(r.recordedAt);
+      $("delete-desc").innerHTML = 'This will permanently remove <strong>' + escapeHtml(r.systolic) + '/' + escapeHtml(r.diastolic) + ' mmHg</strong> from ' + formatDate(d) + ", " + formatTime(d) + ". This can't be undone.";
+      $("delete-modal").classList.add("open");
+    }
+    function closeDelete() { $("delete-modal").classList.remove("open"); deleteTarget = null; }
+    function handleDelete() {
+      if (!deleteTarget) return;
+      var btn = $("delete-confirm");
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span><span>Deleting\u2026</span>';
+
+      fetch(SUPABASE_URL + "/rest/v1/readings?id=eq." + encodeURIComponent(deleteTarget.id), {
+        method: "DELETE",
+        headers: sbHeaders()
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          var id = deleteTarget.id;
+          readings = readings.filter(function (r) { return r.id !== id; });
+          if (lastAdded && lastAdded.id === id) { lastAdded = null; renderBanner(); }
+          closeDelete();
+          render();
+          // Hide the Print button if there are no readings left
+          if (readings.length === 0) { $("print-btn").style.display = "none"; }
+          toast("Reading deleted", "The entry has been removed from your log.");
+        })
+        .catch(function (err) {
+          toast("Couldn't delete reading", String(err.message || err), "error");
+        })
+        .finally(function () {
+          btn.disabled = false;
+          btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span>Delete</span>';
+        });
+    }
+
+    function handleListClick(e) {
+      var btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      var id = btn.getAttribute("data-id");
+      var r = readings.find(function (x) { return x.id === id; });
+      if (!r) return;
+      if (btn.getAttribute("data-action") === "edit") openEdit(r);
+      else if (btn.getAttribute("data-action") === "delete") openDelete(r);
+    }
+
+    function setupInstall() {
+      window.addEventListener("beforeinstallprompt", function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        $("install-btn").style.display = "inline-flex";
+      });
+      window.addEventListener("appinstalled", function () {
+        deferredPrompt = null;
+        $("install-btn").style.display = "none";
+        toast("App installed", "Find it on your home screen.");
+      });
+      if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true) {
+        $("install-btn").style.display = "none";
+      }
+    }
+    function handleInstall() {
+      if (!deferredPrompt) {
+        toast("Add to Home Screen", "Use your browser menu \u2192 'Add to Home Screen' to install.", "error");
+        return;
+      }
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function (choice) {
+        if (choice.outcome === "accepted") { $("install-btn").style.display = "none"; }
+        deferredPrompt = null;
+      });
+    }
+
+    // ---- Print ----
+    function handlePrint() {
+      if (readings.length === 0) {
+        toast("Nothing to print", "Add a reading first.", "error");
+        return;
+      }
+      // Populate the print-only header with the current date/time and count
+      var now = new Date();
+      var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      $("print-date").textContent = now.getDate() + " " + months[now.getMonth()] + " " + now.getFullYear();
+      $("print-count").textContent = readings.length + (readings.length === 1 ? " reading" : " readings");
+      // Give the browser a tick to render the print header, then print
+      setTimeout(function () { window.print(); }, 50);
+    }
+
+    function init() {
+      $("bp-form").addEventListener("submit", handleSubmit);
+      $("list-container").addEventListener("click", handleListClick);
+      $("edit-form").addEventListener("submit", handleEditSubmit);
+      $("edit-cancel").addEventListener("click", closeEdit);
+      $("delete-cancel").addEventListener("click", closeDelete);
+      $("delete-confirm").addEventListener("click", handleDelete);
+      $("install-btn").addEventListener("click", handleInstall);
+      $("print-btn").addEventListener("click", handlePrint);
+      $("edit-modal").addEventListener("click", function (e) { if (e.target === this) closeEdit(); });
+      $("delete-modal").addEventListener("click", function (e) { if (e.target === this) closeDelete(); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeEdit(); closeDelete(); } });
+
+      // Numeric keypad: strip non-digits
+      function digitsOnly() { this.value = this.value.replace(/[^0-9]/g, ""); }
+      // For sugar: allow digits and one decimal point (supports mmol/L like 5.5)
+      function decimalOnly() {
+        var v = this.value.replace(/[^0-9.]/g, "");
+        var parts = v.split(".");
+        if (parts.length > 2) { v = parts[0] + "." + parts.slice(1).join(""); }
+        this.value = v;
+      }
+      $("systolic").addEventListener("input", digitsOnly);
+      $("diastolic").addEventListener("input", digitsOnly);
+      $("sugar").addEventListener("input", decimalOnly);
+      $("edit-systolic").addEventListener("input", digitsOnly);
+      $("edit-diastolic").addEventListener("input", digitsOnly);
+      $("edit-sugar").addEventListener("input", decimalOnly);
+
+      // Mobile keyboard: keep form visible
+      document.addEventListener("focusin", function (e) {
+        if (!e.target.closest) return;
+        if (e.target.closest("#bp-form")) {
+          setTimeout(function () { window.scrollTo({ top: 0, behavior: "smooth" }); }, 300);
+        } else if (e.target.closest(".modal")) {
+          setTimeout(function () {
+            try { e.target.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_) {}
+          }, 300);
+        }
+      });
+
+      setupInstall();
+      fetchReadings();
+    }
+
+    if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", init); }
+    else { init(); }
+  })();
+  </script>
+</body>
+</html>
