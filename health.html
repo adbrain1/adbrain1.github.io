@@ -158,19 +158,7 @@
 
     .badge { display: inline-flex; align-items: center; gap: 0.25rem; border-radius: 0.375rem; padding: 0.15rem 0.5rem; font-size: 0.7rem; font-weight: 500; border: 1px solid transparent; }
     .badge svg { width: 0.75rem; height: 0.75rem; }
-    .badge.cat-Normal { background: #d1fae5; color: #047857; border-color: #a7f3d0; }
-    .badge.cat-Elevated { background: #fef3c7; color: #92400e; border-color: #fde68a; }
-    .badge.cat-Stage1 { background: #fef9c3; color: #854d0e; border-color: #fde047; }
-    .badge.cat-Stage2 { background: #ffedd5; color: #9a3412; border-color: #fed7aa; }
-    .badge.cat-Crisis { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
     .badge.meal { background: var(--muted); color: var(--fg); }
-    @media (prefers-color-scheme: dark) {
-      .badge.cat-Normal { background: rgba(16,185,129,0.18); color:#6ee7b7; border-color: rgba(16,185,129,0.3); }
-      .badge.cat-Elevated { background: rgba(245,158,11,0.18); color:#fcd34d; border-color: rgba(245,158,11,0.3); }
-      .badge.cat-Stage1 { background: rgba(234,179,8,0.18); color:#fde047; border-color: rgba(234,179,8,0.3); }
-      .badge.cat-Stage2 { background: rgba(249,115,22,0.18); color:#fdba74; border-color: rgba(249,115,22,0.3); }
-      .badge.cat-Crisis { background: rgba(239,68,68,0.18); color:#fca5a5; border-color: rgba(239,68,68,0.3); }
-    }
 
     .table-wrap { display: none; border: 1px solid var(--border); border-radius: 1rem; overflow: hidden; background: var(--card); box-shadow: var(--shadow); }
     @media (min-width: 640px) { .table-wrap { display: block; } .mobile-list { display: none; } }
@@ -254,8 +242,6 @@
       /* Badges print as simple outlined text */
       .badge { background: #fff !important; color: #000 !important; border: 1px solid #999 !important; padding: 0.05rem 0.3rem !important; }
       tr.highlight { background: #fff !important; }
-      /* Hide the Category column when printing */
-      .cat-col { display: none !important; }
       /* Remove sticky positioning */
       main { padding: 0 !important; }
       .wrap { max-width: none !important; padding: 0 !important; }
@@ -512,13 +498,10 @@
       return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) + "T" + pad2(d.getHours()) + ":" + pad2(d.getMinutes());
     }
     function categoryFor(sys, dia) {
-      if (sys >= 180 || dia >= 120) return "Crisis";
-      if (sys >= 140 || dia >= 90) return "Stage2";
-      if (sys >= 130 || dia >= 80) return "Stage1";
-      if (sys >= 120 && sys < 130 && dia < 80) return "Elevated";
-      return "Normal";
+      // Kept for backward compatibility but no longer used for display.
+      return "";
     }
-    var categoryLabels = { Normal: "Normal", Elevated: "Elevated", Stage1: "Stage 1", Stage2: "Stage 2", Crisis: "Crisis" };
+    var categoryLabels = {};
 
     function setStatus(state, label) {
       var dot = $("status-dot");
@@ -619,22 +602,20 @@
       var mobileHtml = '<div class="readings-scroll mobile-list">';
       sorted.forEach(function (r) {
         var d = new Date(r.recordedAt);
-        var cat = categoryFor(r.systolic, r.diastolic);
         var hl = r.id === justAddedId ? " highlight" : "";
         var mealBadgeHtml = r.mealTiming ? '<span class="badge meal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>' + (r.mealTiming === "before" ? "Before meal" : "After meal") + '</span>' : '';
         var sugarHtml = r.sugar != null ? '<div style="margin-top:0.4rem;font-size:0.8rem;color:var(--muted-fg);">Sugar: <strong style="color:var(--fg);">' + escapeHtml(r.sugar) + '</strong></div>' : '';
-        mobileHtml += '<div class="reading-card' + hl + '" data-id="' + escapeHtml(r.id) + '"><div class="reading-card-top"><div><div><span class="reading-val">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '</span><span class="reading-unit">mmHg</span></div><div class="reading-badges"><span class="badge cat-' + cat + '">' + categoryLabels[cat] + '</span>' + mealBadgeHtml + '</div>' + sugarHtml + '<div class="reading-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatDate(d) + " \u00b7 " + formatTime(d) + '</div></div><div class="reading-actions"><button class="btn-icon" data-action="edit" data-id="' + escapeHtml(r.id) + '" aria-label="Edit reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon danger" data-action="delete" data-id="' + escapeHtml(r.id) + '" aria-label="Delete reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></div></div>';
+        mobileHtml += '<div class="reading-card' + hl + '" data-id="' + escapeHtml(r.id) + '"><div class="reading-card-top"><div><div><span class="reading-val">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '</span><span class="reading-unit">mmHg</span></div><div class="reading-badges">' + mealBadgeHtml + '</div>' + sugarHtml + '<div class="reading-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatDate(d) + " \u00b7 " + formatTime(d) + '</div></div><div class="reading-actions"><button class="btn-icon" data-action="edit" data-id="' + escapeHtml(r.id) + '" aria-label="Edit reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon danger" data-action="delete" data-id="' + escapeHtml(r.id) + '" aria-label="Delete reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></div></div>';
       });
       mobileHtml += '</div>';
 
-      var tableHtml = '<div class="table-wrap"><table><thead><tr><th>When</th><th>BP</th><th>Sugar</th><th class="cat-col">Category</th><th>Meal</th><th style="text-align:right;">Actions</th></tr></thead><tbody>';
+      var tableHtml = '<div class="table-wrap"><table><thead><tr><th>When</th><th>BP</th><th>Sugar</th><th>Meal</th><th style="text-align:right;">Actions</th></tr></thead><tbody>';
       sorted.forEach(function (r) {
         var d = new Date(r.recordedAt);
-        var cat = categoryFor(r.systolic, r.diastolic);
         var hl = r.id === justAddedId ? " highlight" : "";
         var mealCellHtml = r.mealTiming ? '<span class="badge meal">' + (r.mealTiming === "before" ? "Before" : "After") + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
         var sugarCellHtml = r.sugar != null ? '<span style="font-weight:600;">' + escapeHtml(r.sugar) + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
-        tableHtml += '<tr class="' + hl + '"><td><div class="t-when-date">' + formatDate(d) + '</div><div class="t-when-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatTime(d) + '</div></td><td><span class="t-reading">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '<span class="unit">mmHg</span></span></td><td>' + sugarCellHtml + '</td><td class="cat-col"><span class="badge cat-' + cat + '">' + categoryLabels[cat] + '</span></td><td>' + mealCellHtml + '</td><td><div class="t-actions"><button class="btn-icon" data-action="edit" data-id="' + escapeHtml(r.id) + '" aria-label="Edit reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon danger" data-action="delete" data-id="' + escapeHtml(r.id) + '" aria-label="Delete reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></td></tr>';
+        tableHtml += '<tr class="' + hl + '"><td><div class="t-when-date">' + formatDate(d) + '</div><div class="t-when-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatTime(d) + '</div></td><td><span class="t-reading">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '<span class="unit">mmHg</span></span></td><td>' + sugarCellHtml + '</td><td>' + mealCellHtml + '</td><td><div class="t-actions"><button class="btn-icon" data-action="edit" data-id="' + escapeHtml(r.id) + '" aria-label="Edit reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon danger" data-action="delete" data-id="' + escapeHtml(r.id) + '" aria-label="Delete reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></td></tr>';
       });
       tableHtml += '</tbody></table></div>';
 
