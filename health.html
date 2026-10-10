@@ -66,7 +66,7 @@
     .brand { display: flex; align-items: center; gap: 0.6rem; }
     .brand-icon { width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: var(--primary); color: var(--primary-fg); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
     .brand-icon svg { width: 1.25rem; height: 1.25rem; }
-    .brand-title { font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.1; }
+    .brand-title { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.15; }
     .brand-sub { font-size: 0.7rem; color: var(--muted-fg); line-height: 1.1; }
     .status-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; display: inline-block; }
     .status-dot.connected { background: #10b981; }
@@ -271,8 +271,8 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>
         </div>
         <div>
-          <div class="brand-title">BP Log</div>
-          <div class="brand-sub">Blood pressure tracker</div>
+          <div class="brand-title">Naghmana Sattar's Health Log</div>
+          <div class="brand-sub">Blood pressure &amp; sugar tracker</div>
         </div>
       </div>
       <div class="top-actions">
@@ -362,7 +362,7 @@
         </div>
         <!-- Print-only header (visible only when printing) -->
         <div class="print-header">
-          <h1>BP Log — Blood Pressure Readings</h1>
+          <h1>Naghmana Sattar's Health Log</h1>
           <p>Printed on <span id="print-date"></span> · <span id="print-count"></span></p>
         </div>
         <div id="list-container">
@@ -449,8 +449,8 @@
        CONFIG — Paste your Supabase project URL and anon key below.
        Get these from: Supabase Dashboard → Settings → API
        ========================================================================= */
-    var SUPABASE_URL = "https://tyvpzycdpemqlfphcmxf.supabase.co/rest/v1/";
-    var SUPABASE_ANON_KEY = "sb_publishable_ssLtJgo5fKrLPpv0VDaZLg_kxbtadTC";
+    	var SUPABASE_URL = "https://tyvpzycdpemqlfhcmxf.supabase.co";
+	var SUPABASE_ANON_KEY = "sb_publishable_ssItJgo5FkrLPpv0VDaZLg_kxbta...";  // full key
     /* ========================================================================= */
 
     var ICON_SVG = "data:image/svg+xml,%3Csvg%20width%3D%22512%22%20height%3D%22512%22%20viewBox%3D%220%200%20512%20512%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22512%22%20y2%3D%22512%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%23e11d48%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23be123c%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22url(%23bg)%22%2F%3E%3Cpath%20d%3D%22M256%20392c-12%200-23.5-4.5-32.5-12.5l-95-86c-30-27-30-73%200-100%2027-24%2067-22%2092%204l35.5%2037%2035.5-37c25-26%2065-28%2092-4%2030%2027%2030%2073%200%20100l-95%2086c-9%208-20.5%2012.5-32.5%2012.5z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.95%22%2F%3E%3Cpath%20d%3D%22M120%20256h58l24-54%2040%20108%2028-72%2022%2042h100%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E";
@@ -600,7 +600,7 @@
     }
 
     function renderError() {
-      $("list-container").innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><p class="empty-title">Couldn\'t reach the database</p><p class="empty-text">Check your connection and make sure the Supabase URL and key are correct.</p></div>';
+      $("list-container").innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><p class="empty-title">Couldn\'t reach the database</p><p class="empty-text">If you see "HTTP 404", the table hasn\'t been created yet — run the SQL setup script in your Supabase project (SQL Editor → paste the script → Run). Also double-check the Supabase URL and key are correct.</p></div>';
       $("list-count").innerHTML = '<span>—</span>';
     }
 
@@ -627,7 +627,7 @@
       });
       mobileHtml += '</div>';
 
-      var tableHtml = '<div class="table-wrap"><table><thead><tr><th>When</th><th>Reading</th><th>Sugar</th><th class="cat-col">Category</th><th>Meal</th><th style="text-align:right;">Actions</th></tr></thead><tbody>';
+      var tableHtml = '<div class="table-wrap"><table><thead><tr><th>When</th><th>BP</th><th>Sugar</th><th class="cat-col">Category</th><th>Meal</th><th style="text-align:right;">Actions</th></tr></thead><tbody>';
       sorted.forEach(function (r) {
         var d = new Date(r.recordedAt);
         var cat = categoryFor(r.systolic, r.diastolic);
@@ -857,7 +857,7 @@
       var now = new Date();
       var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
       $("print-date").textContent = now.getDate() + " " + months[now.getMonth()] + " " + now.getFullYear();
-      $("print-count").textContent = readings.length + (readings.length === 1 ? " reading" : " readings");
+      $("print-count").textContent = readings.length + (readings.length === 1 ? " BP reading" : " BP readings");
       // Give the browser a tick to render the print header, then print
       setTimeout(function () { window.print(); }, 50);
     }
