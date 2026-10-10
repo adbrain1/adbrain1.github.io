@@ -121,22 +121,6 @@
     .spinner { width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .banner { margin-top: 1rem; border-radius: 1rem; overflow: hidden; background: color-mix(in oklch, #10b981 8%, var(--card)); border: 1px solid color-mix(in oklch, #10b981 35%, transparent); }
-    .banner-inner { display: flex; gap: 0.75rem; padding: 1rem; align-items: flex-start; }
-    .banner-check { width: 2rem; height: 2rem; border-radius: 50%; flex-shrink: 0; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; margin-top: 0.1rem; }
-    .banner-check svg { width: 1.1rem; height: 1.1rem; stroke-width: 3; }
-    .banner-title { font-size: 0.875rem; font-weight: 600; color: #047857; margin: 0 0 0.15rem; }
-    @media (prefers-color-scheme: dark) { .banner-title { color: #6ee7b7; } }
-    .banner-text { font-size: 0.85rem; color: #065f46; margin: 0; }
-    @media (prefers-color-scheme: dark) { .banner-text { color: #a7f3d0; } }
-    .banner-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
-    .banner .btn-outline { border-color: color-mix(in oklch, #10b981 45%, transparent); color: #047857; background: var(--card); }
-    @media (prefers-color-scheme: dark) { .banner .btn-outline { color: #6ee7b7; background: transparent; } }
-    .banner .btn-outline:hover { background: color-mix(in oklch, #10b981 14%, transparent); }
-    .banner .btn-ghost { color: #047857; }
-    @media (prefers-color-scheme: dark) { .banner .btn-ghost { color: #6ee7b7; } }
-    .banner .btn-ghost:hover { background: color-mix(in oklch, #10b981 14%, transparent); }
-
     .list-head { display: flex; align-items: center; justify-content: space-between; padding: 0 0.25rem; margin-bottom: 0.75rem; }
     .list-head .section-title { margin: 0; }
     .list-count { font-size: 0.75rem; color: var(--muted-fg); display: flex; align-items: center; gap: 0.4rem; }
@@ -145,7 +129,7 @@
     .readings-scroll::-webkit-scrollbar { width: 6px; }
     .readings-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9999px; }
     .reading-card { border: 1px solid var(--border); border-radius: 0.75rem; padding: 0.9rem; background: var(--card); box-shadow: var(--shadow); margin-bottom: 0.6rem; transition: border-color .2s, box-shadow .2s; }
-    .reading-card.highlight { border-color: color-mix(in oklch, #10b981 60%, transparent); box-shadow: 0 0 0 2px color-mix(in oklch, #10b981 30%, transparent); }
+    .reading-card.highlight { border-color: #10b981; box-shadow: 0 0 0 2px #10b981, 0 2px 8px rgba(16,185,129,0.25); background: color-mix(in oklch, #10b981 5%, var(--card)); }
     .reading-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
     .reading-val { font-size: 1.5rem; font-weight: 700; line-height: 1; }
     .reading-val .sep { color: var(--muted-fg); margin: 0 0.1rem; }
@@ -175,7 +159,7 @@
     td .t-reading .sep { color: var(--muted-fg); }
     td .t-reading .unit { font-size: 0.7rem; color: var(--muted-fg); margin-left: 0.2rem; font-weight: 400; }
     td .t-actions { display: flex; gap: 0.25rem; justify-content: flex-end; }
-    tr.highlight { background: color-mix(in oklch, #10b981 8%, transparent); }
+    tr.highlight { background: color-mix(in oklch, #10b981 12%, transparent); box-shadow: inset 3px 0 0 #10b981; }
 
     .empty { border: 1px dashed var(--border); border-radius: 1rem; background: var(--card); padding: 2rem 1rem; text-align: center; }
     .empty-icon { width: 3rem; height: 3rem; border-radius: 50%; background: var(--muted); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; color: var(--muted-fg); }
@@ -224,7 +208,7 @@
       body { background: #fff !important; color: #000 !important; font-size: 11pt; }
       /* Hide everything that's not the print area */
       .app-header, .app-footer, .config-banner,
-      .card, #bp-form, #banner-container, .list-head,
+      .card, #bp-form, .list-head,
       .top-actions, #toast-wrap, .modal-overlay,
       .reading-actions, .btn-icon, .btn-print,
       .mobile-list { display: none !important; }
@@ -266,9 +250,9 @@
           <span class="status-dot connecting" id="status-dot"></span>
           <span id="status-label">Connecting…</span>
         </span>
-        <button id="install-btn" class="btn btn-outline" style="display:none;">
+        <button id="install-btn" class="btn btn-outline" type="button">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>Install</span>
+          <span>Install app</span>
         </button>
       </div>
     </div>
@@ -329,8 +313,6 @@
           </div>
         </form>
       </section>
-
-      <div id="banner-container"></div>
 
       <section style="margin-top: 1.5rem;" aria-labelledby="log-heading">
         <div class="list-head">
@@ -468,7 +450,6 @@
 
     var justAddedId = null;
     var justAddedTimer = null;
-    var lastAdded = null;
     var readings = [];
     var editTarget = null;
     var deleteTarget = null;
@@ -604,8 +585,10 @@
         var d = new Date(r.recordedAt);
         var hl = r.id === justAddedId ? " highlight" : "";
         var mealBadgeHtml = r.mealTiming ? '<span class="badge meal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>' + (r.mealTiming === "before" ? "Before meal" : "After meal") + '</span>' : '';
-        var sugarHtml = r.sugar != null ? '<div style="margin-top:0.4rem;font-size:0.8rem;color:var(--muted-fg);">Sugar: <strong style="color:var(--fg);">' + escapeHtml(r.sugar) + '</strong></div>' : '';
-        mobileHtml += '<div class="reading-card' + hl + '" data-id="' + escapeHtml(r.id) + '"><div class="reading-card-top"><div><div><span class="reading-val">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '</span><span class="reading-unit">mmHg</span></div><div class="reading-badges">' + mealBadgeHtml + '</div>' + sugarHtml + '<div class="reading-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatDate(d) + " \u00b7 " + formatTime(d) + '</div></div><div class="reading-actions"><button class="btn-icon" data-action="edit" data-id="' + escapeHtml(r.id) + '" aria-label="Edit reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon danger" data-action="delete" data-id="' + escapeHtml(r.id) + '" aria-label="Delete reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></div></div>';
+        var hasBp = r.systolic != null && r.diastolic != null;
+        var bpHtml = hasBp ? '<div><span class="reading-val">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '</span><span class="reading-unit">mmHg</span></div>' : '<div style="font-size:0.75rem;color:var(--muted-fg);font-weight:500;">No BP reading</div>';
+        var sugarHtml = r.sugar != null ? '<div style="margin-top:0.4rem;font-size:0.8rem;color:var(--muted-fg);">Sugar: <strong style="color:var(--fg);">' + escapeHtml(r.sugar) + '</strong></div>' : '<div style="margin-top:0.4rem;font-size:0.8rem;color:var(--muted-fg);">No sugar reading</div>';
+        mobileHtml += '<div class="reading-card' + hl + '" data-id="' + escapeHtml(r.id) + '"><div class="reading-card-top"><div>' + bpHtml + '<div class="reading-badges">' + mealBadgeHtml + '</div>' + sugarHtml + '<div class="reading-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatDate(d) + " \u00b7 " + formatTime(d) + '</div></div><div class="reading-actions"><button class="btn-icon" data-action="edit" data-id="' + escapeHtml(r.id) + '" aria-label="Edit reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon danger" data-action="delete" data-id="' + escapeHtml(r.id) + '" aria-label="Delete reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></div></div>';
       });
       mobileHtml += '</div>';
 
@@ -615,42 +598,40 @@
         var hl = r.id === justAddedId ? " highlight" : "";
         var mealCellHtml = r.mealTiming ? '<span class="badge meal">' + (r.mealTiming === "before" ? "Before" : "After") + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
         var sugarCellHtml = r.sugar != null ? '<span style="font-weight:600;">' + escapeHtml(r.sugar) + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
-        tableHtml += '<tr class="' + hl + '"><td><div class="t-when-date">' + formatDate(d) + '</div><div class="t-when-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatTime(d) + '</div></td><td><span class="t-reading">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '<span class="unit">mmHg</span></span></td><td>' + sugarCellHtml + '</td><td>' + mealCellHtml + '</td><td><div class="t-actions"><button class="btn-icon" data-action="edit" data-id="' + escapeHtml(r.id) + '" aria-label="Edit reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon danger" data-action="delete" data-id="' + escapeHtml(r.id) + '" aria-label="Delete reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></td></tr>';
+        var bpCellHtml = (r.systolic != null && r.diastolic != null) ? '<span class="t-reading">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '<span class="unit">mmHg</span></span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
+        tableHtml += '<tr class="' + hl + '"><td><div class="t-when-date">' + formatDate(d) + '</div><div class="t-when-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatTime(d) + '</div></td><td>' + bpCellHtml + '</td><td>' + sugarCellHtml + '</td><td>' + mealCellHtml + '</td><td><div class="t-actions"><button class="btn-icon" data-action="edit" data-id="' + escapeHtml(r.id) + '" aria-label="Edit reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon danger" data-action="delete" data-id="' + escapeHtml(r.id) + '" aria-label="Delete reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></td></tr>';
       });
       tableHtml += '</tbody></table></div>';
 
       container.innerHTML = mobileHtml + tableHtml;
     }
 
-    function renderBanner() {
-      var c = $("banner-container");
-      if (!lastAdded) { c.innerHTML = ""; return; }
-      var r = lastAdded;
-      var mealText = r.mealTiming ? (r.mealTiming === "before" ? "Before meal" : "After meal") : "Meal not specified";
-      var sugarText = r.sugar != null ? " · Sugar: " + escapeHtml(r.sugar) : "";
-      c.innerHTML = '<div class="banner"><div class="banner-inner"><div class="banner-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div style="min-width:0;flex:1;"><p class="banner-title">Saved to your log</p><p class="banner-text"><strong>' + escapeHtml(r.systolic) + '/' + escapeHtml(r.diastolic) + '</strong> mmHg' + sugarText + ' \u00b7 ' + mealText + '</p><div class="banner-actions"><button class="btn btn-outline btn-sm" id="banner-edit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit this reading</button><button class="btn btn-ghost btn-sm" id="banner-dismiss">Dismiss</button></div></div></div></div>';
-      $("banner-edit").addEventListener("click", function () { openEdit(r); });
-      $("banner-dismiss").addEventListener("click", function () { lastAdded = null; renderBanner(); });
-    }
-
     function handleSubmit(e) {
       e.preventDefault();
       if (!configured) { toast("Setup required", "Paste your Supabase URL and key first.", "error"); return; }
       var sys = $("systolic").value.trim(), dia = $("diastolic").value.trim(), sug = $("sugar").value.trim(), meal = $("meal").value;
-      if (!sys || !dia) { toast("BP values required", "Enter both systolic and diastolic numbers.", "error"); return; }
-      if (!sug) { toast("Blood sugar required", "Enter your blood sugar reading.", "error"); return; }
-      var s = Number(sys), d = Number(dia), sg = Number(sug);
-      if (isNaN(s) || isNaN(d)) { toast("Numbers only", "Blood pressure values must be numeric.", "error"); return; }
-      if (isNaN(sg)) { toast("Invalid sugar", "Blood sugar must be a number.", "error"); return; }
-      if (s < 40 || s > 300 || d < 30 || d > 200) { toast("Out of range", "Systolic 40\u2013300, Diastolic 30\u2013200 mmHg.", "error"); return; }
-      if (sg < 1 || sg > 600) { toast("Sugar out of range", "Blood sugar must be between 1 and 600.", "error"); return; }
+      // At least one of BP or sugar must be entered
+      if (!sys && !dia && !sug) { toast("Enter a reading", "Add BP values and/or blood sugar.", "error"); return; }
+      // BP: both systolic and diastolic must be entered together (or neither)
+      if ((sys && !dia) || (!sys && dia)) { toast("Incomplete BP", "Enter both systolic and diastolic, or leave both empty.", "error"); return; }
+      var hasBp = !!sys && !!dia;
+      var hasSugar = !!sug;
+      var s = hasBp ? Number(sys) : null;
+      var d = hasBp ? Number(dia) : null;
+      var sg = hasSugar ? Number(sug) : null;
+      if (hasBp && (isNaN(s) || isNaN(d))) { toast("Numbers only", "Blood pressure values must be numeric.", "error"); return; }
+      if (hasSugar && isNaN(sg)) { toast("Invalid sugar", "Blood sugar must be a number.", "error"); return; }
+      if (hasBp && (s < 40 || s > 300 || d < 30 || d > 200)) { toast("Out of range", "Systolic 40\u2013300, Diastolic 30\u2013200 mmHg.", "error"); return; }
+      if (hasSugar && (sg < 1 || sg > 600)) { toast("Sugar out of range", "Blood sugar must be between 1 and 600.", "error"); return; }
 
       var btn = $("submit-btn");
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span><span>Saving\u2026</span>';
       setStatus("connecting", "Saving…");
 
-      var payload = { systolic: s, diastolic: d, sugar: sg, meal_timing: meal || null };
+      var payload = { meal_timing: meal || null };
+      if (hasBp) { payload.systolic = s; payload.diastolic = d; }
+      if (hasSugar) { payload.sugar = sg; }
       fetch(SUPABASE_URL + "/rest/v1/readings", {
         method: "POST",
         headers: sbHeaders({ "Prefer": "return=representation" }),
@@ -665,16 +646,18 @@
           var reading = mapRow(data[0]);
           readings.push(reading);
           justAddedId = reading.id;
-          lastAdded = reading;
           if (justAddedTimer) clearTimeout(justAddedTimer);
-          justAddedTimer = setTimeout(function () { justAddedId = null; render(); }, 4000);
+          justAddedTimer = setTimeout(function () { justAddedId = null; render(); }, 5000);
           $("bp-form").reset();
           setStatus("connected", "Synced");
           render();
-          renderBanner();
           // Show the Print button once we have at least one reading
           $("print-btn").style.display = "inline-flex";
-          toast("Reading saved \u2713", s + "/" + d + " mmHg added to your log.");
+          var toastDesc = "";
+          if (hasBp && hasSugar) { toastDesc = s + "/" + d + " mmHg · Sugar " + sg + " added to your log."; }
+          else if (hasBp) { toastDesc = s + "/" + d + " mmHg added to your log."; }
+          else { toastDesc = "Sugar " + sg + " added to your log."; }
+          toast("Reading saved \u2713", toastDesc);
           // Change button to "SAVED" briefly as confirmation
           btn.style.background = "#10b981";
           btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>SAVED</span>';
@@ -707,16 +690,24 @@
       e.preventDefault();
       if (!editTarget) return;
       var sys = $("edit-systolic").value.trim(), dia = $("edit-diastolic").value.trim(), sug = $("edit-sugar").value.trim(), meal = $("edit-meal").value;
-      if (!sys || !dia) { toast("Enter valid numbers", "Systolic and diastolic are required.", "error"); return; }
-      if (!sug) { toast("Blood sugar required", "Enter your blood sugar reading.", "error"); return; }
-      var s = Number(sys), d = Number(dia), sg = Number(sug);
-      if (isNaN(s) || isNaN(d)) { toast("Numbers only", "BP values must be numeric.", "error"); return; }
-      if (isNaN(sg)) { toast("Invalid sugar", "Blood sugar must be a number.", "error"); return; }
-      if (s < 40 || s > 300 || d < 30 || d > 200) { toast("Out of range", "Systolic 40\u2013300, Diastolic 30\u2013200 mmHg.", "error"); return; }
-      if (sg < 1 || sg > 600) { toast("Sugar out of range", "Blood sugar must be between 1 and 600.", "error"); return; }
+      // At least one of BP or sugar must be entered
+      if (!sys && !dia && !sug) { toast("Enter a reading", "Add BP values and/or blood sugar.", "error"); return; }
+      // BP: both systolic and diastolic must be entered together (or neither)
+      if ((sys && !dia) || (!sys && dia)) { toast("Incomplete BP", "Enter both systolic and diastolic, or leave both empty.", "error"); return; }
+      var hasBp = !!sys && !!dia;
+      var hasSugar = !!sug;
+      var s = hasBp ? Number(sys) : null;
+      var d = hasBp ? Number(dia) : null;
+      var sg = hasSugar ? Number(sug) : null;
+      if (hasBp && (isNaN(s) || isNaN(d))) { toast("Numbers only", "BP values must be numeric.", "error"); return; }
+      if (hasSugar && isNaN(sg)) { toast("Invalid sugar", "Blood sugar must be a number.", "error"); return; }
+      if (hasBp && (s < 40 || s > 300 || d < 30 || d > 200)) { toast("Out of range", "Systolic 40\u2013300, Diastolic 30\u2013200 mmHg.", "error"); return; }
+      if (hasSugar && (sg < 1 || sg > 600)) { toast("Sugar out of range", "Blood sugar must be between 1 and 600.", "error"); return; }
 
       var recordedAt = $("edit-recordedAt").value;
-      var payload = { systolic: s, diastolic: d, sugar: sg, meal_timing: meal || null };
+      var payload = { meal_timing: meal || null };
+      if (hasBp) { payload.systolic = s; payload.diastolic = d; } else { payload.systolic = null; payload.diastolic = null; }
+      if (hasSugar) { payload.sugar = sg; } else { payload.sugar = null; }
       if (recordedAt) payload.recorded_at = new Date(recordedAt).toISOString();
 
       var btn = $("edit-save");
@@ -738,11 +729,9 @@
           var idx = readings.findIndex(function (r) { return r.id === updated.id; });
           if (idx !== -1) {
             readings[idx] = updated;
-            if (lastAdded && lastAdded.id === updated.id) lastAdded = updated;
           }
           closeEdit();
           render();
-          renderBanner();
           toast("Reading updated \u2713", "Your changes have been saved.");
         })
         .catch(function (err) {
@@ -775,7 +764,6 @@
           if (!res.ok) throw new Error("HTTP " + res.status);
           var id = deleteTarget.id;
           readings = readings.filter(function (r) { return r.id !== id; });
-          if (lastAdded && lastAdded.id === id) { lastAdded = null; renderBanner(); }
           closeDelete();
           render();
           // Hide the Print button if there are no readings left
@@ -805,20 +793,26 @@
       window.addEventListener("beforeinstallprompt", function (e) {
         e.preventDefault();
         deferredPrompt = e;
-        $("install-btn").style.display = "inline-flex";
       });
       window.addEventListener("appinstalled", function () {
         deferredPrompt = null;
         $("install-btn").style.display = "none";
         toast("App installed", "Find it on your home screen.");
       });
+      // Hide the install button if the app is already running standalone (installed)
       if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true) {
         $("install-btn").style.display = "none";
       }
     }
     function handleInstall() {
+      // Detect iOS (iPhone/iPad) — no native install prompt, show instructions
+      var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIOS && !deferredPrompt) {
+        toast("Install on iPhone/iPad", "In Safari: tap the Share icon, then 'Add to Home Screen'.", "error");
+        return;
+      }
       if (!deferredPrompt) {
-        toast("Add to Home Screen", "Use your browser menu \u2192 'Add to Home Screen' to install.", "error");
+        toast("Install the app", "Use your browser menu \u2192 'Add to Home screen' or 'Install app'.", "error");
         return;
       }
       deferredPrompt.prompt();
