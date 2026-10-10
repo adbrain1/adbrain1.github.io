@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-  <title>BP Log — Blood Pressure Tracker</title>
+  <title>Health Log</title>
   <meta name="description" content="Log, review and edit blood pressure readings." />
 
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20width%3D%22512%22%20height%3D%22512%22%20viewBox%3D%220%200%20512%20512%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22512%22%20y2%3D%22512%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%23e11d48%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23be123c%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22url(%23bg)%22%2F%3E%3Cpath%20d%3D%22M256%20392c-12%200-23.5-4.5-32.5-12.5l-95-86c-30-27-30-73%200-100%2027-24%2067-22%2092%204l35.5%2037%2035.5-37c25-26%2065-28%2092-4%2030%2027%2030%2073%200%20100l-95%2086c-9%208-20.5%2012.5-32.5%2012.5z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.95%22%2F%3E%3Cpath%20d%3D%22M120%20256h58l24-54%2040%20108%2028-72%2022%2042h100%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E" />
@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="BP Log" />
+  <meta name="apple-mobile-web-app-title" content="Health Log" />
 
   <style>
     :root {
@@ -66,8 +66,8 @@
     .brand { display: flex; align-items: center; gap: 0.6rem; }
     .brand-icon { width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: var(--primary); color: var(--primary-fg); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
     .brand-icon svg { width: 1.25rem; height: 1.25rem; }
-    .brand-title { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.15; }
-    .brand-sub { font-size: 0.7rem; color: var(--muted-fg); line-height: 1.1; }
+    .brand-title { font-size: 0.72rem; font-weight: 500; color: var(--muted-fg); letter-spacing: 0.01em; line-height: 1.1; }
+    .brand-title-2 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; }
     .status-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; display: inline-block; }
     .status-dot.connected { background: #10b981; }
     .status-dot.connecting { background: #f59e0b; animation: pulse 1.2s infinite; }
@@ -241,8 +241,8 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>
         </div>
         <div>
-          <div class="brand-title">Naghmana Sattar's Health Log</div>
-          <div class="brand-sub">Blood pressure &amp; sugar tracker</div>
+          <div class="brand-title">Naghmana Sattar's</div>
+          <div class="brand-title-2">Health Log</div>
         </div>
       </div>
       <div class="top-actions">
@@ -252,7 +252,7 @@
         </span>
         <button id="install-btn" class="btn btn-outline" type="button">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>Install app</span>
+          <span>Install</span>
         </button>
       </div>
     </div>
@@ -426,9 +426,9 @@
     // Inject PWA manifest
     try {
       var manifest = {
-        name: "BP Log \u2014 Blood Pressure Tracker",
-        short_name: "BP Log",
-        description: "Log, review and edit blood pressure readings.",
+        name: "Health Log",
+        short_name: "Health Log",
+        description: "Log blood pressure and sugar readings.",
         start_url: ".",
         scope: ".",
         display: "standalone",
