@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Health Log</title>
+  <meta name="description" content="View blood pressure and sugar readings log." />
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20width%3D%22512%22%20height%3D%22512%22%20viewBox%3D%220%200%20512%20512%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22512%22%20y2%3D%22512%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%23e11d48%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23be123c%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22url(%23bg)%22%2F%3E%3Cpath%20d%3D%22M256%20392c-12%200-23.5-4.5-32.5-12.5l-95-86c-30-27-30-73%200-100%2027-24%2067-22%2092%204l35.5%2037%2035.5-37c25-26%2065-28%2092-4%2030%2027%2030%2073%200%20100l-95%2086c-9%208-20.5%2012.5-32.5%2012.5z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.95%22%2F%3E%3Cpath%20d%3D%22M120%20256h58l24-54%2040%20108%2028-72%2022%2042h100%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20width%3D%22512%22%20height%3D%22512%22%20viewBox%3D%220%200%20512%20512%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22512%22%20y2%3D%22512%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%23e11d48%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23be123c%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22url(%23bg)%22%2F%3E%3Cpath%20d%3D%22M256%20392c-12%200-23.5-4.5-32.5-12.5l-95-86c-30-27-30-73%200-100%2027-24%2067-22%2092%204l35.5%2037%2035.5-37c25-26%2065-28%2092-4%2030%2027%2030%2073%200%20100l-95%2086c-9%208-20.5%2012.5-32.5%2012.5z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.95%22%2F%3E%3Cpath%20d%3D%22M120%20256h58l24-54%2040%20108%2028-72%2022%2042h100%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E" />
+
+  <meta name="theme-color" content="#e11d48" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Health Log" />
+
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: oklch(0.99 0.004 15);
+      --fg: oklch(0.18 0.02 15);
+      --card: #fff;
+      --muted: oklch(0.965 0.008 15);
+      --muted-fg: oklch(0.5 0.02 15);
+      --border: oklch(0.92 0.008 15);
+      --primary: oklch(0.55 0.2 18);
+      --primary-fg: oklch(0.99 0.005 15);
+      --accent: oklch(0.95 0.03 15);
+      --ring: oklch(0.55 0.2 18);
+      --danger: oklch(0.577 0.245 27.325);
+      --danger-fg: #fff;
+      --radius: 0.75rem;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: oklch(0.16 0.01 15);
+        --fg: oklch(0.97 0.005 15);
+        --card: oklch(0.21 0.015 15);
+        --muted: oklch(0.26 0.01 15);
+        --muted-fg: oklch(0.72 0.015 15);
+        --border: oklch(1 0 0 / 12%);
+        --accent: oklch(0.3 0.03 15);
+      }
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--fg); line-height: 1.5;
+      -webkit-font-smoothing: antialiased; min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+
+    .wrap { width: 100%; max-width: 48rem; margin: 0 auto; padding: 0 1rem; }
+    header.app-header {
+      position: sticky; top: 0; z-index: 30;
+      background: color-mix(in oklch, var(--bg) 88%, transparent);
+      backdrop-filter: blur(10px); border-bottom: 1px solid var(--border);
+    }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 1rem; max-width: 48rem; margin: 0 auto; }
+    .brand { display: flex; align-items: center; gap: 0.6rem; }
+    .brand-icon { width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: var(--primary); color: var(--primary-fg); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
+    .brand-icon svg { width: 1.25rem; height: 1.25rem; }
+    .brand-title { font-size: 0.72rem; font-weight: 500; color: var(--muted-fg); letter-spacing: 0.01em; line-height: 1.1; }
+    .brand-title-2 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; }
+    .status-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; display: inline-block; }
+    .status-dot.connected { background: #10b981; }
+    .status-dot.connecting { background: #f59e0b; animation: pulse 1.2s infinite; }
+    .status-dot.error { background: var(--danger); }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .status-text { font-size: 0.65rem; color: var(--muted-fg); display: flex; align-items: center; gap: 0.3rem; }
+
+    main { flex: 1; padding: 1.25rem 0 1.5rem; }
+    footer.app-footer { margin-top: auto; border-top: 1px solid var(--border); background: color-mix(in oklch, var(--bg) 88%, transparent); backdrop-filter: blur(10px); }
+    .footer-inner { padding: 0.9rem 1rem; max-width: 48rem; margin: 0 auto; text-align: center; }
+    .footer-inner p { margin: 0; font-size: 0.7rem; color: var(--muted-fg); }
+
+    .list-head { display: flex; align-items: center; justify-content: space-between; padding: 0 0.25rem; margin-bottom: 0.75rem; }
+    .list-head .section-title { margin: 0; }
+    .list-count { font-size: 0.75rem; color: var(--muted-fg); display: flex; align-items: center; gap: 0.4rem; }
+
+    .readings-scroll { max-height: 70vh; overflow-y: auto; padding-right: 0.15rem; }
+    .readings-scroll::-webkit-scrollbar { width: 6px; }
+    .readings-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9999px; }
+    .reading-card { border: 1px solid var(--border); border-radius: 0.75rem; padding: 0.9rem; background: var(--card); box-shadow: var(--shadow); margin-bottom: 0.6rem; transition: border-color .2s, box-shadow .2s; }
+    .reading-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+    .reading-val { font-size: 1.5rem; font-weight: 700; line-height: 1; }
+    .reading-val .sep { color: var(--muted-fg); margin: 0 0.1rem; }
+    .reading-unit { font-size: 0.75rem; color: var(--muted-fg); margin-left: 0.25rem; }
+    .reading-badges { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
+    .reading-time { display: flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; color: var(--muted-fg); margin-top: 0.5rem; }
+    .reading-time svg { width: 0.75rem; height: 0.75rem; }
+
+    .badge { display: inline-flex; align-items: center; gap: 0.25rem; border-radius: 0.375rem; padding: 0.15rem 0.5rem; font-size: 0.7rem; font-weight: 500; border: 1px solid transparent; }
+    .badge svg { width: 0.75rem; height: 0.75rem; }
+    .badge.meal { background: var(--muted); color: var(--fg); }
+
+    .table-wrap { display: none; border: 1px solid var(--border); border-radius: 1rem; overflow: hidden; background: var(--card); box-shadow: var(--shadow); }
+    @media (min-width: 640px) { .table-wrap { display: block; } .mobile-list { display: none; } }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    thead tr { background: var(--muted); border-bottom: 1px solid var(--border); }
+    th { text-align: left; padding: 0.75rem 1rem; font-weight: 600; font-size: 0.8rem; }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--muted); }
+    td .t-when-date { font-weight: 600; }
+    td .t-when-time { display: flex; align-items: center; gap: 0.25rem; font-size: 0.72rem; color: var(--muted-fg); }
+    td .t-when-time svg { width: 0.7rem; height: 0.7rem; }
+    td .t-reading { font-size: 1.15rem; font-weight: 700; }
+    td .t-reading .sep { color: var(--muted-fg); }
+    td .t-reading .unit { font-size: 0.7rem; color: var(--muted-fg); margin-left: 0.2rem; font-weight: 400; }
+
+    .empty { border: 1px dashed var(--border); border-radius: 1rem; background: var(--card); padding: 2rem 1rem; text-align: center; }
+    .empty-icon { width: 3rem; height: 3rem; border-radius: 50%; background: var(--muted); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; color: var(--muted-fg); }
+    .empty-icon svg { width: 1.5rem; height: 1.5rem; }
+    .empty-title { font-size: 0.9rem; font-weight: 600; margin: 0 0 0.25rem; }
+    .empty-text { font-size: 0.78rem; color: var(--muted-fg); max-width: 18rem; margin: 0 auto; }
+
+    .skeleton { height: 5rem; border-radius: 0.75rem; background: var(--muted); margin-bottom: 0.6rem; animation: skpulse 1.5s ease-in-out infinite; }
+    @keyframes skpulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; height: 2.25rem; padding: 0 0.75rem; border: none; border-radius: 0.5rem; font-size: 0.85rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: background .15s, opacity .15s, transform .05s; text-decoration: none; }
+    .btn:active { transform: scale(0.99); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--fg); }
+    .btn-outline:hover:not(:disabled) { background: var(--accent); }
+
+    .toast-wrap { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; pointer-events: none; width: 100%; max-width: 24rem; padding: 0 1rem; }
+    .toast { background: var(--card); border: 1px solid var(--border); border-radius: 0.6rem; padding: 0.75rem 1rem; box-shadow: 0 8px 30px rgba(0,0,0,0.15); display: flex; gap: 0.6rem; align-items: flex-start; pointer-events: auto; animation: toastIn .2s ease; width: 100%; }
+    @keyframes toastIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .toast.error { border-color: color-mix(in oklch, var(--danger) 45%, transparent); }
+    .toast-icon { width: 1.25rem; height: 1.25rem; flex-shrink: 0; margin-top: 0.05rem; }
+    .toast-icon.success { color: #10b981; }
+    .toast-icon.error { color: var(--danger); }
+    .toast-body { min-width: 0; }
+    .toast-title { font-size: 0.85rem; font-weight: 600; line-height: 1.2; }
+    .toast-desc { font-size: 0.78rem; color: var(--muted-fg); margin-top: 0.1rem; }
+
+    .top-actions { display: flex; gap: 0.4rem; align-items: center; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    .live-indicator { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.65rem; color: #10b981; font-weight: 500; }
+    .live-dot { width: 0.4rem; height: 0.4rem; border-radius: 50%; background: #10b981; animation: livepulse 2s infinite; }
+    @keyframes livepulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+  </style>
+  <!-- jsPDF for client-side PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>
+        </div>
+        <div>
+          <div class="brand-title">Naghmana Sattar's</div>
+          <div class="brand-title-2">Health Log</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="status-text" id="status">
+          <span class="status-dot connecting" id="status-dot"></span>
+          <span id="status-label">Connecting…</span>
+        </span>
+        <button id="install-btn" class="btn btn-outline" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Install</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <section aria-labelledby="log-heading">
+        <div class="list-head">
+          <h2 id="log-heading" class="section-title" style="font-size: 0.875rem; font-weight: 600; margin: 0;">Readings</h2>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="live-indicator"><span class="live-dot"></span>Live</span>
+            <span class="list-count" id="list-count">
+              <span class="status-dot connecting" style="background:var(--muted-fg)"></span>
+              <span>Loading…</span>
+            </span>
+            <button id="pdf-btn" class="btn btn-outline" type="button" style="display:none;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+              <span>PDF</span>
+            </button>
+          </div>
+        </div>
+        <div id="list-container">
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <p>View-only log · Add to home screen to use as an app.</p>
+    </div>
+  </footer>
+
+  <div class="toast-wrap" id="toast-wrap" aria-live="polite"></div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    /* =========================================================================
+       CONFIG — Same Supabase credentials as the main health.html page.
+       ========================================================================= */
+    var SUPABASE_URL = "https://tyvpzycdpemqlfphcmxf.supabase.co";
+    var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5dnB6eWNkcGVtcWxmcGhjbXhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NTU1NTcsImV4cCI6MjEwNzIzMTU1N30.S8N0Kmqg7_sWgQPJeX0HdQcjI8DzOo90lxjiyELXKWk";
+    /* ========================================================================= */
+
+    var ICON_SVG = "data:image/svg+xml,%3Csvg%20width%3D%22512%22%20height%3D%22512%22%20viewBox%3D%220%200%20512%20512%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22512%22%20y2%3D%22512%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%23e11d48%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23be123c%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22url(%23bg)%22%2F%3E%3Cpath%20d%3D%22M256%20392c-12%200-23.5-4.5-32.5-12.5l-95-86c-30-27-30-73%200-100%2027-24%2067-22%2092%204l35.5%2037%2035.5-37c25-26%2065-28%2092-4%2030%2027%2030%2073%200%20100l-95%2086c-9%208-20.5%2012.5-32.5%2012.5z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.95%22%2F%3E%3Cpath%20d%3D%22M120%20256h58l24-54%2040%20108%2028-72%2022%2042h100%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E";
+
+    // Inject PWA manifest
+    try {
+      var manifest = {
+        name: "Health Log",
+        short_name: "Health Log",
+        description: "View blood pressure and sugar readings log.",
+        start_url: ".",
+        scope: ".",
+        display: "standalone",
+        orientation: "portrait",
+        background_color: "#ffffff",
+        theme_color: "#e11d48",
+        categories: ["health", "medical", "lifestyle"],
+        icons: [
+          { src: ICON_SVG, sizes: "any", type: "image/svg+xml", purpose: "any" },
+          { src: ICON_SVG, sizes: "512x512", type: "image/svg+xml", purpose: "maskable" }
+        ]
+      };
+      var blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+      var link = document.createElement("link");
+      link.rel = "manifest";
+      link.href = URL.createObjectURL(blob);
+      document.head.appendChild(link);
+    } catch (e) {}
+
+    var readings = [];
+    var deferredPrompt = null;
+    var refreshTimer = null;
+    var configured = SUPABASE_URL && SUPABASE_URL !== "PASTE_YOUR_SUPABASE_URL_HERE" && SUPABASE_URL.indexOf("supabase.co") !== -1
+      && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== "PASTE_YOUR_SUPABASE_ANON_KEY_HERE" && SUPABASE_ANON_KEY.length > 30;
+
+    function $(id) { return document.getElementById(id); }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
+    function formatDate(d) {
+      var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      return d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear();
+    }
+    function formatTime(d) {
+      var h = d.getHours(), m = d.getMinutes();
+      var ampm = h >= 12 ? "PM" : "AM";
+      var h12 = h % 12 || 12;
+      return h12 + ":" + (m < 10 ? "0" + m : m) + " " + ampm;
+    }
+    function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+
+    function setStatus(state, label) {
+      var dot = $("status-dot");
+      dot.className = "status-dot " + state;
+      $("status-label").textContent = label;
+    }
+
+    // ---- Supabase REST API ----
+    function mapRow(r) {
+      return {
+        id: r.id,
+        systolic: r.systolic,
+        diastolic: r.diastolic,
+        sugar: r.sugar,
+        mealTiming: r.meal_timing || null,
+        recordedAt: r.recorded_at,
+        createdAt: r.created_at
+      };
+    }
+
+    function sbHeaders(extra) {
+      return Object.assign({
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json"
+      }, extra || {});
+    }
+
+    function fetchReadings() {
+      if (!configured) {
+        setStatus("error", "Not configured");
+        renderErrorConfig();
+        return;
+      }
+      fetch(SUPABASE_URL + "/rest/v1/readings?order=recorded_at.desc&select=id,systolic,diastolic,sugar,meal_timing,recorded_at,created_at", {
+        method: "GET",
+        headers: sbHeaders()
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          readings = (data || []).map(mapRow);
+          setStatus("connected", "Live");
+          render();
+          if (readings.length > 0) { $("pdf-btn").style.display = "inline-flex"; } else { $("pdf-btn").style.display = "none"; }
+        })
+        .catch(function (err) {
+          setStatus("error", "Offline");
+          renderError();
+        });
+    }
+
+    function toast(title, desc, type) {
+      var wrap = $("toast-wrap");
+      var el = document.createElement("div");
+      el.className = "toast" + (type === "error" ? " error" : "");
+      var iconSvg = type === "error"
+        ? '<svg class="toast-icon error" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+        : '<svg class="toast-icon success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+      el.innerHTML = iconSvg + '<div class="toast-body"><div class="toast-title">' + escapeHtml(title) + '</div>' + (desc ? '<div class="toast-desc">' + escapeHtml(desc) + '</div>' : '') + '</div>';
+      wrap.appendChild(el);
+      setTimeout(function () {
+        el.style.transition = "opacity .25s, transform .25s";
+        el.style.opacity = "0"; el.style.transform = "translateY(8px)";
+        setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 250);
+      }, 3500);
+    }
+
+    function renderErrorConfig() {
+      $("list-container").innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><p class="empty-title">Setup required</p><p class="empty-text">Paste your Supabase URL and anon key into this file to view the log.</p></div>';
+      $("list-count").innerHTML = '<span>—</span>';
+    }
+
+    function renderError() {
+      $("list-container").innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><p class="empty-title">Couldn\'t reach the database</p><p class="empty-text">Check your connection and make sure the Supabase URL and key are correct.</p></div>';
+      $("list-count").innerHTML = '<span>—</span>';
+    }
+
+    function render() {
+      var container = $("list-container");
+      var count = $("list-count");
+      count.innerHTML = '<span class="status-dot connected"></span><span>' + readings.length + (readings.length === 1 ? " entry" : " entries") + '</span>';
+
+      if (readings.length === 0) {
+        container.innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></div><p class="empty-title">No readings yet</p><p class="empty-text">Readings will appear here once they are added.</p></div>';
+        return;
+      }
+
+      var sorted = readings.slice().sort(function (a, b) { return new Date(b.recordedAt) - new Date(a.recordedAt); });
+
+      // Mobile cards
+      var mobileHtml = '<div class="readings-scroll mobile-list">';
+      sorted.forEach(function (r) {
+        var d = new Date(r.recordedAt);
+        var mealBadgeHtml = r.mealTiming ? '<span class="badge meal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>' + (r.mealTiming === "before" ? "Before meal" : "After meal") + '</span>' : '';
+        var hasBp = r.systolic != null && r.diastolic != null;
+        var bpHtml = hasBp ? '<div><span class="reading-val">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '</span><span class="reading-unit">mmHg</span></div>' : '<div style="font-size:0.75rem;color:var(--muted-fg);font-weight:500;">No BP reading</div>';
+        var sugarHtml = r.sugar != null ? '<div style="margin-top:0.4rem;font-size:0.8rem;color:var(--muted-fg);">Sugar: <strong style="color:var(--fg);">' + escapeHtml(r.sugar) + '</strong></div>' : '<div style="margin-top:0.4rem;font-size:0.8rem;color:var(--muted-fg);">No sugar reading</div>';
+        mobileHtml += '<div class="reading-card"><div class="reading-card-top"><div>' + bpHtml + '<div class="reading-badges">' + mealBadgeHtml + '</div>' + sugarHtml + '<div class="reading-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatDate(d) + " \u00b7 " + formatTime(d) + '</div></div></div></div>';
+      });
+      mobileHtml += '</div>';
+
+      // Desktop table
+      var tableHtml = '<div class="table-wrap"><table><thead><tr><th>When</th><th>BP</th><th>Sugar</th><th>Meal</th></tr></thead><tbody>';
+      sorted.forEach(function (r) {
+        var d = new Date(r.recordedAt);
+        var mealCellHtml = r.mealTiming ? '<span class="badge meal">' + (r.mealTiming === "before" ? "Before" : "After") + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
+        var sugarCellHtml = r.sugar != null ? '<span style="font-weight:600;">' + escapeHtml(r.sugar) + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
+        var bpCellHtml = (r.systolic != null && r.diastolic != null) ? '<span class="t-reading">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '<span class="unit">mmHg</span></span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
+        tableHtml += '<tr><td><div class="t-when-date">' + formatDate(d) + '</div><div class="t-when-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatTime(d) + '</div></td><td>' + bpCellHtml + '</td><td>' + sugarCellHtml + '</td><td>' + mealCellHtml + '</td></tr>';
+      });
+      tableHtml += '</tbody></table></div>';
+
+      container.innerHTML = mobileHtml + tableHtml;
+    }
+
+    // ---- PDF download ----
+    function handlePDF() {
+      if (readings.length === 0) {
+        toast("Nothing to export", "No readings to download.", "error");
+        return;
+      }
+      if (typeof window.jspdf === "undefined" || !window.jspdf.jsPDF) {
+        toast("PDF library loading", "Try again in a moment.", "error");
+        return;
+      }
+
+      var jsPDF = window.jspdf.jsPDF;
+      var doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      var pageWidth = doc.internal.pageSize.getWidth();
+      var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      var now = new Date();
+
+      // Title
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0);
+      doc.text("Naghmana Sattar's Health Log", 14, 18);
+
+      // Subtitle
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(120);
+      var dateStr = now.getDate() + " " + months[now.getMonth()] + " " + now.getFullYear();
+      doc.text("Printed on " + dateStr + "  \u00b7  " + readings.length + (readings.length === 1 ? " reading" : " readings"), 14, 24);
+
+      // Table
+      var sorted = readings.slice().sort(function (a, b) { return new Date(b.recordedAt) - new Date(a.recordedAt); });
+      var body = sorted.map(function (r) {
+        var d = new Date(r.recordedAt);
+        var when = formatDate(d) + ", " + formatTime(d);
+        var bp = (r.systolic != null && r.diastolic != null) ? r.systolic + "/" + r.diastolic + " mmHg" : "\u2014";
+        var sugar = r.sugar != null ? String(r.sugar) : "\u2014";
+        var meal = r.mealTiming ? (r.mealTiming === "before" ? "Before meal" : "After meal") : "\u2014";
+        return [when, bp, sugar, meal];
+      });
+
+      doc.autoTable({
+        startY: 30,
+        head: [["When", "BP", "Sugar", "Meal"]],
+        body: body,
+        theme: "grid",
+        headStyles: { fillColor: [225, 29, 72], textColor: 255, fontStyle: "bold", fontSize: 10, halign: "left" },
+        styles: { fontSize: 9, cellPadding: 2.5, textColor: [30, 30, 30], lineColor: [210, 210, 210], lineWidth: 0.1 },
+        alternateRowStyles: { fillColor: [248, 248, 248] },
+        columnStyles: { 0: { cellWidth: 55 }, 1: { cellWidth: 35 }, 2: { cellWidth: 25 }, 3: { cellWidth: 33 } },
+        margin: { left: 14, right: 14, top: 30, bottom: 18 },
+        didDrawPage: function (data) {
+          var pageHeight = doc.internal.pageSize.getHeight();
+          doc.setFontSize(7);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(160);
+          doc.text("Page " + doc.internal.getNumberOfPages(), pageWidth - 20, pageHeight - 8);
+          doc.text("Health Log", 14, pageHeight - 8);
+        }
+      });
+
+      var filename = "health-log-" + now.getFullYear() + "-" + pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + ".pdf";
+      doc.save(filename);
+      toast("PDF downloaded \u2713", filename);
+    }
+
+    // ---- Install ----
+    function setupInstall() {
+      window.addEventListener("beforeinstallprompt", function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+      });
+      window.addEventListener("appinstalled", function () {
+        deferredPrompt = null;
+        $("install-btn").style.display = "none";
+        toast("App installed", "Find it on your home screen.");
+      });
+      if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true) {
+        $("install-btn").style.display = "none";
+      }
+    }
+    function handleInstall() {
+      var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIOS && !deferredPrompt) {
+        toast("Install on iPhone/iPad", "In Safari: tap the Share icon, then 'Add to Home Screen'.", "error");
+        return;
+      }
+      if (!deferredPrompt) {
+        toast("Install the app", "Use your browser menu \u2192 'Add to Home screen' or 'Install app'.", "error");
+        return;
+      }
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function (choice) {
+        if (choice.outcome === "accepted") { $("install-btn").style.display = "none"; }
+        deferredPrompt = null;
+      });
+    }
+
+    // ---- Auto-refresh (live updates every 30 seconds) ----
+    function startAutoRefresh() {
+      if (refreshTimer) clearInterval(refreshTimer);
+      refreshTimer = setInterval(function () {
+        if (configured) { fetchReadings(); }
+      }, 30000);
+    }
+    // Also refresh when the page becomes visible again (e.g. switching tabs)
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden && configured) { fetchReadings(); }
+    });
+
+    // ---- Init ----
+    function init() {
+      $("pdf-btn").addEventListener("click", handlePDF);
+      $("install-btn").addEventListener("click", handleInstall);
+      setupInstall();
+      fetchReadings();
+      startAutoRefresh();
+    }
+
+    if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", init); }
+    else { init(); }
+  })();
+  </script>
+</body>
+</html>
