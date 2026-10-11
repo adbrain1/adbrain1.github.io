@@ -125,21 +125,22 @@
     .daily-slot:last-child { border-bottom: none; }
     .daily-slot-label { font-size: 0.65rem; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 0.2rem; }
     .daily-slot-empty { font-size: 0.75rem; color: var(--muted-fg); font-style: italic; }
-    .daily-reading { font-size: 0.8rem; margin-bottom: 0.25rem; }
-    .daily-reading:last-child { margin-bottom: 0; }
-    .daily-reading .dr-bp { font-weight: 700; }
-    .daily-reading .dr-sugar { color: var(--muted-fg); margin-left: 0.4rem; }
-    .daily-reading .dr-meal { display: inline-block; font-size: 0.6rem; background: var(--muted); color: var(--muted-fg); padding: 0.05rem 0.3rem; border-radius: 0.2rem; margin-left: 0.3rem; vertical-align: middle; }
-    .daily-reading .dr-time { font-size: 0.65rem; color: var(--muted-fg); margin-right: 0.3rem; }
-    .daily-reading .dr-notes { font-size: 0.7rem; color: var(--muted-fg); margin-top: 0.1rem; font-style: italic; }
+    .daily-reading { font-size: 0.8rem; margin-bottom: 0.35rem; padding-bottom: 0.2rem; border-bottom: 1px dotted var(--border); }
+    .daily-reading:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .daily-reading .dr-row1 { font-size: 0.65rem; color: var(--muted-fg); margin-bottom: 0.1rem; }
+    .daily-reading .dr-row2 { font-weight: 700; font-size: 0.85rem; min-height: 1rem; }
+    .daily-reading .dr-row3 { color: var(--fg); font-size: 0.75rem; min-height: 0.9rem; font-weight: 700; }
+    .daily-reading .dr-row4 { font-weight: 700; font-size: 0.7rem; color: var(--fg); margin-top: 0.1rem; }
+    .daily-reading .dr-meal { display: inline-block; font-size: 0.55rem; background: var(--muted); color: var(--muted-fg); padding: 0.05rem 0.3rem; border-radius: 0.2rem; margin-left: 0.3rem; vertical-align: middle; }
     .daily-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; }
-    .daily-table th { background: var(--muted); padding: 0.5rem 0.4rem; font-weight: 600; font-size: 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
-    .daily-table td { padding: 0.4rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-    .daily-table .dr-bp { font-weight: 700; font-size: 0.8rem; }
-    .daily-table .dr-sugar { color: var(--muted-fg); }
-    .daily-table .dr-meal { display: inline-block; font-size: 0.55rem; background: var(--muted); color: var(--muted-fg); padding: 0.05rem 0.25rem; border-radius: 0.2rem; }
-    .daily-table .dr-notes { font-size: 0.6rem; color: var(--muted-fg); font-style: italic; display: block; margin-top: 0.1rem; }
-    .daily-table .dr-time { font-size: 0.6rem; color: var(--muted-fg); }
+    .daily-table th { background: var(--muted); padding: 0.5rem 0.4rem; font-weight: 600; font-size: 0.7rem; text-align: left; border: 1px solid var(--border); }
+    .daily-table td { padding: 0.4rem; border: 1px solid var(--border); vertical-align: top; }
+    .daily-table .dr-row1 { font-size: 0.6rem; color: var(--muted-fg); margin-bottom: 0.05rem; }
+    .daily-table .dr-row2 { font-weight: 700; font-size: 0.75rem; min-height: 0.9rem; }
+    .daily-table .dr-row3 { color: var(--fg); font-size: 0.65rem; min-height: 0.8rem; font-weight: 700; }
+    .daily-table .dr-row4 { font-weight: 700; font-size: 0.6rem; color: var(--fg); margin-top: 0.05rem; }
+    .daily-table .dr-meal { display: inline-block; font-size: 0.5rem; background: var(--muted); color: var(--muted-fg); padding: 0.05rem 0.25rem; border-radius: 0.2rem; }
+    .daily-footnote { font-size: 0.65rem; color: var(--muted-fg); margin-top: 0.5rem; padding: 0.4rem 0.6rem; background: var(--muted); border-radius: 0.4rem; line-height: 1.4; }
 
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; height: 3rem; padding: 0 1rem; border: none; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: background .15s, opacity .15s, transform .05s; text-decoration: none; }
     .btn:active { transform: scale(0.99); }
@@ -575,6 +576,11 @@
           render();
           // Show the Print button once readings have loaded
           if (readings.length > 0) { $("print-btn").style.display = "inline-flex"; }
+          // Auto-fill notes field with the most recent reading's notes
+          if (readings.length > 0) {
+            var sorted = readings.slice().sort(function (a, b) { return new Date(b.recordedAt) - new Date(a.recordedAt); });
+            if (sorted[0].notes) { $("notes").value = sorted[0].notes; }
+          }
         })
         .catch(function (err) {
           setStatus("error", "Offline");
@@ -623,21 +629,15 @@
     // Render a single reading as HTML for the daily view cells (compact)
     function renderDailyReading(r, isMobile) {
       var d = new Date(r.recordedAt);
-      var parts = [];
-      parts.push('<span class="dr-time">' + formatTime(d) + '</span>');
-      if (r.systolic != null && r.diastolic != null) {
-        parts.push('<span class="dr-bp">' + escapeHtml(r.systolic) + '/' + escapeHtml(r.diastolic) + '</span>');
-      }
-      if (r.sugar != null) {
-        parts.push('<span class="dr-sugar">· S:' + escapeHtml(r.sugar) + '</span>');
-      }
-      if (r.mealTiming) {
-        parts.push('<span class="dr-meal">' + (r.mealTiming === "before" ? "pre" : "post") + '</span>');
-      }
-      var html = '<div class="daily-reading">' + parts.join(" ") + '</div>';
-      if (r.notes) {
-        html += '<div class="dr-notes">' + escapeHtml(r.notes) + '</div>';
-      }
+      var mealHtml = r.mealTiming ? ' <span class="dr-meal">' + (r.mealTiming === "before" ? "pre" : "post") + '</span>' : '';
+      var bpLine = (r.systolic != null && r.diastolic != null) ? escapeHtml(r.systolic) + '/' + escapeHtml(r.diastolic) + ' mmHg' : '&nbsp;';
+      var sugarLine = r.sugar != null ? 'Sugar: ' + escapeHtml(r.sugar) : '&nbsp;';
+      var html = '<div class="daily-reading">';
+      html += '<div class="dr-row1">' + formatTime(d) + mealHtml + '</div>';
+      html += '<div class="dr-row2">' + bpLine + '</div>';
+      html += '<div class="dr-row3">' + sugarLine + '</div>';
+      if (r.notes) { html += '<div class="dr-row4">' + escapeHtml(r.notes) + '</div>'; }
+      html += '</div>';
       return html;
     }
 
@@ -670,7 +670,7 @@
         var hasBp = r.systolic != null && r.diastolic != null;
         var bpHtml = hasBp ? '<div><span class="reading-val">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '</span><span class="reading-unit">mmHg</span></div>' : '<div style="font-size:0.75rem;color:var(--muted-fg);font-weight:500;">No BP reading</div>';
         var sugarHtml = r.sugar != null ? '<div style="margin-top:0.4rem;font-size:0.8rem;color:var(--muted-fg);">Sugar: <strong style="color:var(--fg);">' + escapeHtml(r.sugar) + '</strong></div>' : '<div style="margin-top:0.4rem;font-size:0.8rem;color:var(--muted-fg);">No sugar reading</div>';
-        var notesHtml = r.notes ? '<div style="margin-top:0.3rem;font-size:0.75rem;color:var(--muted-fg);font-style:italic;padding-left:0.5rem;border-left:2px solid var(--border);">"' + escapeHtml(r.notes) + '"</div>' : '';
+        var notesHtml = r.notes ? '<div style="margin-top:0.3rem;font-size:0.75rem;color:var(--fg);font-weight:700;padding-left:0.5rem;border-left:2px solid var(--primary);">' + escapeHtml(r.notes) + '</div>' : '';
         mobileHtml += '<div class="reading-card' + hl + '" data-id="' + escapeHtml(r.id) + '"><div class="reading-card-top"><div>' + bpHtml + '<div class="reading-badges">' + mealBadgeHtml + '</div>' + sugarHtml + notesHtml + '<div class="reading-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatDate(d) + " \u00b7 " + formatTime(d) + '</div></div><div class="reading-actions"><button class="btn-icon" data-action="edit" data-id="' + escapeHtml(r.id) + '" aria-label="Edit reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon danger" data-action="delete" data-id="' + escapeHtml(r.id) + '" aria-label="Delete reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></div></div>';
       });
       mobileHtml += '</div>';
@@ -680,9 +680,9 @@
         var d = new Date(r.recordedAt);
         var hl = r.id === justAddedId ? " highlight" : "";
         var mealCellHtml = r.mealTiming ? '<span class="badge meal">' + (r.mealTiming === "before" ? "Before" : "After") + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
-        var sugarCellHtml = r.sugar != null ? '<span style="font-weight:600;">' + escapeHtml(r.sugar) + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
+        var sugarCellHtml = r.sugar != null ? '<span style="font-weight:700;">' + escapeHtml(r.sugar) + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
         var bpCellHtml = (r.systolic != null && r.diastolic != null) ? '<span class="t-reading">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '<span class="unit">mmHg</span></span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
-        var notesCellHtml = r.notes ? '<span style="font-size:0.72rem;color:var(--muted-fg);font-style:italic;">' + escapeHtml(r.notes) + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
+        var notesCellHtml = r.notes ? '<span style="font-size:0.72rem;color:var(--fg);font-weight:700;">' + escapeHtml(r.notes) + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
         tableHtml += '<tr class="' + hl + '"><td><div class="t-when-date">' + formatDate(d) + '</div><div class="t-when-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatTime(d) + '</div></td><td>' + bpCellHtml + '</td><td>' + sugarCellHtml + '</td><td>' + mealCellHtml + '</td><td>' + notesCellHtml + '</td><td><div class="t-actions"><button class="btn-icon" data-action="edit" data-id="' + escapeHtml(r.id) + '" aria-label="Edit reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-icon danger" data-action="delete" data-id="' + escapeHtml(r.id) + '" aria-label="Delete reading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></td></tr>';
       });
       tableHtml += '</tbody></table></div>';
@@ -691,6 +691,8 @@
     }
 
     // ---- DAILY VIEW (grouped by date, 4 time slots) ----
+    var DAILY_FOOTNOTE = '<div class="daily-footnote"><strong>pre</strong> = before meal &nbsp;·&nbsp; <strong>post</strong> = after meal &nbsp;·&nbsp; <strong>S</strong> = sugar</div>';
+
     function renderDaily(container) {
       // Group readings by date (YYYY-MM-DD), newest date first
       var byDate = {};
@@ -709,7 +711,7 @@
         var day = byDate[key];
         mobileHtml += '<div class="daily-card"><div class="daily-card-date">' + formatDate(day.date) + '</div>';
         SLOTS.forEach(function (slot) {
-          var rs = day.slots[slot];
+          var rs = day.slots[slot].slice().sort(function (a, b) { return new Date(a.recordedAt) - new Date(b.recordedAt); });
           mobileHtml += '<div class="daily-slot"><div class="daily-slot-label">' + slot + '</div>';
           if (rs.length === 0) {
             mobileHtml += '<div class="daily-slot-empty">—</div>';
@@ -728,7 +730,7 @@
         var day = byDate[key];
         tableHtml += '<tr><td style="font-weight:700;white-space:nowrap;">' + formatDate(day.date) + '</td>';
         SLOTS.forEach(function (slot) {
-          var rs = day.slots[slot];
+          var rs = day.slots[slot].slice().sort(function (a, b) { return new Date(a.recordedAt) - new Date(b.recordedAt); });
           if (rs.length === 0) {
             tableHtml += '<td><span style="color:var(--muted-fg);font-size:0.65rem;">—</span></td>';
           } else {
@@ -740,8 +742,9 @@
         tableHtml += '</tr>';
       });
       tableHtml += '</tbody></table></div>';
+      tableHtml += DAILY_FOOTNOTE;
 
-      container.innerHTML = mobileHtml + tableHtml;
+      container.innerHTML = mobileHtml + DAILY_FOOTNOTE + tableHtml;
     }
 
     function handleSubmit(e) {
@@ -787,6 +790,8 @@
           if (justAddedTimer) clearTimeout(justAddedTimer);
           justAddedTimer = setTimeout(function () { justAddedId = null; render(); }, 5000);
           $("bp-form").reset();
+          // Auto-fill notes for next entry with the just-saved notes
+          if (notesVal) { $("notes").value = notesVal; }
           setStatus("connected", "Synced");
           render();
           // Show the Print button once we have at least one reading
@@ -982,9 +987,9 @@
       }
 
       var jsPDF = window.jspdf.jsPDF;
-      // Daily view uses landscape A4 to fit 5 columns; list view uses portrait
+      // Both views use portrait A4 (fits 5 columns perfectly)
       var isDaily = currentView === "daily";
-      var doc = new jsPDF({ orientation: isDaily ? "landscape" : "portrait", unit: "mm", format: "a4" });
+      var doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       var pageWidth = doc.internal.pageSize.getWidth();
       var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
       var now = new Date();
@@ -1018,43 +1023,56 @@
           var day = byDate[key];
           var row = [formatDate(day.date)];
           SLOTS.forEach(function (slot) {
-            var rs = day.slots[slot];
+            var rs = day.slots[slot].slice().sort(function (a, b) { return new Date(a.recordedAt) - new Date(b.recordedAt); });
             if (rs.length === 0) { row.push("\u2014"); return; }
-            var cellText = rs.map(function (r) {
+            var lines = [];
+            rs.forEach(function (r, idx) {
               var d = new Date(r.recordedAt);
-              var t = formatTime(d);
-              var bp = (r.systolic != null && r.diastolic != null) ? r.systolic + "/" + r.diastolic : null;
-              var sg = r.sugar != null ? "S:" + r.sugar : null;
-              var meal = r.mealTiming ? (r.mealTiming === "before" ? "pre" : "post") : null;
-              var parts = [t];
-              if (bp) parts.push(bp);
-              if (sg) parts.push(sg);
-              if (meal) parts.push(meal);
-              if (r.notes) parts.push('"' + r.notes + '"');
-              return parts.join(" ");
-            }).join("\n");
-            row.push(cellText);
+              var meal = r.mealTiming ? " (" + (r.mealTiming === "before" ? "before meal" : "after meal") + ")" : "";
+              lines.push(formatTime(d) + meal);
+              if (r.systolic != null && r.diastolic != null) {
+                lines.push("BP: " + r.systolic + "/" + r.diastolic + " mmHg");
+              } else {
+                lines.push("BP: \u2014");
+              }
+              if (r.sugar != null) {
+                lines.push("Sugar: " + r.sugar);
+              } else {
+                lines.push("Sugar: \u2014");
+              }
+              if (r.notes) {
+                lines.push("Notes: " + r.notes);
+              }
+              if (idx < rs.length - 1) { lines.push(""); }
+            });
+            row.push(lines.join("\n"));
           });
           return row;
         });
 
         doc.autoTable({
           startY: 30,
-          head: [["Date", "Morning", "Midday", "Evening", "Night"]],
+          head: [["Date", "Morning\n(5am-11am)", "Midday\n(11am-4pm)", "Evening\n(4pm-9pm)", "Night\n(9pm-5am)"]],
           body: body,
           theme: "grid",
-          headStyles: { fillColor: [225, 29, 72], textColor: 255, fontStyle: "bold", fontSize: 10, halign: "left" },
-          styles: { fontSize: 7, cellPadding: 2, textColor: [30, 30, 30], lineColor: [210, 210, 210], lineWidth: 0.1, valign: "top" },
-          alternateRowStyles: { fillColor: [248, 248, 248] },
-          columnStyles: { 0: { cellWidth: 28, fontStyle: "bold" }, 1: { cellWidth: 50 }, 2: { cellWidth: 50 }, 3: { cellWidth: 50 }, 4: { cellWidth: 50 } },
-          margin: { left: 14, right: 14, top: 30, bottom: 18 },
+          headStyles: { fillColor: [225, 29, 72], textColor: 255, fontStyle: "bold", fontSize: 9, halign: "center", valign: "middle", cellPadding: 3 },
+          styles: { fontSize: 9, cellPadding: 3, textColor: [30, 30, 30], lineColor: [200, 200, 200], lineWidth: 0.2, valign: "top", overflow: "linebreak" },
+          alternateRowStyles: { fillColor: [250, 250, 252] },
+          columnStyles: {
+            0: { cellWidth: 25, fontStyle: "bold" },
+            1: { cellWidth: 41, fontStyle: "bold" },
+            2: { cellWidth: 41, fontStyle: "bold" },
+            3: { cellWidth: 41, fontStyle: "bold" },
+            4: { cellWidth: 41, fontStyle: "bold" }
+          },
+          margin: { left: 10, right: 10, top: 30, bottom: 20 },
           didDrawPage: function (data) {
             var pageHeight = doc.internal.pageSize.getHeight();
             doc.setFontSize(7);
             doc.setFont("helvetica", "normal");
             doc.setTextColor(160);
             doc.text("Page " + doc.internal.getNumberOfPages(), pageWidth - 20, pageHeight - 8);
-            doc.text("Health Log", 14, pageHeight - 8);
+            doc.text("Health Log", 10, pageHeight - 8);
           }
         });
       } else {
@@ -1075,11 +1093,11 @@
           head: [["When", "BP", "Sugar", "Meal", "Notes"]],
           body: body,
           theme: "grid",
-          headStyles: { fillColor: [225, 29, 72], textColor: 255, fontStyle: "bold", fontSize: 10, halign: "left" },
-          styles: { fontSize: 8, cellPadding: 2.5, textColor: [30, 30, 30], lineColor: [210, 210, 210], lineWidth: 0.1, valign: "top" },
-          alternateRowStyles: { fillColor: [248, 248, 248] },
-          columnStyles: { 0: { cellWidth: 45 }, 1: { cellWidth: 30 }, 2: { cellWidth: 20 }, 3: { cellWidth: 28 }, 4: { cellWidth: 45 } },
-          margin: { left: 14, right: 14, top: 30, bottom: 18 },
+          headStyles: { fillColor: [225, 29, 72], textColor: 255, fontStyle: "bold", fontSize: 10, halign: "left", cellPadding: 3 },
+          styles: { fontSize: 9, cellPadding: 3, textColor: [30, 30, 30], lineColor: [200, 200, 200], lineWidth: 0.2, valign: "top", overflow: "linebreak" },
+          alternateRowStyles: { fillColor: [250, 250, 252] },
+          columnStyles: { 0: { cellWidth: 42 }, 1: { cellWidth: 30, fontStyle: "bold" }, 2: { cellWidth: 22, fontStyle: "bold" }, 3: { cellWidth: 28 }, 4: { cellWidth: 48 } },
+          margin: { left: 10, right: 10, top: 30, bottom: 20 },
           didDrawPage: function (data) {
             var pageHeight = doc.internal.pageSize.getHeight();
             doc.setFontSize(7);
@@ -1090,6 +1108,13 @@
           }
         });
       }
+
+      // --- Footnote ---
+      var finalY = doc.lastAutoTable.finalY || 30;
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(120);
+      doc.text("BP = blood pressure (mmHg)  ·  Sugar = blood glucose  ·  pre = before meal  ·  post = after meal", 10, finalY + 7);
 
       // --- Download ---
       var filename = "health-log-" + now.getFullYear() + "-" + pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + ".pdf";
@@ -1136,17 +1161,37 @@
       $("edit-diastolic").addEventListener("input", digitsOnly);
       $("edit-sugar").addEventListener("input", decimalOnly);
 
-      // Mobile keyboard: keep form visible
+      // Mobile keyboard: keep focused field visible above keyboard
       document.addEventListener("focusin", function (e) {
         if (!e.target.closest) return;
+        // For the main form, scroll to top so all fields + Save button are visible
         if (e.target.closest("#bp-form")) {
-          setTimeout(function () { window.scrollTo({ top: 0, behavior: "smooth" }); }, 300);
-        } else if (e.target.closest(".modal")) {
+          setTimeout(function () {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }, 300);
+        }
+        // For modals, scroll the focused field to center of the visible area
+        else if (e.target.closest(".modal")) {
+          setTimeout(function () {
+            try { e.target.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_) {}
+          }, 300);
+        }
+        // For any input/textarea/select in the page, ensure it's visible
+        else if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
           setTimeout(function () {
             try { e.target.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_) {}
           }, 300);
         }
       });
+      // Also handle viewport resize (keyboard opening/closing on mobile)
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", function () {
+          var active = document.activeElement;
+          if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.tagName === "SELECT")) {
+            try { active.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_) {}
+          }
+        });
+      }
 
       setupInstall();
       fetchReadings();
