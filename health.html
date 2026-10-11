@@ -810,19 +810,21 @@
     function handleInstall() {
       // Detect iOS (iPhone/iPad) — no native install prompt, show instructions
       var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      if (isIOS && !deferredPrompt) {
-        toast("Install on iPhone/iPad", "In Safari: tap the Share icon, then 'Add to Home Screen'.", "error");
+      if (isIOS) {
+        toast("Install on iPhone/iPad", "In Safari: tap the Share icon (box with up arrow), then 'Add to Home Screen'.", "error");
         return;
       }
-      if (!deferredPrompt) {
-        toast("Install the app", "Use your browser menu \u2192 'Add to Home screen' or 'Install app'.", "error");
+      // Android/desktop: if the browser has fired beforeinstallprompt, use it
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function (choice) {
+          if (choice.outcome === "accepted") { $("install-btn").style.display = "none"; }
+          deferredPrompt = null;
+        });
         return;
       }
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(function (choice) {
-        if (choice.outcome === "accepted") { $("install-btn").style.display = "none"; }
-        deferredPrompt = null;
-      });
+      // Fallback: the SW may still be registering. Tell the user to use the browser menu.
+      toast("Install the app", "Tap your browser menu (\u22ee) \u2192 'Add to Home screen' or 'Install app'.", "error");
     }
 
     // ---- PDF download ----
@@ -962,6 +964,15 @@
 
       setupInstall();
       fetchReadings();
+    }
+
+    // ---- Register service worker (makes the app installable) ----
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("health-sw.js").catch(function (err) {
+          console.warn("SW registration failed:", err);
+        });
+      });
     }
 
     if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", init); }
