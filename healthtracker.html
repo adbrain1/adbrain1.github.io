@@ -141,6 +141,35 @@
     .top-actions { display: flex; gap: 0.4rem; align-items: center; }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
+    /* View toggle */
+    .view-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 0.5rem; overflow: hidden; height: 2.25rem; }
+    .view-toggle button { background: transparent; border: none; padding: 0 0.75rem; font-size: 0.8rem; font-weight: 600; color: var(--muted-fg); cursor: pointer; font-family: inherit; transition: background .15s, color .15s; height: 100%; display: inline-flex; align-items: center; gap: 0.3rem; }
+    .view-toggle button.active { background: var(--primary); color: var(--primary-fg); }
+    .view-toggle button:not(.active):hover { background: var(--accent); color: var(--fg); }
+
+    /* Daily view */
+    .daily-card { border: 1px solid var(--border); border-radius: 0.75rem; background: var(--card); box-shadow: var(--shadow); margin-bottom: 0.6rem; overflow: hidden; }
+    .daily-card-date { padding: 0.5rem 0.9rem; background: var(--muted); font-weight: 700; font-size: 0.85rem; border-bottom: 1px solid var(--border); }
+    .daily-slot { padding: 0.5rem 0.9rem; border-bottom: 1px solid var(--border); }
+    .daily-slot:last-child { border-bottom: none; }
+    .daily-slot-label { font-size: 0.65rem; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 0.2rem; }
+    .daily-slot-empty { font-size: 0.75rem; color: var(--muted-fg); font-style: italic; }
+    .daily-reading { font-size: 0.8rem; margin-bottom: 0.25rem; }
+    .daily-reading:last-child { margin-bottom: 0; }
+    .daily-reading .dr-bp { font-weight: 700; }
+    .daily-reading .dr-sugar { color: var(--muted-fg); margin-left: 0.4rem; }
+    .daily-reading .dr-meal { display: inline-block; font-size: 0.6rem; background: var(--muted); color: var(--muted-fg); padding: 0.05rem 0.3rem; border-radius: 0.2rem; margin-left: 0.3rem; vertical-align: middle; }
+    .daily-reading .dr-time { font-size: 0.65rem; color: var(--muted-fg); margin-right: 0.3rem; }
+    .daily-reading .dr-notes { font-size: 0.7rem; color: var(--muted-fg); margin-top: 0.1rem; font-style: italic; }
+    .daily-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; }
+    .daily-table th { background: var(--muted); padding: 0.5rem 0.4rem; font-weight: 600; font-size: 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+    .daily-table td { padding: 0.4rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .daily-table .dr-bp { font-weight: 700; font-size: 0.8rem; }
+    .daily-table .dr-sugar { color: var(--muted-fg); }
+    .daily-table .dr-meal { display: inline-block; font-size: 0.55rem; background: var(--muted); color: var(--muted-fg); padding: 0.05rem 0.25rem; border-radius: 0.2rem; }
+    .daily-table .dr-notes { font-size: 0.6rem; color: var(--muted-fg); font-style: italic; display: block; margin-top: 0.1rem; }
+    .daily-table .dr-time { font-size: 0.6rem; color: var(--muted-fg); }
+
     .live-indicator { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.65rem; color: #10b981; font-weight: 500; }
     .live-dot { width: 0.4rem; height: 0.4rem; border-radius: 50%; background: #10b981; animation: livepulse 2s infinite; }
     @keyframes livepulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
@@ -179,7 +208,17 @@
       <section aria-labelledby="log-heading">
         <div class="list-head">
           <h2 id="log-heading" class="section-title" style="font-size: 0.875rem; font-weight: 600; margin: 0;">Readings</h2>
-          <div style="display:flex; align-items:center; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+            <div class="view-toggle" id="view-toggle">
+              <button type="button" data-view="list" class="active">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                List
+              </button>
+              <button type="button" data-view="daily">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Daily
+              </button>
+            </div>
             <span class="live-indicator"><span class="live-dot"></span>Live</span>
             <span class="list-count" id="list-count">
               <span class="status-dot connecting" style="background:var(--muted-fg)"></span>
@@ -249,6 +288,7 @@
     var readings = [];
     var deferredPrompt = null;
     var refreshTimer = null;
+    var currentView = "list"; // "list" or "daily"
     var configured = SUPABASE_URL && SUPABASE_URL !== "PASTE_YOUR_SUPABASE_URL_HERE" && SUPABASE_URL.indexOf("supabase.co") !== -1
       && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== "PASTE_YOUR_SUPABASE_ANON_KEY_HERE" && SUPABASE_ANON_KEY.length > 30;
 
@@ -284,6 +324,7 @@
         diastolic: r.diastolic,
         sugar: r.sugar,
         mealTiming: r.meal_timing || null,
+        notes: r.notes || null,
         recordedAt: r.recorded_at,
         createdAt: r.created_at
       };
@@ -303,7 +344,7 @@
         renderErrorConfig();
         return;
       }
-      fetch(SUPABASE_URL + "/rest/v1/readings?order=recorded_at.desc&select=id,systolic,diastolic,sugar,meal_timing,recorded_at,created_at", {
+      fetch(SUPABASE_URL + "/rest/v1/readings?order=recorded_at.desc&select=id,systolic,diastolic,sugar,meal_timing,notes,recorded_at,created_at", {
         method: "GET",
         headers: sbHeaders()
       })
@@ -349,6 +390,27 @@
       $("list-count").innerHTML = '<span>—</span>';
     }
 
+    // Time-slot helper for the Daily view
+    function timeSlot(d) {
+      var h = d.getHours();
+      if (h >= 5 && h < 11) return "Morning";
+      if (h >= 11 && h < 16) return "Midday";
+      if (h >= 16 && h < 21) return "Evening";
+      return "Night";
+    }
+    var SLOTS = ["Morning", "Midday", "Evening", "Night"];
+
+    function renderDailyReading(r) {
+      var d = new Date(r.recordedAt);
+      var parts = ['<span class="dr-time">' + formatTime(d) + '</span>'];
+      if (r.systolic != null && r.diastolic != null) parts.push('<span class="dr-bp">' + escapeHtml(r.systolic) + '/' + escapeHtml(r.diastolic) + '</span>');
+      if (r.sugar != null) parts.push('<span class="dr-sugar">· S:' + escapeHtml(r.sugar) + '</span>');
+      if (r.mealTiming) parts.push('<span class="dr-meal">' + (r.mealTiming === "before" ? "pre" : "post") + '</span>');
+      var html = '<div class="daily-reading">' + parts.join(" ") + '</div>';
+      if (r.notes) html += '<div class="dr-notes">' + escapeHtml(r.notes) + '</div>';
+      return html;
+    }
+
     function render() {
       var container = $("list-container");
       var count = $("list-count");
@@ -359,6 +421,14 @@
         return;
       }
 
+      if (currentView === "daily") {
+        renderDaily(container);
+      } else {
+        renderList(container);
+      }
+    }
+
+    function renderList(container) {
       var sorted = readings.slice().sort(function (a, b) { return new Date(b.recordedAt) - new Date(a.recordedAt); });
 
       // Mobile cards
@@ -369,18 +439,63 @@
         var hasBp = r.systolic != null && r.diastolic != null;
         var bpHtml = hasBp ? '<div><span class="reading-val">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '</span><span class="reading-unit">mmHg</span></div>' : '<div style="font-size:0.75rem;color:var(--muted-fg);font-weight:500;">No BP reading</div>';
         var sugarHtml = r.sugar != null ? '<div style="margin-top:0.4rem;font-size:0.8rem;color:var(--muted-fg);">Sugar: <strong style="color:var(--fg);">' + escapeHtml(r.sugar) + '</strong></div>' : '<div style="margin-top:0.4rem;font-size:0.8rem;color:var(--muted-fg);">No sugar reading</div>';
-        mobileHtml += '<div class="reading-card"><div class="reading-card-top"><div>' + bpHtml + '<div class="reading-badges">' + mealBadgeHtml + '</div>' + sugarHtml + '<div class="reading-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatDate(d) + " \u00b7 " + formatTime(d) + '</div></div></div></div>';
+        var notesHtml = r.notes ? '<div style="margin-top:0.3rem;font-size:0.75rem;color:var(--muted-fg);font-style:italic;padding-left:0.5rem;border-left:2px solid var(--border);">"' + escapeHtml(r.notes) + '"</div>' : '';
+        mobileHtml += '<div class="reading-card"><div class="reading-card-top"><div>' + bpHtml + '<div class="reading-badges">' + mealBadgeHtml + '</div>' + sugarHtml + notesHtml + '<div class="reading-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatDate(d) + " \u00b7 " + formatTime(d) + '</div></div></div></div>';
       });
       mobileHtml += '</div>';
 
       // Desktop table
-      var tableHtml = '<div class="table-wrap"><table><thead><tr><th>When</th><th>BP</th><th>Sugar</th><th>Meal</th></tr></thead><tbody>';
+      var tableHtml = '<div class="table-wrap"><table><thead><tr><th>When</th><th>BP</th><th>Sugar</th><th>Meal</th><th>Notes</th></tr></thead><tbody>';
       sorted.forEach(function (r) {
         var d = new Date(r.recordedAt);
         var mealCellHtml = r.mealTiming ? '<span class="badge meal">' + (r.mealTiming === "before" ? "Before" : "After") + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
         var sugarCellHtml = r.sugar != null ? '<span style="font-weight:600;">' + escapeHtml(r.sugar) + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
         var bpCellHtml = (r.systolic != null && r.diastolic != null) ? '<span class="t-reading">' + escapeHtml(r.systolic) + '<span class="sep">/</span>' + escapeHtml(r.diastolic) + '<span class="unit">mmHg</span></span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
-        tableHtml += '<tr><td><div class="t-when-date">' + formatDate(d) + '</div><div class="t-when-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatTime(d) + '</div></td><td>' + bpCellHtml + '</td><td>' + sugarCellHtml + '</td><td>' + mealCellHtml + '</td></tr>';
+        var notesCellHtml = r.notes ? '<span style="font-size:0.72rem;color:var(--muted-fg);font-style:italic;">' + escapeHtml(r.notes) + '</span>' : '<span style="color:var(--muted-fg);font-size:0.75rem;">—</span>';
+        tableHtml += '<tr><td><div class="t-when-date">' + formatDate(d) + '</div><div class="t-when-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + formatTime(d) + '</div></td><td>' + bpCellHtml + '</td><td>' + sugarCellHtml + '</td><td>' + mealCellHtml + '</td><td>' + notesCellHtml + '</td></tr>';
+      });
+      tableHtml += '</tbody></table></div>';
+
+      container.innerHTML = mobileHtml + tableHtml;
+    }
+
+    function renderDaily(container) {
+      var byDate = {};
+      readings.forEach(function (r) {
+        var d = new Date(r.recordedAt);
+        var key = d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+        if (!byDate[key]) byDate[key] = { date: d, slots: { Morning: [], Midday: [], Evening: [], Night: [] } };
+        byDate[key].slots[timeSlot(d)].push(r);
+      });
+      var dates = Object.keys(byDate).sort(function (a, b) { return new Date(b) - new Date(a); });
+
+      // Mobile: card per date
+      var mobileHtml = '<div class="readings-scroll mobile-list">';
+      dates.forEach(function (key) {
+        var day = byDate[key];
+        mobileHtml += '<div class="daily-card"><div class="daily-card-date">' + formatDate(day.date) + '</div>';
+        SLOTS.forEach(function (slot) {
+          var rs = day.slots[slot];
+          mobileHtml += '<div class="daily-slot"><div class="daily-slot-label">' + slot + '</div>';
+          if (rs.length === 0) { mobileHtml += '<div class="daily-slot-empty">—</div>'; }
+          else { rs.forEach(function (r) { mobileHtml += renderDailyReading(r); }); }
+          mobileHtml += '</div>';
+        });
+        mobileHtml += '</div>';
+      });
+      mobileHtml += '</div>';
+
+      // Desktop: table with Date | Morning | Midday | Evening | Night
+      var tableHtml = '<div class="table-wrap"><table class="daily-table"><thead><tr><th>Date</th><th>Morning</th><th>Midday</th><th>Evening</th><th>Night</th></tr></thead><tbody>';
+      dates.forEach(function (key) {
+        var day = byDate[key];
+        tableHtml += '<tr><td style="font-weight:700;white-space:nowrap;">' + formatDate(day.date) + '</td>';
+        SLOTS.forEach(function (slot) {
+          var rs = day.slots[slot];
+          if (rs.length === 0) { tableHtml += '<td><span style="color:var(--muted-fg);font-size:0.65rem;">—</span></td>'; }
+          else { tableHtml += '<td>'; rs.forEach(function (r) { tableHtml += renderDailyReading(r); }); tableHtml += '</td>'; }
+        });
+        tableHtml += '</tr>';
       });
       tableHtml += '</tbody></table></div>';
 
@@ -399,7 +514,8 @@
       }
 
       var jsPDF = window.jspdf.jsPDF;
-      var doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      var isDaily = currentView === "daily";
+      var doc = new jsPDF({ orientation: isDaily ? "landscape" : "portrait", unit: "mm", format: "a4" });
       var pageWidth = doc.internal.pageSize.getWidth();
       var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
       var now = new Date();
@@ -415,38 +531,88 @@
       doc.setFont("helvetica", "normal");
       doc.setTextColor(120);
       var dateStr = now.getDate() + " " + months[now.getMonth()] + " " + now.getFullYear();
-      doc.text("Printed on " + dateStr + "  \u00b7  " + readings.length + (readings.length === 1 ? " reading" : " readings"), 14, 24);
+      var viewLabel = isDaily ? "  \u00b7  Daily view" : "  \u00b7  List view";
+      doc.text("Printed on " + dateStr + "  \u00b7  " + readings.length + (readings.length === 1 ? " reading" : " readings") + viewLabel, 14, 24);
 
-      // Table
-      var sorted = readings.slice().sort(function (a, b) { return new Date(b.recordedAt) - new Date(a.recordedAt); });
-      var body = sorted.map(function (r) {
-        var d = new Date(r.recordedAt);
-        var when = formatDate(d) + ", " + formatTime(d);
-        var bp = (r.systolic != null && r.diastolic != null) ? r.systolic + "/" + r.diastolic + " mmHg" : "\u2014";
-        var sugar = r.sugar != null ? String(r.sugar) : "\u2014";
-        var meal = r.mealTiming ? (r.mealTiming === "before" ? "Before meal" : "After meal") : "\u2014";
-        return [when, bp, sugar, meal];
-      });
+      if (isDaily) {
+        // --- DAILY VIEW PDF ---
+        var byDate = {};
+        readings.forEach(function (r) {
+          var d = new Date(r.recordedAt);
+          var key = d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+          if (!byDate[key]) byDate[key] = { date: d, slots: { Morning: [], Midday: [], Evening: [], Night: [] } };
+          byDate[key].slots[timeSlot(d)].push(r);
+        });
+        var dates = Object.keys(byDate).sort(function (a, b) { return new Date(b) - new Date(a); });
 
-      doc.autoTable({
-        startY: 30,
-        head: [["When", "BP", "Sugar", "Meal"]],
-        body: body,
-        theme: "grid",
-        headStyles: { fillColor: [225, 29, 72], textColor: 255, fontStyle: "bold", fontSize: 10, halign: "left" },
-        styles: { fontSize: 9, cellPadding: 2.5, textColor: [30, 30, 30], lineColor: [210, 210, 210], lineWidth: 0.1 },
-        alternateRowStyles: { fillColor: [248, 248, 248] },
-        columnStyles: { 0: { cellWidth: 55 }, 1: { cellWidth: 35 }, 2: { cellWidth: 25 }, 3: { cellWidth: 33 } },
-        margin: { left: 14, right: 14, top: 30, bottom: 18 },
-        didDrawPage: function (data) {
-          var pageHeight = doc.internal.pageSize.getHeight();
-          doc.setFontSize(7);
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(160);
-          doc.text("Page " + doc.internal.getNumberOfPages(), pageWidth - 20, pageHeight - 8);
-          doc.text("Health Log", 14, pageHeight - 8);
-        }
-      });
+        var body = dates.map(function (key) {
+          var day = byDate[key];
+          var row = [formatDate(day.date)];
+          SLOTS.forEach(function (slot) {
+            var rs = day.slots[slot];
+            if (rs.length === 0) { row.push("\u2014"); return; }
+            var cellText = rs.map(function (r) {
+              var d = new Date(r.recordedAt);
+              var parts = [formatTime(d)];
+              if (r.systolic != null && r.diastolic != null) parts.push(r.systolic + "/" + r.diastolic);
+              if (r.sugar != null) parts.push("S:" + r.sugar);
+              if (r.mealTiming) parts.push(r.mealTiming === "before" ? "pre" : "post");
+              if (r.notes) parts.push('"' + r.notes + '"');
+              return parts.join(" ");
+            }).join("\n");
+            row.push(cellText);
+          });
+          return row;
+        });
+
+        doc.autoTable({
+          startY: 30,
+          head: [["Date", "Morning", "Midday", "Evening", "Night"]],
+          body: body,
+          theme: "grid",
+          headStyles: { fillColor: [225, 29, 72], textColor: 255, fontStyle: "bold", fontSize: 10, halign: "left" },
+          styles: { fontSize: 7, cellPadding: 2, textColor: [30, 30, 30], lineColor: [210, 210, 210], lineWidth: 0.1, valign: "top" },
+          alternateRowStyles: { fillColor: [248, 248, 248] },
+          columnStyles: { 0: { cellWidth: 28, fontStyle: "bold" }, 1: { cellWidth: 50 }, 2: { cellWidth: 50 }, 3: { cellWidth: 50 }, 4: { cellWidth: 50 } },
+          margin: { left: 14, right: 14, top: 30, bottom: 18 },
+          didDrawPage: function (data) {
+            var pageHeight = doc.internal.pageSize.getHeight();
+            doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.setTextColor(160);
+            doc.text("Page " + doc.internal.getNumberOfPages(), pageWidth - 20, pageHeight - 8);
+            doc.text("Health Log", 14, pageHeight - 8);
+          }
+        });
+      } else {
+        // --- LIST VIEW PDF (with notes) ---
+        var sorted = readings.slice().sort(function (a, b) { return new Date(b.recordedAt) - new Date(a.recordedAt); });
+        var body = sorted.map(function (r) {
+          var d = new Date(r.recordedAt);
+          var when = formatDate(d) + ", " + formatTime(d);
+          var bp = (r.systolic != null && r.diastolic != null) ? r.systolic + "/" + r.diastolic + " mmHg" : "\u2014";
+          var sugar = r.sugar != null ? String(r.sugar) : "\u2014";
+          var meal = r.mealTiming ? (r.mealTiming === "before" ? "Before meal" : "After meal") : "\u2014";
+          var notes = r.notes ? r.notes : "\u2014";
+          return [when, bp, sugar, meal, notes];
+        });
+
+        doc.autoTable({
+          startY: 30,
+          head: [["When", "BP", "Sugar", "Meal", "Notes"]],
+          body: body,
+          theme: "grid",
+          headStyles: { fillColor: [225, 29, 72], textColor: 255, fontStyle: "bold", fontSize: 10, halign: "left" },
+          styles: { fontSize: 8, cellPadding: 2.5, textColor: [30, 30, 30], lineColor: [210, 210, 210], lineWidth: 0.1, valign: "top" },
+          alternateRowStyles: { fillColor: [248, 248, 248] },
+          columnStyles: { 0: { cellWidth: 45 }, 1: { cellWidth: 30 }, 2: { cellWidth: 20 }, 3: { cellWidth: 28 }, 4: { cellWidth: 45 } },
+          margin: { left: 14, right: 14, top: 30, bottom: 18 },
+          didDrawPage: function (data) {
+            var pageHeight = doc.internal.pageSize.getHeight();
+            doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.setTextColor(160);
+            doc.text("Page " + doc.internal.getNumberOfPages(), pageWidth - 20, pageHeight - 8);
+            doc.text("Health Log", 14, pageHeight - 8);
+          }
+        });
+      }
 
       var filename = "health-log-" + now.getFullYear() + "-" + pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + ".pdf";
       doc.save(filename);
@@ -501,6 +667,15 @@
     function init() {
       $("pdf-btn").addEventListener("click", handlePDF);
       $("install-btn").addEventListener("click", handleInstall);
+      // View toggle
+      $("view-toggle").addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-view]");
+        if (!btn) return;
+        currentView = btn.getAttribute("data-view");
+        var btns = this.querySelectorAll("button[data-view]");
+        for (var i = 0; i < btns.length; i++) { btns[i].classList.toggle("active", btns[i] === btn); }
+        render();
+      });
       setupInstall();
       fetchReadings();
       startAutoRefresh();
