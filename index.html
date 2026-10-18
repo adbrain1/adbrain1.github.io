@@ -78,7 +78,7 @@
       </div>
 
     <div class="image-panel">
-      <img src="./20250809_120138.jpg" alt="Yum exploring">
+      <img src="./assets/images/20250809_120138.jpg" alt="Yum exploring">
       <div class="credit">📍 Adventure in progress</div>
     </div>
 
@@ -363,9 +363,9 @@
     const sendBtn = document.getElementById("sendBtn");
     const commentContainer = document.getElementById("commentContainer");
 
-    const audio1 = new Audio("./send button ding dong.mp3");
+    const audio1 = new Audio("./assets/audio/send button ding dong.mp3");
     // Second audio added as requested
-    const audio2 = new Audio("./Yum thankyou.mp4");
+    const audio2 = new Audio("./assets/video/Yum thankyou.mp4");
 
     commentInput.addEventListener("focus", () => {
       if(commentInput.value === "" || commentInput.value === "Say hi to me!") commentInput.value = "";

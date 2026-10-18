@@ -149,7 +149,7 @@
         </p>
       </div>
       <div class="image-panel">
-        <img id="rotatingImg" src="./LegoMainPage.jpg" alt="Yum exploring Legoland">
+        <img id="rotatingImg" src="./assets/images/LegoMainPage.jpg" alt="Yum exploring Legoland">
       </div>
     </div>
 
@@ -415,7 +415,7 @@
 
     /* ===== ROTATING MAIN CARD IMAGE (RESTORED TO ORIGINAL ROOT PATHS) ===== */
     const rotatingImg = document.getElementById('rotatingImg');
-    const rotImages = ["./LegoMainPage.jpg", "CadburyPic.JPG", "SeaLifePic.JPG"];
+    const rotImages = ["./assets/images/LegoMainPage.jpg", "assets/images/CadburyPic.JPG", "assets/images/SeaLifePic.JPG"];
     let rotIdx = 0;
     setInterval(() => {
       rotIdx = (rotIdx + 1) % rotImages.length;

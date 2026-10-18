@@ -86,7 +86,7 @@
                 </p>
             </div>
             <div class="image-panel">
-                <img id="rotatingImg" src="./LegoMainPage.jpg" alt="Yum exploring Legoland">
+                <img id="rotatingImg" src="./assets/images/LegoMainPage.jpg" alt="Yum exploring Legoland">
             </div>
         </div>
 
@@ -232,7 +232,7 @@
         });
 
         /* ===== PHOTO ROTATION LOGIC ===== */
-        const images = ["./LegoMainPage.jpg", "CadburyPic.JPG", "SeaLifePic.JPG"];
+        const images = ["./assets/images/LegoMainPage.jpg", "assets/images/CadburyPic.JPG", "assets/images/SeaLifePic.JPG"];
         let currentIndex = 0;
         setInterval(() => {
             currentIndex = (currentIndex + 1) % images.length;
@@ -309,4 +309,3 @@
     </script>
 </body>
 </html>
-
