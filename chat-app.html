@@ -1176,6 +1176,97 @@
       border-radius: 4px;
       margin-bottom: 4px;
     }
+
+    /* Child-friendly feedback and touch targets */
+    :focus-visible {
+      outline: 3px solid var(--gold);
+      outline-offset: 2px;
+    }
+    #chatInput { font-size: 16px; line-height: 1.45; }
+    .msg-text { font-size: 16px; line-height: 1.5; }
+    .action-item { min-height: 52px; }
+    .connection-banner {
+      display: none;
+      flex: 0 0 auto;
+      padding: 9px 14px;
+      background: #fff3cd;
+      color: #5c4300;
+      border-bottom: 1px solid rgba(92,67,0,0.15);
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+    }
+    .connection-banner.show { display: block; }
+    html[data-theme="dark"] .connection-banner {
+      background: #4a3500;
+      color: #fff0b3;
+      border-color: rgba(255,240,179,0.18);
+    }
+    .empty-chat {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 24px;
+      text-align: center;
+      color: var(--text-secondary);
+      pointer-events: none;
+    }
+    .empty-chat .welcome-icon { font-size: 42px; }
+    .empty-chat strong { color: var(--text-primary); font-size: 18px; }
+    .empty-chat span { max-width: 260px; font-size: 15px; line-height: 1.5; }
+    .app-notice {
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: calc(16px + var(--safe-bottom));
+      z-index: 1000;
+      width: fit-content;
+      max-width: min(520px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 13px 18px;
+      border-radius: 16px;
+      background: #241033;
+      color: #fff;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.28);
+      font-size: 15px;
+      line-height: 1.4;
+      text-align: center;
+    }
+    .app-notice[hidden] { display: none; }
+    .notification-status {
+      margin: 0 0 10px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .login-error {
+      color: #fff2c2;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+    }
+    #notificationSettingsBtn { min-height: 46px; width: 100%; }
+    #uploadProgress {
+      display: none;
+      width: min(240px, 70vw);
+      height: 10px;
+      accent-color: var(--brand-accent);
+    }
+    #uploadProgress.show { display: block; }
+    .upload-overlay { gap: 14px; }
+    .upload-overlay .upload-label { text-align: center; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1204,7 +1295,8 @@
     <h1>Rafay Chat</h1>
     <p>Family chat with Abdul Rafay</p>
     <div class="name-box">
-      <input type="text" id="userName" placeholder="Enter your name" autocomplete="off">
+      <input type="text" id="userName" placeholder="Enter your name" autocomplete="off" aria-label="Your name">
+      <div id="joinError" class="login-error" role="alert" hidden></div>
       <button id="joinBtn" onclick="startChat()">Join Chat</button>
     </div>
   </div>
@@ -1256,6 +1348,8 @@
       </div>
     </header>
 
+    <div class="connection-banner" id="connectionBanner" role="status" aria-live="polite"></div>
+
     <!-- Priority bar: always-visible Abdul Rafay last-seen indicator -->
     <div class="priority-bar" id="priorityBar">
       <span class="star">⭐</span>
@@ -1280,7 +1374,13 @@
 
     <!-- Messages -->
     <div style="position:relative; flex:1 1 auto; overflow:hidden; display:flex; flex-direction:column;">
-      <div id="messagesContainer"></div>
+      <div id="messagesContainer">
+        <div class="empty-chat" id="emptyChat">
+          <div class="welcome-icon" aria-hidden="true">👋</div>
+          <strong>Hi there!</strong>
+          <span>Send a message to start chatting with your family.</span>
+        </div>
+      </div>
       <!-- Floating scroll-down + unread badge button -->
       <button class="new-msg-fab" id="newMsgFab" onclick="scrollToBottomAndClear()">
         <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
@@ -1316,17 +1416,17 @@
       <div class="staging-area" id="stagingArea"></div>
 
       <div class="input-row">
-        <button class="ic-input" id="emojiBtn" onclick="toggleEmojiBar()" title="Emoji">
+        <button class="ic-input" id="emojiBtn" onclick="toggleEmojiBar()" title="Emoji" aria-label="Choose an emoji">
           <svg viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm-3.5-9c.828 0 1.5-.672 1.5-1.5S9.328 8 8.5 8 7 8.672 7 9.5 7.672 11 8.5 11zm7 0c.828 0 1.5-.672 1.5-1.5S16.328 8 15.5 8 14 8.672 14 9.5s.672 1.5 1.5 1.5zM12 17.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
         </button>
-        <button class="ic-input" onclick="document.getElementById('fileInput').click()" title="Attach">
+        <button class="ic-input" onclick="document.getElementById('fileInput').click()" title="Attach a photo or file" aria-label="Attach a photo or file">
           <svg viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
         </button>
-        <textarea id="chatInput" placeholder="Type a message" rows="1"></textarea>
-        <button class="ic-input" onclick="toggleRecording()" id="voiceBtn" title="Voice">
+        <textarea id="chatInput" placeholder="Type a message" rows="1" aria-label="Message"></textarea>
+        <button class="ic-input" onclick="toggleRecording()" id="voiceBtn" title="Record a voice message" aria-label="Record a voice message">
           <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
         </button>
-        <button id="sendBtn" onclick="handleSendClick()" title="Send">
+        <button id="sendBtn" onclick="handleSendClick()" title="Send" aria-label="Send message">
           <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </button>
         <input type="file" id="fileInput" accept="image/*,application/pdf,.doc,.docx,.txt" style="display:none" onchange="stageFile(this)">
@@ -1398,6 +1498,12 @@
       </div>
 
       <div class="settings-section">
+        <h3>Message alerts</h3>
+        <p class="notification-status" id="notificationStatus"></p>
+        <button class="neutral-btn" id="notificationSettingsBtn" onclick="enableNotifications()">Turn on message alerts</button>
+      </div>
+
+      <div class="settings-section">
         <h3>About</h3>
         <div style="color:var(--text-secondary); font-size:13px; line-height:1.5">
           Rafay Chat v2.0<br>
@@ -1425,7 +1531,9 @@
   <div class="upload-overlay" id="uploadOverlay">
     <div class="upload-spinner"></div>
     <div class="upload-label" id="uploadLabel">Sending…</div>
+    <progress id="uploadProgress" max="100" value="0" aria-label="Upload progress"></progress>
   </div>
+  <div class="app-notice" id="appNotice" role="status" aria-live="polite" hidden></div>
 
   <!-- ─── Action sheet for long-press ─── -->
   <div class="action-sheet" id="actionSheet" onclick="if(event.target===this)hideActionSheet()">
@@ -1525,6 +1633,10 @@
     let initialLoadDone = false;          // suppress sounds while loading
     let mutedUsers = {};                  // userName -> true (muted by me)
     let activeProfileUser = null;         // who's profile is currently open
+    let notificationState = "idle";
+    let foregroundPushHandlerRegistered = false;
+    let appNoticeTimer = null;
+    let isSending = false;
 
     // ════════════════════════════════════════════════════════════════════
     //  Name helpers
@@ -1604,24 +1716,100 @@
     // ════════════════════════════════════════════════════════════════════
     //  Login & Push notifications
     // ════════════════════════════════════════════════════════════════════
-    async function setupPushNotifications(userName) {
-      if (!messaging || !("Notification" in window)) return;
+    function showAppNotice(message, duration = 4500) {
+      const notice = document.getElementById("appNotice");
+      notice.textContent = message;
+      notice.hidden = false;
+      clearTimeout(appNoticeTimer);
+      appNoticeTimer = setTimeout(() => { notice.hidden = true; }, duration);
+    }
+
+    function refreshNotificationSettings() {
+      const status = document.getElementById("notificationStatus");
+      const button = document.getElementById("notificationSettingsBtn");
+      if (!status || !button) return;
+
+      if (!messaging || !("Notification" in window)) {
+        status.textContent = "Alerts aren't supported by this browser or device.";
+        button.textContent = "Alerts unavailable";
+        button.disabled = true;
+      } else if (Notification.permission === "denied") {
+        status.textContent = "Alerts are blocked. Ask a grown-up to turn them on in this browser's site settings.";
+        button.textContent = "How to turn on alerts";
+        button.disabled = false;
+      } else if (notificationState === "ready" && Notification.permission === "granted") {
+        status.textContent = "Great! This device can show family message alerts.";
+        button.textContent = "Refresh alert setup";
+        button.disabled = false;
+      } else if (notificationState === "error") {
+        status.textContent = "Alerts couldn't be set up just now. Check the connection and try again.";
+        button.textContent = "Try again";
+        button.disabled = false;
+      } else if (Notification.permission === "granted") {
+        status.textContent = "Alerts are allowed. Finish setting them up on this device.";
+        button.textContent = "Finish alert setup";
+        button.disabled = false;
+      } else {
+        status.textContent = "Turn on optional alerts to know when family sends a message.";
+        button.textContent = "Turn on message alerts";
+        button.disabled = false;
+      }
+    }
+
+    async function setupPushNotifications(userName, requestPermission = false) {
+      if (!messaging || !("Notification" in window)) {
+        notificationState = "unavailable";
+        refreshNotificationSettings();
+        return;
+      }
       try {
-        const permission = await Notification.requestPermission();
-        if (permission !== "granted") return;
+        let permission = Notification.permission;
+        if (permission === "default" && requestPermission) {
+          permission = await Notification.requestPermission();
+        }
+        if (permission !== "granted") {
+          notificationState = permission === "denied" ? "blocked" : "idle";
+          refreshNotificationSettings();
+          return;
+        }
         const token = await messaging.getToken({ vapidKey: VAPID_PUBLIC_KEY });
-        if (!token) return;
+        if (!token) throw new Error("Firebase did not return a notification token.");
         await db.ref(`fcm_tokens/${userName}/${token}`).set(true);
-        messaging.onMessage((payload) => {
-          // Foreground push — keep quiet, app is already open
-          console.log("Foreground push:", payload);
-        });
-      } catch (e) { console.log("Push setup failed:", e); }
+        notificationState = "ready";
+        if (!foregroundPushHandlerRegistered) {
+          messaging.onMessage((payload) => {
+            const body = payload && payload.data && payload.data.body;
+            showAppNotice(body || "A new family message arrived.", 7000);
+          });
+          foregroundPushHandlerRegistered = true;
+        }
+      } catch (error) {
+        console.error("Push notification setup failed:", error);
+        notificationState = "error";
+        showAppNotice("We couldn't turn on alerts just now. Please try again.");
+      }
+      refreshNotificationSettings();
+    }
+
+    function enableNotifications() {
+      if (!currentUserName) return;
+      if ("Notification" in window && Notification.permission === "denied") {
+        showAppNotice("Ask a grown-up to allow notifications in this browser's site settings.");
+        return;
+      }
+      setupPushNotifications(currentUserName, true);
     }
 
     function startChat() {
       const typedName = document.getElementById("userName").value.trim();
-      if (!typedName) return alert("Please enter your name");
+      const joinError = document.getElementById("joinError");
+      if (!typedName) {
+        joinError.textContent = "Please enter your name to join.";
+        joinError.hidden = false;
+        document.getElementById("userName").focus();
+        return;
+      }
+      joinError.hidden = true;
       // Admin is decided from the exact typed name BEFORE we canonicalise.
       isAdmin = typedName.toLowerCase() === "adnan";
       // Collapse all of my son's name combinations into one identity, "Rafay",
@@ -1637,12 +1825,13 @@
         ts: firebase.database.ServerValue.TIMESTAMP
       }).catch(() => {});
 
-      // Push notification subscribe (so I receive pushes from others)
-      setupPushNotifications(name);
-
       // UI transition
       document.getElementById("loginScreen").style.display = "none";
       document.getElementById("appScreen").classList.add("show");
+      refreshNotificationSettings();
+      if ("Notification" in window && Notification.permission === "granted") {
+        setupPushNotifications(name);
+      }
 
       // Show admin tools (clear history button)
       if (isAdmin) {
@@ -1660,7 +1849,9 @@
       const onlineRef = db.ref("online_users/" + name);
       const lastSeenRef = db.ref("last_seen/" + name);
       db.ref(".info/connected").on("value", (snap) => {
-        if (snap.val() === true) {
+        const connected = snap.val() === true;
+        setConnectionStatus(connected);
+        if (connected) {
           onlineRef.set(true);
           onlineRef.onDisconnect().remove();
           lastSeenRef.remove();
@@ -1680,6 +1871,19 @@
       // Heartbeat — extend "online" status whenever there's activity
       // (typing, reading, sending). Plus a background tick every 4 mins as fallback.
       setInterval(keepAlive, 240000);
+    }
+
+    function setConnectionStatus(connected) {
+      const banner = document.getElementById("connectionBanner");
+      if (connected) {
+        banner.classList.remove("show");
+        banner.textContent = "";
+        return;
+      }
+      banner.textContent = navigator.onLine
+        ? "Reconnecting… messages may take a moment to send."
+        : "You're offline. We'll reconnect when you're back online.";
+      banner.classList.add("show");
     }
 
     function keepAlive() {
@@ -1710,13 +1914,25 @@
       // Refresh FCM token if permission still granted (token can rotate)
       if (messaging && "Notification" in window && Notification.permission === "granted") {
         messaging.getToken({ vapidKey: VAPID_PUBLIC_KEY }).then((token) => {
-          if (token) db.ref(`fcm_tokens/${currentUserName}/${token}`).set(true);
-        }).catch(() => {});
+          if (token) return db.ref(`fcm_tokens/${currentUserName}/${token}`).set(true);
+          throw new Error("Firebase did not return a notification token.");
+        }).catch((error) => {
+          console.warn("Could not refresh notification token:", error);
+          notificationState = "error";
+          refreshNotificationSettings();
+        });
       }
     });
 
     // Also refresh presence whenever connection comes back online
-    window.addEventListener("online", () => { if (currentUserName) keepAlive(); });
+    window.addEventListener("online", () => {
+      if (!currentUserName) return;
+      setConnectionStatus(false);
+      keepAlive();
+    });
+    window.addEventListener("offline", () => {
+      if (currentUserName) setConnectionStatus(false);
+    });
 
     // ════════════════════════════════════════════════════════════════════
     //  Profile photos (Base64 in /profiles/{user}/photo)
@@ -2235,6 +2451,7 @@
     //  Messages — load, render, send
     // ════════════════════════════════════════════════════════════════════
     function listenToMessages() {
+      updateEmptyChat();
       // Wait for initial batch to finish before treating new messages as "incoming"
       db.ref("messages").limitToLast(1000).once("value", () => {
         // Set initial-load flag and force scroll to bottom after a few intervals
@@ -2252,6 +2469,7 @@
       db.ref("messages").limitToLast(1000).on("child_added", (snap) => {
         const data = snap.val(); const key = snap.key;
         allMessages[key] = { ...data, _key: key };
+        updateEmptyChat();
         appendOrInsertMessage(key, data);
         maybeMarkSeen(key, data);
 
@@ -2268,11 +2486,17 @@
       });
       db.ref("messages").limitToLast(1000).on("child_removed", (snap) => {
         delete allMessages[snap.key];
+        updateEmptyChat();
         const el = document.getElementById("msg-" + snap.key);
         if (el) el.remove();
         const seenEl = document.getElementById("seen-" + snap.key);
         if (seenEl) seenEl.remove();
       });
+    }
+
+    function updateEmptyChat() {
+      const emptyState = document.getElementById("emptyChat");
+      if (emptyState) emptyState.hidden = Object.keys(allMessages).length > 0;
     }
 
     function playPing() {
@@ -2751,8 +2975,11 @@
     async function sendMessage() {
       const input = document.getElementById("chatInput");
       const text = input.value.trim();
-      if (!text && !stagedFile && !stagedVoiceBlob) return;
+      if (isSending || (!text && !stagedFile && !stagedVoiceBlob)) return;
       const hadTypedText = text.length > 0;   // was the user actually typing?
+      const sendButton = document.getElementById("sendBtn");
+      isSending = true;
+      sendButton.disabled = true;
 
       const msg = {
         user: currentUserName,
@@ -2767,42 +2994,59 @@
         };
       }
 
-      // Upload file/voice if any — show spinner because this can take seconds
-      if (stagedFile || stagedVoiceBlob) {
-        const blob = stagedFile || stagedVoiceBlob;
-        const name = stagedFile ? stagedFile.name : `voice_${Date.now()}.webm`;
-        const type = stagedVoiceBlob ? "voice"
-          : (stagedFile.type.startsWith("image/") ? "image" : "doc");
-        const path = `chat_files/${Date.now()}_${name}`;
-
-        const overlay = document.getElementById("uploadOverlay");
-        const label = document.getElementById("uploadLabel");
-        label.innerText = type === "image" ? "Sending photo…"
-          : type === "voice" ? "Sending voice…"
-          : "Sending file…";
-        overlay.classList.add("show");
-        try {
+      const overlay = document.getElementById("uploadOverlay");
+      const progress = document.getElementById("uploadProgress");
+      let failureMessage = "The message didn't send. Check your connection and try again.";
+      try {
+        // Upload file/voice if any — show progress while it is sent.
+        if (stagedFile || stagedVoiceBlob) {
+          const blob = stagedFile || stagedVoiceBlob;
+          const name = stagedFile ? stagedFile.name : `voice_${Date.now()}.webm`;
+          const type = stagedVoiceBlob ? "voice"
+            : (stagedFile.type.startsWith("image/") ? "image" : "doc");
+          const path = `chat_files/${Date.now()}_${name}`;
+          const label = document.getElementById("uploadLabel");
+          const kindLabel = type === "image" ? "Sending photo"
+            : type === "voice" ? "Sending voice message"
+            : "Sending file";
+          failureMessage = "That didn't upload. Check your connection, then tap send to try again.";
+          label.innerText = `${kindLabel}…`;
+          progress.value = 0;
+          progress.classList.add("show");
+          overlay.classList.add("show");
           const ref = storage.ref(path);
-          await ref.put(blob);
+          const uploadTask = ref.put(blob);
+          uploadTask.on("state_changed", (snapshot) => {
+            const percent = snapshot.totalBytes
+              ? Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
+              : 0;
+            progress.value = percent;
+            label.innerText = `${kindLabel}… ${percent}%`;
+          });
+          await uploadTask;
           const url = await ref.getDownloadURL();
           msg.fileUrl = url; msg.fileType = type; msg.fileName = name;
-        } catch (err) {
-          overlay.classList.remove("show");
-          return alert("Upload failed: " + err.message);
         }
-        overlay.classList.remove("show");
-      }
 
-      await db.ref("messages").push(msg);
-      input.value = ""; autoResize();
-      clearStaged();
-      cancelReply();
-      updateTypingStatus("stopped");
-      input.placeholder = "Type a message";  // reset
-      // Keep the keyboard up only if the user was typing text. For a voice note
-      // or attachment, close the keyboard so it doesn't pop up unexpectedly.
-      if (hadTypedText) { input.focus(); }
-      else { input.blur(); }
+        failureMessage = "The message didn't send. Check your connection and try again.";
+        await db.ref("messages").push(msg);
+        input.value = ""; autoResize();
+        clearStaged();
+        cancelReply();
+        updateTypingStatus("stopped");
+        input.placeholder = "Type a message";
+        if (hadTypedText) { input.focus(); }
+        else { input.blur(); }
+      } catch (error) {
+        console.error("Could not send chat message:", error);
+        showAppNotice(failureMessage);
+      } finally {
+        overlay.classList.remove("show");
+        progress.classList.remove("show");
+        progress.value = 0;
+        isSending = false;
+        sendButton.disabled = false;
+      }
     }
 
     function saveEdit() {
