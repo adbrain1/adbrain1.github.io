@@ -449,7 +449,10 @@
 
     /* ─── Media in messages ─── */
     .msg-image {
-      max-width: 240px; max-height: 320px;
+      width: auto; height: auto;
+      max-width: min(100%, 480px);
+      max-height: min(50vh, 360px);
+      object-fit: contain;
       border-radius: 6px; display: block;
       margin-bottom: 4px;
     }
@@ -1050,6 +1053,10 @@
     /* Make chat images obviously clickable */
     .msg-image { cursor: pointer; transition: transform 0.1s; }
     .msg-image:active { transform: scale(0.98); }
+
+    @media (min-width: 768px) {
+      .msg-image { max-height: min(65vh, 520px); }
+    }
 
     /* ─── Voice button recording state ─── */
     #voiceBtn.recording {
