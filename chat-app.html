@@ -452,6 +452,7 @@
       width: min(70vw, 480px);
       max-width: 100%;
       height: auto;
+      max-height: min(45vh, 360px);
       border-radius: 6px; display: block;
       margin-bottom: 4px;
     }
@@ -1052,6 +1053,10 @@
     /* Make chat images obviously clickable */
     .msg-image { cursor: pointer; transition: transform 0.1s; }
     .msg-image:active { transform: scale(0.98); }
+
+    @media (min-width: 768px) {
+      .msg-image { max-height: min(55vh, 440px); }
+    }
 
     /* ─── Voice button recording state ─── */
     #voiceBtn.recording {
@@ -2918,15 +2923,29 @@
     // ════════════════════════════════════════════════════════════════════
     //  Image lightbox
     // ════════════════════════════════════════════════════════════════════
+    let lightboxHistoryEntry = false;
+
     function openLightbox(url) {
+      const lightbox = document.getElementById("lightbox");
+      if (lightbox.classList.contains("show")) return;
+      const currentState = history.state && typeof history.state === "object"
+        ? history.state : {};
+      history.pushState({ ...currentState, chatLightbox: true }, "");
+      lightboxHistoryEntry = true;
       document.getElementById("lightboxImg").src = url;
       document.getElementById("lbDownload").href = url;
-      document.getElementById("lightbox").classList.add("show");
+      lightbox.classList.add("show");
     }
-    function closeLightbox() {
-      document.getElementById("lightbox").classList.remove("show");
+    function closeLightbox(fromHistory = false) {
+      const lightbox = document.getElementById("lightbox");
+      if (!lightbox.classList.contains("show")) return;
+      lightbox.classList.remove("show");
       // Free memory by clearing src after fade-out
       setTimeout(() => { document.getElementById("lightboxImg").src = ""; }, 200);
+      if (lightboxHistoryEntry) {
+        lightboxHistoryEntry = false;
+        if (!fromHistory) history.back();
+      }
     }
 
     function scrollToBottom() {
@@ -3836,6 +3855,12 @@
         setTimeout(() => { fitAppToVisibleArea(); scrollToBottom(); }, 250);
       });
       document.getElementById("searchInput").addEventListener("input", performSearch);
+
+      window.addEventListener("popstate", () => {
+        if (lightboxHistoryEntry && document.getElementById("lightbox").classList.contains("show")) {
+          closeLightbox(true);
+        }
+      });
 
       // Show/hide the scroll-down fab when user scrolls the messages
       document.getElementById("messagesContainer").addEventListener("scroll", () => {
