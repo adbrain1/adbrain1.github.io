@@ -286,7 +286,7 @@
     /* ─── Search bar ─── */
     .search-bar {
       display: none;
-      align-items: center; gap: 4px;
+      align-items: center; gap: 4px; flex-wrap: wrap;
       padding: 6px 6px;
       background: var(--bg-header);
       border-top: 1px solid rgba(255,255,255,0.08);
@@ -317,6 +317,27 @@
       flex-shrink: 0;
       white-space: nowrap;
     }
+    .search-filters {
+      display: flex;
+      flex: 0 0 100%;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 2px 2px 4px;
+    }
+    .search-filter {
+      flex: 0 0 auto;
+      padding: 6px 10px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.14);
+      color: white;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .search-filter[aria-pressed="true"] {
+      background: var(--gold);
+      color: #1a0029;
+      font-weight: 600;
+    }
 
     /* ─── Messages area ─── */
     /* Light mode (crescent/moon showing): warm, friendly yellow */
@@ -332,6 +353,30 @@
       background-color: #2e0249;
       background-image: radial-gradient(#a91079 1px, transparent 1px);
       background-size: 30px 30px;
+    }
+    #messagesContainer[data-wallpaper="lavender"] {
+      background-color: #e8ddf5;
+      background-image: none;
+    }
+    #messagesContainer[data-wallpaper="sky"] {
+      background-color: #d9eff8;
+      background-image: none;
+    }
+    #messagesContainer[data-wallpaper="sage"] {
+      background-color: #dcebdc;
+      background-image: none;
+    }
+    html[data-theme="dark"] #messagesContainer[data-wallpaper="lavender"] {
+      background-color: #e8ddf5;
+      background-image: none;
+    }
+    html[data-theme="dark"] #messagesContainer[data-wallpaper="sky"] {
+      background-color: #d9eff8;
+      background-image: none;
+    }
+    html[data-theme="dark"] #messagesContainer[data-wallpaper="sage"] {
+      background-color: #dcebdc;
+      background-image: none;
     }
     /* Keep message bubbles clearly separated from the purple background */
     html[data-theme="dark"] .msg-bubble {
@@ -446,6 +491,9 @@
     .msg-reactions:active { transform: scale(0.96); }
 
     .msg-row.has-reactions { margin-bottom: 14px; }
+    html[data-chat-density="compact"] .msg-row { margin-bottom: 1px; }
+    html[data-chat-density="compact"] .msg-bubble { padding: 4px 8px 21px; }
+    html[data-chat-density="compact"] .day-divider { margin: 8px 0 4px; }
 
     /* ─── Media in messages ─── */
     .msg-image {
@@ -683,6 +731,24 @@
       padding: 12px 0;
     }
     .settings-row .lbl { flex: 1; font-size: 15px; }
+    .appearance-control select {
+      max-width: 145px;
+      padding: 8px 10px;
+      border: 1px solid var(--border-soft);
+      border-radius: 8px;
+      color: var(--text-primary);
+      background: var(--bg-app);
+      font: inherit;
+    }
+    .appearance-control input[type="checkbox"] {
+      width: 20px; height: 20px;
+      accent-color: var(--brand-accent);
+    }
+    .appearance-hint {
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
     .toggle {
       position: relative; width: 46px; height: 26px;
       background: #ccc; border-radius: 13px;
@@ -1053,6 +1119,8 @@
     /* Make chat images obviously clickable */
     .msg-image { cursor: pointer; transition: transform 0.1s; }
     .msg-image:active { transform: scale(0.98); }
+    html[data-chat-text-size="small"] .msg-text { font-size: 14px; }
+    html[data-chat-text-size="large"] .msg-text { font-size: 19px; }
 
     @media (min-width: 768px) {
       .msg-image { max-height: min(55vh, 440px); }
@@ -1301,11 +1369,11 @@
     <div class="logo"><img src="/icon-512.png" alt="Rafay Chat"></div>
     <h1>Rafay Chat</h1>
     <p>Family chat with Abdul Rafay</p>
-    <div class="name-box">
+    <form class="name-box" id="loginForm">
       <input type="text" id="userName" placeholder="Enter your name" autocomplete="off" aria-label="Your name">
       <div id="joinError" class="login-error" role="alert" hidden></div>
-      <button id="joinBtn" onclick="startChat()">Join Chat</button>
-    </div>
+      <button id="joinBtn" type="submit">Join Chat</button>
+    </form>
   </div>
 
   <!-- ─── Main app ─── -->
@@ -1352,6 +1420,12 @@
         <button class="icon-btn" onclick="toggleSearch()" title="Close search">
           <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
+        <div class="search-filters" role="group" aria-label="Filter search results">
+          <button class="search-filter" type="button" data-search-filter="all" aria-pressed="true">All</button>
+          <button class="search-filter" type="button" data-search-filter="image" aria-pressed="false">Photos</button>
+          <button class="search-filter" type="button" data-search-filter="doc" aria-pressed="false">Documents</button>
+          <button class="search-filter" type="button" data-search-filter="link" aria-pressed="false">Links</button>
+        </div>
       </div>
     </header>
 
@@ -1506,6 +1580,32 @@
       </div>
 
       <div class="settings-section">
+        <h3>Appearance on this device</h3>
+        <label class="settings-row appearance-control">
+          <span class="lbl">Chat wallpaper</span>
+          <select id="wallpaperSetting">
+            <option value="default">Default</option>
+            <option value="lavender">Lavender</option>
+            <option value="sky">Sky blue</option>
+            <option value="sage">Sage green</option>
+          </select>
+        </label>
+        <label class="settings-row appearance-control">
+          <span class="lbl">Message text size</span>
+          <select id="textSizeSetting">
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+        </label>
+        <label class="settings-row appearance-control">
+          <span class="lbl">Compact message spacing</span>
+          <input id="compactSetting" type="checkbox">
+        </label>
+        <div class="appearance-hint">These preferences are saved only on this device. Swipe a message right to reply.</div>
+      </div>
+
+      <div class="settings-section">
         <h3>About</h3>
         <div style="color:var(--text-secondary); font-size:13px; line-height:1.5">
           Rafay Chat v2.0<br>
@@ -1630,7 +1730,11 @@
     let activeSelectedMsgId = null;       // for action sheet
     let searchMatches = [];               // array of msgIds matching current search
     let searchIdx = -1;
+    let activeSearchFilter = "all";
     let darkMode = false;
+    let appearanceSettings = { wallpaper: "default", textSize: "medium", compact: false };
+    let localStorageNoticeShown = false;
+    let draftBeforeEdit = null;
     let lastSeenMap = {};                 // userName -> timestamp ms
     let initialLoadDone = false;          // suppress sounds while loading
     let mutedUsers = {};                  // userName -> true (muted by me)
@@ -1700,6 +1804,56 @@
     }
     darkMode = localStorage.getItem("rc_dark") === "1";
     applyTheme();
+
+    function applyAppearanceSettings() {
+      const root = document.documentElement;
+      const messages = document.getElementById("messagesContainer");
+      root.dataset.chatTextSize = appearanceSettings.textSize === "small" || appearanceSettings.textSize === "large"
+        ? appearanceSettings.textSize : "medium";
+      root.dataset.chatDensity = appearanceSettings.compact ? "compact" : "comfortable";
+      if (messages) {
+        if (appearanceSettings.wallpaper === "lavender" || appearanceSettings.wallpaper === "sky" || appearanceSettings.wallpaper === "sage") {
+          messages.dataset.wallpaper = appearanceSettings.wallpaper;
+        } else {
+          delete messages.dataset.wallpaper;
+        }
+      }
+    }
+
+    function loadAppearanceSettings() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("rc_appearance") || "{}");
+        if (saved && typeof saved === "object") {
+          appearanceSettings = {
+            wallpaper: ["default", "lavender", "sky", "sage"].includes(saved.wallpaper) ? saved.wallpaper : "default",
+            textSize: ["small", "medium", "large"].includes(saved.textSize) ? saved.textSize : "medium",
+            compact: saved.compact === true
+          };
+        }
+      } catch (error) {
+        console.warn("Could not load appearance preferences:", error);
+      }
+      applyAppearanceSettings();
+    }
+
+    function saveAppearanceSettings() {
+      try {
+        localStorage.setItem("rc_appearance", JSON.stringify(appearanceSettings));
+      } catch (error) {
+        reportLocalStorageFailure("Appearance preferences couldn't be saved on this device.", error);
+      }
+      applyAppearanceSettings();
+    }
+
+    function reportLocalStorageFailure(message, error) {
+      console.error(message, error);
+      if (!localStorageNoticeShown) {
+        localStorageNoticeShown = true;
+        showAppNotice(message);
+      }
+    }
+
+    loadAppearanceSettings();
 
     // ════════════════════════════════════════════════════════════════════
     //  Header clocks — live UK & Pakistan time (12-hour)
@@ -1819,6 +1973,7 @@
       const name = (!isAdmin && isMySonName(typedName)) ? "Rafay" : typedName;
       currentUserName = name;
       localStorage.setItem("rc_name", name);
+      restoreChatDraft();
 
       // Tell the Cloud Function someone logged in (fires push to others).
       // The function filters out Adnan's actions server-side, so no flag needed.
@@ -2860,6 +3015,7 @@
       attachLongPress(bubble, key);
 
       row.appendChild(bubble);
+      attachSwipeToReply(row, key);
       return row;
     }
 
@@ -2983,6 +3139,41 @@
     // ════════════════════════════════════════════════════════════════════
     //  Sending
     // ════════════════════════════════════════════════════════════════════
+    function draftStorageKey() {
+      return `rc_draft_${currentUserName}`;
+    }
+
+    function saveChatDraft() {
+      if (!currentUserName || editingMessageKey) return;
+      const text = document.getElementById("chatInput").value;
+      try {
+        if (text) localStorage.setItem(draftStorageKey(), text);
+        else localStorage.removeItem(draftStorageKey());
+      } catch (error) {
+        reportLocalStorageFailure("Your draft couldn't be saved on this device.", error);
+      }
+    }
+
+    function restoreChatDraft() {
+      const input = document.getElementById("chatInput");
+      try {
+        input.value = localStorage.getItem(draftStorageKey()) || "";
+      } catch (error) {
+        input.value = "";
+        reportLocalStorageFailure("Your saved draft couldn't be restored on this device.", error);
+      }
+      autoResize();
+    }
+
+    function clearChatDraft() {
+      if (!currentUserName) return;
+      try {
+        localStorage.removeItem(draftStorageKey());
+      } catch (error) {
+        reportLocalStorageFailure("Your sent draft couldn't be cleared from this device.", error);
+      }
+    }
+
     function handleSendClick() {
       if (editingMessageKey) { saveEdit(); return; }
       sendMessage();
@@ -3047,6 +3238,7 @@
         failureMessage = "The message didn't send. Check your connection and try again.";
         await db.ref("messages").push(msg);
         input.value = ""; autoResize();
+        clearChatDraft();
         clearStaged();
         cancelReply();
         updateTypingStatus("stopped");
@@ -3075,7 +3267,8 @@
 
     function cancelEdit() {
       editingMessageKey = null;
-      document.getElementById("chatInput").value = "";
+      document.getElementById("chatInput").value = draftBeforeEdit || "";
+      draftBeforeEdit = null;
       document.getElementById("editBanner").classList.remove("show");
       document.getElementById("sendBtn").innerHTML =
         '<svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>';
@@ -3113,6 +3306,45 @@
       node.addEventListener("mouseleave", cancel);
       // Disable context menu on long press
       node.addEventListener("contextmenu", (e) => e.preventDefault());
+    }
+
+    function attachSwipeToReply(node, msgId) {
+      let startX = null;
+      let startY = null;
+      let didSwipe = false;
+      node.addEventListener("touchstart", (e) => {
+        const target = e.target;
+        if (target.closest("button, a, audio, .msg-reactions, .msg-reply-quote, .msg-avatar")) return;
+        const touch = e.changedTouches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        didSwipe = false;
+      }, { passive: true });
+      node.addEventListener("touchmove", (e) => {
+        if (startX === null) return;
+        const touch = e.changedTouches[0];
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+        if (dx > 12 && dx > Math.abs(dy) * 1.2) {
+          didSwipe = true;
+          e.preventDefault();
+        }
+      }, { passive: false });
+      node.addEventListener("touchend", (e) => {
+        if (startX === null) return;
+        const touch = e.changedTouches[0];
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+        if (didSwipe && dx > 64 && Math.abs(dy) < 70) replyToMessage(msgId);
+        startX = null;
+        startY = null;
+        didSwipe = false;
+      });
+      node.addEventListener("touchcancel", () => {
+        startX = null;
+        startY = null;
+        didSwipe = false;
+      });
     }
 
     function openActionSheet(msgId, reactionsOnly) {
@@ -3156,21 +3388,26 @@
       hideActionSheet();
     }
     function actionReply() {
-      const data = allMessages[activeSelectedMsgId]; if (!data) return;
+      if (!replyToMessage(activeSelectedMsgId)) return;
+      hideActionSheet();
+    }
+    function replyToMessage(msgId) {
+      const data = allMessages[msgId]; if (!data) return false;
       const snippet = data.text ? data.text.substring(0, 80)
         : data.fileType === "image" ? "📷 Photo"
         : data.fileType === "voice" ? "🎤 Voice message"
         : data.fileType === "doc" ? `📄 ${data.fileName || "Document"}` : "";
-      replyingTo = { msgId: activeSelectedMsgId, user: data.user, snippet };
+      replyingTo = { msgId, user: data.user, snippet };
       document.getElementById("rpName").innerText = data.user;
       document.getElementById("rpText").innerText = snippet;
       document.getElementById("replyPreview").classList.add("show");
-      hideActionSheet();
       document.getElementById("chatInput").focus();
+      return true;
     }
     function actionEdit() {
       const data = allMessages[activeSelectedMsgId]; if (!data || !data.text) return;
       if (data.user !== currentUserName) return;
+      draftBeforeEdit = document.getElementById("chatInput").value;
       editingMessageKey = activeSelectedMsgId;
       const input = document.getElementById("chatInput");
       input.value = data.text; input.focus(); autoResize();
@@ -3373,6 +3610,7 @@
       const input = document.getElementById("chatInput");
       input.value += emoji;
       input.focus(); autoResize();
+      saveChatDraft();
       updateTypingStatus("typing");
     }
 
@@ -3387,10 +3625,18 @@
         document.getElementById("searchInput").focus();
       } else {
         document.getElementById("searchInput").value = "";
+        setSearchFilter("all", false);
         clearSearchHighlights();
         searchMatches = []; searchIdx = -1;
         document.getElementById("searchStats").innerText = "";
       }
+    }
+    function setSearchFilter(filter, searchAgain = true) {
+      activeSearchFilter = filter;
+      document.querySelectorAll("[data-search-filter]").forEach((button) => {
+        button.setAttribute("aria-pressed", button.dataset.searchFilter === filter ? "true" : "false");
+      });
+      if (searchAgain) performSearch();
     }
     function clearSearchHighlights() {
       document.querySelectorAll(".msg-text").forEach((el) => {
@@ -3401,14 +3647,30 @@
       const q = document.getElementById("searchInput").value.trim().toLowerCase();
       clearSearchHighlights();
       searchMatches = []; searchIdx = -1;
-      if (!q) { document.getElementById("searchStats").innerText = ""; return; }
+      if (!q && activeSearchFilter === "all") {
+        document.getElementById("searchStats").innerText = "";
+        return;
+      }
       const sortedKeys = Object.keys(allMessages).sort((a, b) =>
         (allMessages[a].timestamp || 0) - (allMessages[b].timestamp || 0));
       sortedKeys.forEach((k) => {
         const data = allMessages[k];
-        if (data.text && data.text.toLowerCase().includes(q)) {
-          searchMatches.push(k);
-          // Highlight
+        if ((data.deletedBy && !isAdmin) || !document.getElementById("msg-" + k)) return;
+        const text = String(data.text || "");
+        const fileName = String(data.fileName || "");
+        const isLink = /(?:https?:\/\/|www\.)[^\s<]+/i.test(text);
+        const matchesFilter = activeSearchFilter === "all"
+          || (activeSearchFilter === "image" && data.fileType === "image")
+          || (activeSearchFilter === "doc" && data.fileType === "doc")
+          || (activeSearchFilter === "link" && isLink);
+        if (!matchesFilter) return;
+
+        const searchableText = activeSearchFilter === "image" || activeSearchFilter === "doc"
+          ? `${text} ${fileName}`.toLowerCase() : text.toLowerCase();
+        if (q && !searchableText.includes(q)) return;
+
+        searchMatches.push(k);
+        if (q && text.toLowerCase().includes(q)) {
           const el = document.querySelector(`#msg-${k} .msg-text`);
           if (el) {
             const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "ig");
@@ -3821,8 +4083,36 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("loginForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        startChat();
+      });
+
+      document.getElementById("wallpaperSetting").value = appearanceSettings.wallpaper;
+      document.getElementById("textSizeSetting").value = appearanceSettings.textSize;
+      document.getElementById("compactSetting").checked = appearanceSettings.compact;
+      document.getElementById("wallpaperSetting").addEventListener("change", (e) => {
+        appearanceSettings.wallpaper = e.target.value;
+        saveAppearanceSettings();
+      });
+      document.getElementById("textSizeSetting").addEventListener("change", (e) => {
+        appearanceSettings.textSize = e.target.value;
+        saveAppearanceSettings();
+      });
+      document.getElementById("compactSetting").addEventListener("change", (e) => {
+        appearanceSettings.compact = e.target.checked;
+        saveAppearanceSettings();
+      });
+      document.querySelectorAll("[data-search-filter]").forEach((button) => {
+        button.addEventListener("click", () => setSearchFilter(button.dataset.searchFilter));
+      });
+
       const input = document.getElementById("chatInput");
-      input.addEventListener("input", () => { autoResize(); updateTypingStatus("typing"); });
+      input.addEventListener("input", () => {
+        autoResize();
+        saveChatDraft();
+        updateTypingStatus("typing");
+      });
       input.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey && !navigator.userAgent.match(/Mobi/)) {
           e.preventDefault(); handleSendClick();
