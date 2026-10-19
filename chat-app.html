@@ -1376,6 +1376,31 @@
     </form>
   </div>
 
+  <script>
+    (function() {
+      var splash = document.getElementById("splashScreen");
+      var nameInput = document.getElementById("userName");
+      if (!splash || !nameInput) return;
+      var dismissed = false;
+      function dismissSplash(focusNameInput) {
+        if (dismissed) return;
+        dismissed = true;
+        if (focusNameInput) {
+          splash.style.transitionDuration = "0.15s";
+          nameInput.focus();
+        }
+        splash.classList.add("splash-hide");
+        setTimeout(function() { splash.remove(); }, focusNameInput ? 200 : 700);
+      }
+
+      splash.addEventListener("click", function(event) {
+        if (event.target.closest("a")) return;
+        dismissSplash(true);
+      });
+      setTimeout(function() { dismissSplash(false); }, 1800);
+    })();
+  </script>
+
   <!-- ─── Main app ─── -->
   <div id="appScreen">
 
@@ -4204,18 +4229,6 @@
           .catch(err => console.log("SW reg failed", err));
       });
     }
-    // ════════════════════════════════════════════════════════════════════
-    //  Splash screen — auto-dismiss after 3 seconds
-    // ════════════════════════════════════════════════════════════════════
-    (function() {
-      var splash = document.getElementById('splashScreen');
-      if (!splash) return;
-      setTimeout(function() {
-        splash.classList.add('splash-hide');
-        setTimeout(function() { splash.remove(); }, 700);
-      }, 3000);
-    })();
-
   </script>
 </body>
 </html>
