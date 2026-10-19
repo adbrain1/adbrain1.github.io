@@ -1108,11 +1108,16 @@
       top: calc(env(safe-area-inset-top, 0px) + 12px);
       right: 12px;
       width: 44px; height: 44px;
-      background: rgba(255,255,255,0.15);
-      color: white; border-radius: 50%;
+      background: #ffd43b;
+      color: #28103d;
+      border: 2px solid rgba(255,255,255,0.9);
+      box-shadow: 0 3px 16px rgba(0,0,0,0.55);
+      border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-size: 24px;
     }
+    .lightbox .lb-close:hover { background: #ffe477; }
+    .lightbox .lb-close:active { background: #ffbf24; }
     .lightbox .lb-download {
       position: absolute;
       bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
@@ -1220,33 +1225,42 @@
     .upload-overlay .upload-label { font-size: 17px; font-weight: 700; }
     .upload-fun-caption { color: rgba(255,255,255,0.82); font-size: 13px; }
     .upload-progress-track {
+      position: relative;
       width: 100%;
-      min-height: 12px;
+      height: 14px;
       border-radius: 999px;
       background: rgba(255,255,255,0.18);
       overflow: hidden;
     }
     #uploadProgress {
       display: none;
-      width: 100%;
-      height: 12px;
-      border: 0;
-      appearance: none;
-      -webkit-appearance: none;
-      vertical-align: top;
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      border-radius: inherit;
     }
     #uploadProgress.show { display: block; }
-    #uploadProgress::-webkit-progress-bar { background: transparent; }
-    #uploadProgress::-webkit-progress-value {
-      border-radius: 999px;
-      background: linear-gradient(90deg, #ffd43b, #ff8e3c, #ff5f9e);
+    #uploadProgress::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: var(--upload-progress, 0%);
+      border-radius: inherit;
+      background: linear-gradient(110deg, #ffd43b 0%, #ff8e3c 28%, #ff5f9e 58%, #ffd43b 82%);
+      background-size: 220% 100%;
+      animation: upload-progress-shimmer 1.5s linear infinite;
       transition: width 0.2s ease;
     }
-    #uploadProgress::-moz-progress-bar {
-      border-radius: 999px;
-      background: linear-gradient(90deg, #ffd43b, #ff8e3c, #ff5f9e);
+    @keyframes upload-progress-shimmer {
+      from { background-position: 100% 0; }
+      to { background-position: -120% 0; }
+    }
+    .lightbox .lb-close:focus-visible {
+      outline: 3px solid white;
+      outline-offset: 3px;
     }
     @media (prefers-reduced-motion: reduce) {
+      #uploadProgress::before { animation: none; }
       .upload-mascot, .upload-mascot::before, .upload-mascot::after { animation: none; }
     }
 
@@ -1733,7 +1747,7 @@
       <div class="upload-label" id="uploadLabel">Sending…</div>
       <div class="upload-fun-caption" aria-hidden="true">Zooming your message to the chat!</div>
       <div class="upload-progress-track">
-        <progress id="uploadProgress" max="100" value="0" aria-label="Upload progress"></progress>
+        <div id="uploadProgress" role="progressbar" aria-label="Upload progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
       </div>
     </div>
   </div>
@@ -3318,7 +3332,8 @@
             : "Sending file";
           failureMessage = "That didn't upload. Check your connection, then tap send to try again.";
           label.innerText = `${kindLabel}…`;
-          progress.value = 0;
+          progress.setAttribute("aria-valuenow", "0");
+          progress.style.setProperty("--upload-progress", "0%");
           progress.classList.add("show");
           overlay.classList.add("show");
           const ref = storage.ref(path);
@@ -3327,7 +3342,8 @@
             const percent = snapshot.totalBytes
               ? Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
               : 0;
-            progress.value = percent;
+            progress.setAttribute("aria-valuenow", String(percent));
+            progress.style.setProperty("--upload-progress", `${percent}%`);
             label.innerText = `${kindLabel}… ${percent}%`;
           });
           await uploadTask;
@@ -3351,7 +3367,8 @@
       } finally {
         overlay.classList.remove("show");
         progress.classList.remove("show");
-        progress.value = 0;
+        progress.setAttribute("aria-valuenow", "0");
+        progress.style.setProperty("--upload-progress", "0%");
         isSending = false;
         sendButton.disabled = false;
       }
