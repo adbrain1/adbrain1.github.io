@@ -2011,9 +2011,7 @@
       document.getElementById("loginScreen").style.display = "none";
       document.getElementById("appScreen").classList.add("show");
       refreshNotificationSettings();
-      if ("Notification" in window && Notification.permission === "granted") {
-        setupPushNotifications(name);
-      }
+      setupPushNotifications(name, true);
 
       // Show admin tools (clear history button)
       if (isAdmin) {
