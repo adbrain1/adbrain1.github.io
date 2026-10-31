@@ -558,8 +558,8 @@
     .staging-area .name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .input-row {
-      display: flex; align-items: flex-end; gap: 2px;
-      padding: 8px 10px;
+      display: flex; align-items: flex-end; gap: 1px;
+      padding: 7px 8px;
       border-radius: 28px;
       background: rgba(255, 255, 255, 0.7);
       border: 1px solid rgba(75, 39, 133, 0.08);
@@ -568,28 +568,28 @@
       -webkit-backdrop-filter: blur(12px);
     }
     .input-row .ic-input {
-      width: 40px; height: 40px;
+      width: 36px; height: 36px;
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       color: var(--text-secondary);
       background: transparent;
       flex-shrink: 0;
-      margin: 0 1px;
+      margin: 0;
     }
     .input-row .ic-input:active { background: rgba(0,0,0,0.05); }
     html[data-theme="dark"] .input-row .ic-input:active { background: rgba(255,255,255,0.06); }
     .input-row .ic-input svg { width: 22px; height: 22px; fill: currentColor; }
     #chatInput {
       flex: 1;
-      min-height: 40px; max-height: 140px;
-      padding: 10px 8px 10px 10px;
-      border-radius: 20px;
+      min-height: 36px; max-height: 140px;
+      padding: 8px 6px 8px 8px;
+      border-radius: 18px;
       border: 0;
       background: transparent;
       font-size: 15px; line-height: 1.35;
       resize: none; outline: none;
       box-shadow: none;
-      margin-left: 2px;
+      margin-left: 0;
     }
     #sendBtn {
       width: 44px; height: 44px;
