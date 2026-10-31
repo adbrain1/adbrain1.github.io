@@ -1,0 +1,22 @@
+[33m4497d59[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{0}: commit: Refine message sender styling and alignment in chat app
+[33ma04cf91[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{1}: reset: moving to origin/main
+[33m6b07c92[m HEAD@{2}: commit: Remove unused login notification audio file
+[33m66c702b[m HEAD@{3}: commit: Improve message avatar visibility and positioning in chat interface
+[33m38f3ba5[m HEAD@{4}: commit: Add new test file for project documentation
+[33ma39c5dc[m HEAD@{5}: commit (merge): Merge origin/main and keep local chat implementation
+[33mdcd4d59[m HEAD@{6}: commit: Enhance upload progress UI with improved styling and accessibility features
+[33m567294f[m HEAD@{7}: commit (merge): Merge branch 'main' of https://github.com/adbrain1/adbrain1.github.io
+[33me3282bc[m HEAD@{8}: commit: Enhance splash screen with prompt and improve upload overlay design
+[33m74e4182[m HEAD@{9}: commit: Simplify push notification setup by directly enabling notifications on login
+[33mf4f2e1b[m HEAD@{10}: commit: Implement splash screen auto-dismiss functionality with click event handling
+[33ma11ba9a[m HEAD@{11}: commit: Add appearance settings and search filters to enhance user experience
+[33m69398c7[m HEAD@{12}: commit: Improve message image responsiveness by adjusting width and max-width properties
+[33mec0c0b9[m HEAD@{13}: commit: Enhance image responsiveness and lightbox functionality
+[33m7f9e53e[m HEAD@{14}: commit: Refactor message image styles for improved responsiveness
+[33m27626bd[m HEAD@{15}: commit: Improve message image responsiveness and styling
+[33m8861ca0[m HEAD@{16}: commit: Remove empty chat message placeholder from messages container
+[33m359eaa9[m HEAD@{17}: commit: Your commit message
+[33mb883c7b[m HEAD@{18}: commit: Reorganise assets into /assets folders
+[33m92918c0[m HEAD@{19}: commit: Remove test file
+[33mf634a4e[m HEAD@{20}: commit: Test commit
+[33m8cfc6b4[m HEAD@{21}: clone: from https://github.com/adbrain1/adbrain1.github.io.git
