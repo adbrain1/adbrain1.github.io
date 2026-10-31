@@ -394,9 +394,15 @@
       border-top-left-radius: 2px;
     }
     .msg-sender {
-      font-size: 13px; font-weight: 600;
-      margin-bottom: 2px;
+      font-size: 12px; font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: 0.02em;
       color: var(--brand-accent);
+      line-height: 1.2;
+    }
+    .msg-row.mine .msg-sender {
+      text-align: right;
+      color: #e0e7ff;
     }
     html[data-theme="dark"] .msg-sender { color: var(--brand-accent-soft); }
 
@@ -2605,25 +2611,27 @@
       const bubble = document.createElement("div");
       bubble.className = "msg-bubble";
 
-      // Sender name for others
-      if (!isMe) {
-        const s = document.createElement("div");
-        s.className = "msg-sender";
-        const dn = displayNameOf(data.user);
-        // 🔇 reminder shown when I have muted this person
-        const mic = document.createElement("span");
-        mic.className = "mute-ic";
-        mic.innerText = "🔇";
-        mic.style.display = mutedUsers[dn] ? "inline" : "none";
-        mic.style.marginLeft = "4px";
-        const nameSpan = document.createElement("span");
-        nameSpan.innerText = dn;
-        s.appendChild(nameSpan);
-        s.appendChild(mic);
-        s.style.color = colorFor(dn);
-        s.onclick = (e) => { e.stopPropagation(); openUserProfile(data.user); };
-        bubble.appendChild(s);
+      // Sender name: shown for all messages, with outgoing messages aligned to the right.
+      const s = document.createElement("div");
+      s.className = "msg-sender";
+      const dn = displayNameOf(data.user);
+      // 🔇 reminder shown when I have muted this person
+      const mic = document.createElement("span");
+      mic.className = "mute-ic";
+      mic.innerText = "🔇";
+      mic.style.display = mutedUsers[dn] ? "inline" : "none";
+      mic.style.marginLeft = "4px";
+      const nameSpan = document.createElement("span");
+      nameSpan.innerText = dn;
+      s.appendChild(nameSpan);
+      s.appendChild(mic);
+      s.style.color = colorFor(dn);
+      if (isMe) {
+        s.style.textAlign = "right";
+        s.style.color = "#e0e7ff";
       }
+      s.onclick = (e) => { e.stopPropagation(); openUserProfile(data.user); };
+      bubble.appendChild(s);
 
       // Reply quote
       if (data.replyTo && data.replyTo.user) {
