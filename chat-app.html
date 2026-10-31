@@ -368,10 +368,19 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 13px; font-weight: 600;
       color: white; overflow: hidden;
-      visibility: hidden;
+      visibility: visible;
+      opacity: 1;
     }
-    .msg-avatar.show { visibility: visible; }
+    .msg-avatar.show { visibility: visible; opacity: 1; }
     .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .msg-row.mine .msg-avatar {
+      order: 2;
+      margin-left: 6px;
+    }
+    .msg-row.other .msg-avatar {
+      order: 1;
+      margin-right: 6px;
+    }
 
     .msg-bubble {
       max-width: 78%;
@@ -386,12 +395,16 @@
       -webkit-user-select: none;
     }
     .msg-row.mine .msg-bubble {
+      order: 1;
       background: var(--bg-bubble-mine);
       border-top-right-radius: 2px;
+      margin-left: 0;
     }
     .msg-row.other .msg-bubble {
+      order: 2;
       background: var(--bg-bubble-other);
       border-top-left-radius: 2px;
+      margin-right: 0;
     }
     .msg-sender {
       font-size: 12px; font-weight: 700;
@@ -402,7 +415,7 @@
     }
     .msg-row.mine .msg-sender {
       text-align: right;
-      color: #e0e7ff;
+      color: #1f1230;
     }
     html[data-theme="dark"] .msg-sender { color: var(--brand-accent-soft); }
 
@@ -2598,12 +2611,11 @@
       row.setAttribute("data-day", formatDay(data.timestamp || Date.now()));
       if (data.reactions && Object.keys(data.reactions).length > 0) row.classList.add("has-reactions");
 
-      // Avatar (only for others, only shows for now — could be conditional)
+      // Always show the sender avatar, including for the current user.
       const avatar = document.createElement("div");
       avatar.className = "msg-avatar show";
       avatar.setAttribute("data-user-avatar", data.user);
       renderAvatarInto(avatar, data.user);
-      if (isMe) avatar.classList.remove("show");
       avatar.style.cursor = "pointer";
       avatar.onclick = (e) => { e.stopPropagation(); openUserProfile(data.user); };
       row.appendChild(avatar);
