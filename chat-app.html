@@ -1121,6 +1121,85 @@
     .seen-by-expanded .sb-line { font-size: 11px; line-height: 1.5; }
     .seen-by-expanded .sb-name { font-weight: 600; }
 
+    /* ─── Modern dialog / modal styles ─── */
+    body.modal-open { overflow: hidden; }
+
+    .custom-modal-backdrop {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.18s ease;
+      z-index: 90;
+    }
+    .custom-modal-backdrop.show {
+      opacity: 1; pointer-events: auto;
+    }
+    .custom-modal {
+      width: min(92vw, 420px);
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(75,39,133,0.08);
+      border-radius: 24px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22), 0 8px 18px rgba(15, 23, 42, 0.08);
+      padding: 22px 20px 18px;
+      transform: translateY(10px) scale(0.98);
+      transition: transform 0.18s ease;
+      color: var(--text-primary);
+    }
+    html[data-theme="dark"] .custom-modal {
+      background: rgba(17, 24, 39, 0.94);
+      border-color: rgba(255,255,255,0.08);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.36), 0 8px 22px rgba(0,0,0,0.22);
+    }
+    .custom-modal-backdrop.show .custom-modal {
+      transform: translateY(0) scale(1);
+    }
+    .custom-modal-icon {
+      width: 50px; height: 50px; border-radius: 50%;
+      display: grid; place-items: center;
+      margin: 0 auto 14px;
+      background: linear-gradient(135deg, #f0e7ff, #e8d5ff);
+      color: #4B2785;
+      font-size: 26px; font-weight: 800;
+    }
+    html[data-theme="dark"] .custom-modal-icon {
+      background: linear-gradient(135deg, rgba(124,58,237,0.22), rgba(75,39,133,0.32));
+      color: #d8c6ff;
+    }
+    .custom-modal-title {
+      text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 8px;
+    }
+    .custom-modal-message {
+      text-align: center; color: var(--text-secondary); font-size: 14px; line-height: 1.55;
+      white-space: pre-line;
+    }
+    .custom-modal-actions {
+      display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+      margin-top: 18px;
+    }
+    .custom-modal-btn {
+      border: none; border-radius: 12px; padding: 10px 16px; font-weight: 600; font-size: 14px;
+      cursor: pointer; transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+    .custom-modal-btn:active { transform: scale(0.98); }
+    .custom-modal-btn.primary {
+      background: linear-gradient(135deg, #7c3aed, #4B2785);
+      color: white; box-shadow: 0 10px 18px rgba(75,39,133,0.2);
+    }
+    .custom-modal-btn.secondary {
+      background: rgba(148, 163, 184, 0.12);
+      color: var(--text-primary);
+    }
+    @media (max-width: 480px) {
+      .custom-modal-backdrop { padding: 16px; }
+      .custom-modal { border-radius: 20px; padding: 20px 16px 14px; }
+      .custom-modal-actions { gap: 8px; }
+      .custom-modal-btn { flex: 1; }
+    }
+
     /* ─── Upload spinner overlay ─── */
     .upload-overlay {
       position: fixed; inset: 0;
@@ -1525,6 +1604,19 @@
         <button class="admin-btn" onclick="sendBroadcast()">📢 Send broadcast message</button>
         <button class="admin-btn" onclick="exportChat()">💾 Export chat history</button>
         <button class="admin-btn" onclick="openDeleteUserPanel()" style="color:#e53935;border-color:#e53935;">🗑️ Delete a user</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Custom modal dialog ─── -->
+  <div class="custom-modal-backdrop" id="customModalBackdrop" aria-hidden="true">
+    <div class="custom-modal" role="dialog" aria-modal="true" aria-labelledby="customModalTitle">
+      <div class="custom-modal-icon" id="customModalIcon">!</div>
+      <div class="custom-modal-title" id="customModalTitle">Notice</div>
+      <div class="custom-modal-message" id="customModalMessage"></div>
+      <div class="custom-modal-actions">
+        <button class="custom-modal-btn secondary" id="customModalCancel" type="button">Cancel</button>
+        <button class="custom-modal-btn primary" id="customModalConfirm" type="button">OK</button>
       </div>
     </div>
   </div>
@@ -2869,6 +2961,77 @@
       return d.toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric" });
     }
 
+    function showCustomModal({ title = "Notice", message = "", confirmText = "OK", cancelText = "Cancel", mode = "alert", onConfirm, onCancel }) {
+      const backdrop = document.getElementById("customModalBackdrop");
+      const titleEl = document.getElementById("customModalTitle");
+      const messageEl = document.getElementById("customModalMessage");
+      const confirmBtn = document.getElementById("customModalConfirm");
+      const cancelBtn = document.getElementById("customModalCancel");
+      const icon = document.getElementById("customModalIcon");
+
+      titleEl.innerText = title;
+      messageEl.innerText = message;
+      confirmBtn.innerText = confirmText;
+      cancelBtn.innerText = cancelText;
+      cancelBtn.style.display = mode === "confirm" ? "inline-flex" : "none";
+      icon.innerText = mode === "confirm" ? "?" : "!";
+      icon.style.background = mode === "confirm"
+        ? "linear-gradient(135deg, rgba(124,58,237,0.18), rgba(75,39,133,0.24))"
+        : "linear-gradient(135deg, #f0e7ff, #e8d5ff)";
+
+      const close = (result) => {
+        backdrop.classList.remove("show");
+        if (typeof onConfirm === "function" && result) onConfirm();
+        if (typeof onCancel === "function" && !result) onCancel();
+        document.body.classList.remove("modal-open");
+      };
+
+      confirmBtn.onclick = () => close(true);
+      cancelBtn.onclick = () => close(false);
+      backdrop.onclick = (event) => {
+        if (event.target === backdrop && mode === "alert") {
+          close(true);
+        } else if (event.target === backdrop) {
+          close(false);
+        }
+      };
+
+      document.body.classList.add("modal-open");
+      backdrop.classList.add("show");
+    }
+
+    function showAlert(message, title = "Notice") {
+      return new Promise((resolve) => {
+        showCustomModal({
+          title,
+          message: String(message),
+          confirmText: "OK",
+          cancelText: "Cancel",
+          mode: "alert",
+          onConfirm: () => resolve(true),
+          onCancel: () => resolve(true)
+        });
+      });
+    }
+
+    function showConfirm(message, title = "Confirm") {
+      return new Promise((resolve) => {
+        showCustomModal({
+          title,
+          message: String(message),
+          confirmText: "Yes",
+          cancelText: "Cancel",
+          mode: "confirm",
+          onConfirm: () => resolve(true),
+          onCancel: () => resolve(false)
+        });
+      });
+    }
+
+    window.alert = (message) => {
+      showAlert(message);
+    };
+
     // ════════════════════════════════════════════════════════════════════
     //  Sending
     // ════════════════════════════════════════════════════════════════════
@@ -3073,14 +3236,15 @@
       navigator.clipboard.writeText(text).catch(() => {});
       hideActionSheet();
     }
-    function actionDelete() {
+    async function actionDelete() {
       const data = allMessages[activeSelectedMsgId]; if (!data) return;
       const isMine = data.user === currentUserName;
       if (!isMine && !isAdmin) return;
 
       // --- Admin (Adnan) always hard-deletes ---
       if (isAdmin) {
-        if (!confirm("Admin: Permanently delete this message?")) { hideActionSheet(); return; }
+        const ok = await showConfirm("Admin: Permanently delete this message?");
+        if (!ok) { hideActionSheet(); return; }
         // Also delete the file from Storage if there is one
         if (data.fileUrl) {
           try { storage.refFromURL(data.fileUrl).delete().catch(() => {}); } catch(e) {}
@@ -3092,7 +3256,8 @@
 
       // --- Abdul Rafay soft-deletes (hidden from everyone except Adnan) ---
       if (isAbdulRafayName(currentUserName)) {
-        if (!confirm("Delete this message?")) { hideActionSheet(); return; }
+        const ok = await showConfirm("Delete this message?");
+        if (!ok) { hideActionSheet(); return; }
         db.ref(`messages/${activeSelectedMsgId}`).update({
           deletedBy: currentUserName,
           deletedAt: firebase.database.ServerValue.TIMESTAMP
@@ -3103,7 +3268,8 @@
 
       // --- Everyone else can only delete their OWN messages (hard delete) ---
       if (isMine) {
-        if (!confirm("Delete this message for everyone?")) { hideActionSheet(); return; }
+        const ok = await showConfirm("Delete this message for everyone?");
+        if (!ok) { hideActionSheet(); return; }
         if (data.fileUrl) {
           try { storage.refFromURL(data.fileUrl).delete().catch(() => {}); } catch(e) {}
         }
@@ -3486,7 +3652,8 @@
         return;
       }
 
-      if (!confirm(`Are you SURE you want to permanently delete ALL data for "${targetUser}"?\n\nThis cannot be undone.`)) return;
+      const confirmed = await showConfirm(`Are you SURE you want to permanently delete ALL data for "${targetUser}"?\n\nThis cannot be undone.`);
+      if (!confirmed) return;
 
       // Show spinner
       const overlay = document.getElementById("uploadOverlay");
@@ -3683,8 +3850,9 @@
       el.style.height = "auto";
       el.style.height = Math.min(el.scrollHeight, 140) + "px";
     }
-    function signOut() {
-      if (!confirm("Sign out and choose a different name?")) return;
+    async function signOut() {
+      const confirmed = await showConfirm("Sign out and choose a different name?");
+      if (!confirmed) return;
       // Clear presence
       if (currentUserName) {
         db.ref(`online_users/${currentUserName}`).remove();
@@ -3695,7 +3863,7 @@
       location.reload();
     }
 
-    function clearHistory() {
+    async function clearHistory() {
       if (!isAdmin) return;
       const password = prompt("Enter admin password to clear ALL chat history:");
       // Same password mechanism as in chat.html
@@ -3703,7 +3871,8 @@
         if (password !== null) alert("Incorrect password.");
         return;
       }
-      if (!confirm("This will permanently delete ALL messages for everyone. Continue?")) return;
+      const confirmed = await showConfirm("This will permanently delete ALL messages for everyone. Continue?");
+      if (!confirmed) return;
       db.ref("messages").remove()
         .then(() => alert("Chat history cleared."))
         .catch(err => alert("Failed: " + err.message));
@@ -3768,6 +3937,12 @@
       // ESC closes whichever overlay is open (desktop convenience)
       document.addEventListener("keydown", (e) => {
         if (e.key !== "Escape") return;
+        const modal = document.getElementById("customModalBackdrop");
+        if (modal.classList.contains("show")) {
+          modal.classList.remove("show");
+          document.body.classList.remove("modal-open");
+          return;
+        }
         const lb = document.getElementById("lightbox");
         if (lb.classList.contains("show")) { closeLightbox(); return; }
         const sheet = document.getElementById("actionSheet");
