@@ -385,9 +385,10 @@
     .msg-bubble {
       max-width: 78%;
       min-width: 120px;
-      padding: 6px 10px 24px 10px;
+      padding: 6px 10px 6px 10px;
       border-radius: 8px;
       position: relative;
+      display: flex; flex-direction: column; gap: 4px;
       box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.06);
       word-wrap: break-word;
       overflow-wrap: break-word;
@@ -424,14 +425,23 @@
       color: var(--text-primary);
       white-space: pre-wrap;
       word-break: break-word;
+      margin: 0;
     }
     .msg-meta {
-      position: absolute; bottom: 4px; right: 8px;
+      align-self: flex-end;
+      margin-top: 2px;
       font-size: 11px;
       color: var(--text-muted);
-      display: flex; align-items: center; gap: 4px;
+      display: inline-flex; align-items: center; gap: 4px;
+      white-space: nowrap;
+      line-height: 1.2;
     }
-    .msg-meta .edited { font-style: italic; opacity: 0.7; font-size: 10px; }
+    .msg-meta .edited {
+      font-style: italic;
+      opacity: 0.7;
+      font-size: 10px;
+      white-space: nowrap;
+    }
 
     /* ─── Reply preview inside a message ─── */
     .msg-reply-quote {
@@ -2800,7 +2810,8 @@
       // Meta line (time + edited)
       const meta = document.createElement("div");
       meta.className = "msg-meta";
-      meta.innerHTML = `${data.edited ? '<span class="edited">edited</span>' : ""} ${formatMessageTimestamp(data.timestamp)}`;
+      const edited = data.edited ? '<span class="edited">edited</span>' : "";
+      meta.innerHTML = `${edited}${edited ? " " : ""}${formatMessageTimestamp(data.timestamp)}`;
       bubble.appendChild(meta);
 
       // Soft-deleted badge — only visible to Adnan
