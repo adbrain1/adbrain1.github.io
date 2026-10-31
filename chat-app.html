@@ -541,9 +541,9 @@
     /* ─── Input area ─── */
     .input-wrap {
       flex: 0 0 auto;
-      background: var(--bg-app);
-      padding: 6px 6px calc(6px + var(--safe-bottom)) 6px;
-      border-top: 1px solid var(--border-soft);
+      background: transparent;
+      padding: 10px 12px calc(10px + var(--safe-bottom)) 12px;
+      border-top: none;
     }
     .staging-area {
       display: none;
@@ -558,13 +558,22 @@
     .staging-area .name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .input-row {
-      display: flex; align-items: flex-end; gap: 4px;
+      display: flex; align-items: flex-end; gap: 6px;
+      padding: 8px 10px;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(75, 39, 133, 0.08);
+      box-shadow: 0 14px 30px rgba(17, 24, 39, 0.12), 0 4px 10px rgba(17, 24, 39, 0.08);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
     .input-row .ic-input {
       width: 40px; height: 40px;
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       color: var(--text-secondary);
+      background: transparent;
+      flex-shrink: 0;
     }
     .input-row .ic-input:active { background: rgba(0,0,0,0.05); }
     html[data-theme="dark"] .input-row .ic-input:active { background: rgba(255,255,255,0.06); }
@@ -573,19 +582,21 @@
       flex: 1;
       min-height: 40px; max-height: 140px;
       padding: 10px 14px;
-      border-radius: 22px;
+      border-radius: 20px;
       border: 0;
-      background: var(--bg-input);
+      background: transparent;
       font-size: 15px; line-height: 1.35;
       resize: none; outline: none;
-      box-shadow: var(--shadow-sm);
+      box-shadow: none;
     }
     #sendBtn {
       width: 44px; height: 44px;
       border-radius: 50%;
-      background: var(--brand-accent);
+      background: linear-gradient(135deg, #7c3aed, #4B2785);
       color: white;
       display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 10px 20px rgba(75, 39, 133, 0.28);
+      flex-shrink: 0;
     }
     #sendBtn svg { width: 22px; height: 22px; fill: currentColor; }
     #sendBtn:active { transform: scale(0.94); }
