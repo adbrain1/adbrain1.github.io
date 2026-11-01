@@ -382,8 +382,13 @@
       margin-right: 6px;
     }
 
-    .msg-bubble {
+    .msg-bubble-wrap {
+      position: relative;
       max-width: 78%;
+      display: flex;
+    }
+    .msg-bubble {
+      max-width: 100%;
       min-width: 120px;
       padding: 6px 10px 6px 10px;
       border-radius: 12px;
@@ -394,6 +399,41 @@
       overflow-wrap: break-word;
       user-select: none;
       -webkit-user-select: none;
+    }
+    .msg-bubble-more {
+      position: absolute;
+      right: -10px;
+      top: 6px;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 1px solid rgba(112, 45, 101, 0.10);
+      background: rgba(255,255,255,0.75);
+      color: #4f335d;
+      display: inline-flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 14px rgba(49, 0, 68, 0.10);
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      padding: 0;
+      font-size: 15px;
+      line-height: 1;
+      pointer-events: none;
+    }
+    .msg-row.mine .msg-bubble-more { right: -10px; }
+    .msg-row.other .msg-bubble-more { left: auto; right: -10px; }
+    .msg-bubble-wrap:hover .msg-bubble-more,
+    .msg-bubble-wrap:focus-within .msg-bubble-more,
+    .msg-bubble-more:focus-visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    @media (pointer: coarse) {
+      .msg-bubble-more {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
     }
     .msg-row.mine .msg-bubble {
       order: 1;
@@ -510,6 +550,32 @@
       margin-bottom: 8px;
     }
     .msg-row.other + .seen-by { display: none; }
+
+    .message-tip {
+      position: sticky;
+      top: 8px;
+      z-index: 3;
+      margin: 8px auto 4px;
+      width: fit-content;
+      max-width: calc(100% - 24px);
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 12px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(112, 45, 101, 0.10);
+      border-radius: 999px;
+      box-shadow: 0 8px 18px rgba(49, 0, 68, 0.08);
+      color: #4f335d;
+      font-size: 12px;
+      font-weight: 600;
+      backdrop-filter: blur(8px);
+    }
+    .message-tip.hidden { display: none; }
+    .message-tip button {
+      width: 18px; height: 18px; border: 0; border-radius: 50%;
+      background: rgba(112, 45, 101, 0.08); color: #4f335d;
+      font-size: 12px; line-height: 1; padding: 0;
+      cursor: pointer;
+    }
 
     /* ─── Reply preview above input ─── */
     .reply-preview {
@@ -1541,6 +1607,10 @@
 
     <!-- Messages -->
     <div style="position:relative; flex:1 1 auto; overflow:hidden; display:flex; flex-direction:column;">
+      <div class="message-tip hidden" id="messageTip">
+        <span>Tip: Hold a message for options ✨</span>
+        <button type="button" aria-label="Close tip" onclick="dismissMessageTip()">×</button>
+      </div>
       <div id="messagesContainer"></div>
       <!-- Floating scroll-down + unread badge button -->
       <button class="new-msg-fab" id="newMsgFab" onclick="scrollToBottomAndClear()">
@@ -2799,6 +2869,8 @@
       avatar.onclick = (e) => { e.stopPropagation(); openUserProfile(data.user); };
       row.appendChild(avatar);
 
+      const bubbleWrap = document.createElement("div");
+      bubbleWrap.className = "msg-bubble-wrap";
       const bubble = document.createElement("div");
       bubble.className = "msg-bubble";
 
@@ -2916,10 +2988,21 @@
         }
       }
 
+      const moreBtn = document.createElement("button");
+      moreBtn.type = "button";
+      moreBtn.className = "msg-bubble-more";
+      moreBtn.setAttribute("aria-label", "More message options");
+      moreBtn.innerText = "⋯";
+      moreBtn.onclick = (e) => {
+        e.stopPropagation();
+        openActionSheet(key, false);
+      };
+
       // Long-press handler
       attachLongPress(bubble, key);
-
-      row.appendChild(bubble);
+      bubbleWrap.appendChild(bubble);
+      bubbleWrap.appendChild(moreBtn);
+      row.appendChild(bubbleWrap);
       return row;
     }
 
@@ -2978,6 +3061,22 @@
       }
 
       return line;
+    }
+
+    function dismissMessageTip() {
+      const tip = document.getElementById("messageTip");
+      if (!tip) return;
+      tip.classList.add("hidden");
+      try { sessionStorage.setItem("rafay_message_tip_seen", "1"); } catch (e) {}
+    }
+
+    function showMessageTipIfNeeded() {
+      const tip = document.getElementById("messageTip");
+      if (!tip) return;
+      const seen = sessionStorage.getItem("rafay_message_tip_seen");
+      if (!seen) {
+        tip.classList.remove("hidden");
+      }
     }
 
     // ════════════════════════════════════════════════════════════════════
@@ -4058,6 +4157,7 @@
         setTimeout(() => { fitAppToVisibleArea(); scrollToBottom(); }, 250);
       });
       document.getElementById("searchInput").addEventListener("input", performSearch);
+      showMessageTipIfNeeded();
 
       window.addEventListener("popstate", () => {
         const sheet = document.getElementById("actionSheet");
