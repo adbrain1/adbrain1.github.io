@@ -3278,11 +3278,21 @@
       } else {
         document.getElementById("actPin").style.display = "none";
       }
-      document.getElementById("actionSheet").classList.add("show");
+      const sheet = document.getElementById("actionSheet");
+      if (!sheet.classList.contains("show")) {
+        window.history.pushState({ rafayChatActionSheet: true }, "", window.location.href);
+      }
+      sheet.classList.add("show");
     }
     function hideActionSheet() {
-      document.getElementById("actionSheet").classList.remove("show");
+      const sheet = document.getElementById("actionSheet");
+      sheet.classList.remove("show");
       activeSelectedMsgId = null;
+
+      const state = window.history.state;
+      if (state && state.rafayChatActionSheet) {
+        window.history.back();
+      }
     }
     function reactToMessage(msgId, emoji) {
       const ref = db.ref(`messages/${msgId}/reactions/${currentUserName}`);
@@ -4050,6 +4060,11 @@
       document.getElementById("searchInput").addEventListener("input", performSearch);
 
       window.addEventListener("popstate", () => {
+        const sheet = document.getElementById("actionSheet");
+        if (sheet && sheet.classList.contains("show")) {
+          hideActionSheet();
+          return;
+        }
         if (lightboxHistoryEntry && document.getElementById("lightbox").classList.contains("show")) {
           closeLightbox(true);
         }
