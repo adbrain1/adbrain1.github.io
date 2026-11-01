@@ -551,67 +551,114 @@
     /* ─── Input area ─── */
     .input-wrap {
       flex: 0 0 auto;
-      background: transparent;
+      background: rgba(255, 245, 217, 0.82);
       padding: 10px 12px calc(10px + var(--safe-bottom)) 12px;
-      border-top: none;
+      border-top: 1px solid rgba(112, 45, 101, 0.06);
     }
     .staging-area {
       display: none;
       align-items: center; gap: 8px;
-      padding: 8px 10px; margin-bottom: 6px;
+      padding: 8px 10px; margin: 0 4px 8px;
       background: var(--bg-bubble-other);
       border-radius: 12px;
       font-size: 13px;
+      border: 1px solid rgba(112, 45, 101, 0.08);
     }
     .staging-area.show { display: flex; }
     .staging-area .preview-img { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; }
     .staging-area .name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .input-row {
-      display: flex; align-items: flex-end; gap: 1px;
-      padding: 7px 8px;
-      border-radius: 28px;
-      background: rgba(255, 255, 255, 0.7);
-      border: 1px solid rgba(75, 39, 133, 0.08);
-      box-shadow: 0 14px 30px rgba(17, 24, 39, 0.12), 0 4px 10px rgba(17, 24, 39, 0.08);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      display: flex; align-items: flex-end; gap: 8px;
+      padding: 8px 10px 8px 8px;
+      border-radius: 26px;
+      background: #FFFDF7;
+      border: 1px solid #E9DDF2;
+      box-shadow: 0 2px 10px rgba(49, 0, 68, 0.06), 0 1px 3px rgba(49, 0, 68, 0.05);
+      max-width: 980px;
+      width: min(100%, 980px);
+      margin: 0 auto;
     }
     .input-row .ic-input {
       width: 36px; height: 36px;
-      border-radius: 50%;
+      border-radius: 12px;
       display: flex; align-items: center; justify-content: center;
-      color: var(--text-secondary);
+      color: #665477;
       background: transparent;
       flex-shrink: 0;
       margin: 0;
+      transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
     }
-    .input-row .ic-input:active { background: rgba(0,0,0,0.05); }
-    html[data-theme="dark"] .input-row .ic-input:active { background: rgba(255,255,255,0.06); }
+    .input-row .ic-input:hover,
+    .input-row .ic-input:focus-visible {
+      background: rgba(112, 45, 101, 0.06);
+      color: #4f335d;
+      outline: none;
+    }
+    .input-row .ic-input:active { background: rgba(112, 45, 101, 0.10); transform: scale(0.98); }
+    html[data-theme="dark"] .input-row .ic-input { color: #cbb8d8; }
+    html[data-theme="dark"] .input-row .ic-input:hover,
+    html[data-theme="dark"] .input-row .ic-input:focus-visible {
+      background: rgba(255,255,255,0.06);
+      color: #f0e7ff;
+    }
     .input-row .ic-input svg { width: 22px; height: 22px; fill: currentColor; }
     #chatInput {
       flex: 1;
-      min-height: 36px; max-height: 140px;
-      padding: 8px 6px 8px 8px;
+      min-height: 40px; max-height: 128px;
+      padding: 9px 8px 9px 10px;
       border-radius: 18px;
       border: 0;
       background: transparent;
+      color: #29213A;
       font-size: 15px; line-height: 1.35;
       resize: none; outline: none;
       box-shadow: none;
       margin-left: 0;
     }
+    #chatInput::placeholder { color: #91899A; }
     #sendBtn {
-      width: 44px; height: 44px;
+      width: 46px; height: 46px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #7c3aed, #4B2785);
+      background: #5520A5;
       color: white;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 10px 20px rgba(75, 39, 133, 0.28);
+      box-shadow: 0 8px 18px rgba(85, 32, 165, 0.18);
       flex-shrink: 0;
+      border: 0;
+      transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
     }
-    #sendBtn svg { width: 22px; height: 22px; fill: currentColor; }
-    #sendBtn:active { transform: scale(0.94); }
+    #sendBtn:hover,
+    #sendBtn:focus-visible {
+      filter: brightness(1.05);
+      box-shadow: 0 10px 18px rgba(85, 32, 165, 0.22);
+      outline: none;
+    }
+    #sendBtn svg { width: 20px; height: 20px; fill: currentColor; }
+    #sendBtn:active { transform: scale(0.96); }
+
+    @media (max-width: 767px) {
+      .input-wrap {
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+      .input-row {
+        gap: 6px;
+        padding: 7px 8px 7px 6px;
+        border-radius: 24px;
+      }
+      .input-row .ic-input {
+        width: 34px; height: 34px;
+      }
+      #chatInput {
+        min-height: 36px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+      }
+      #sendBtn {
+        width: 42px; height: 42px;
+      }
+    }
 
     /* ─── Emoji bar ─── */
     .emoji-bar {
