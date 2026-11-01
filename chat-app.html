@@ -2927,11 +2927,11 @@
       s.onclick = (e) => { e.stopPropagation(); openUserProfile(data.user); };
 
       if (isMe) {
-        header.appendChild(s);
         header.appendChild(moreBtn);
+        header.appendChild(s);
       } else {
-        header.appendChild(moreBtn);
         header.appendChild(s);
+        header.appendChild(moreBtn);
       }
       bubble.appendChild(header);
 
