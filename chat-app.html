@@ -410,26 +410,28 @@
       filter: brightness(0.985);
     }
     .msg-bubble-more {
-      position: absolute;
-      right: -10px;
-      top: 6px;
-      width: 22px; height: 22px;
+      position: static;
+      width: 18px; height: 18px;
       border-radius: 50%;
       border: 1px solid rgba(112, 45, 101, 0.10);
       background: rgba(255,255,255,0.75);
       color: #4f335d;
       display: inline-flex; align-items: center; justify-content: center;
-      box-shadow: 0 6px 14px rgba(49, 0, 68, 0.10);
+      box-shadow: 0 4px 10px rgba(49, 0, 68, 0.08);
       opacity: 0;
-      transform: translateY(-4px);
+      transform: translateY(-2px);
       transition: opacity 0.18s ease, transform 0.18s ease;
       padding: 0;
-      font-size: 15px;
+      font-size: 13px;
       line-height: 1;
       pointer-events: none;
+      flex-shrink: 0;
     }
-    .msg-row.mine .msg-bubble-more { right: -10px; }
-    .msg-row.other .msg-bubble-more { left: auto; right: -10px; }
+    .msg-bubble-header {
+      display: flex; align-items: center; gap: 6px;
+      min-width: 0;
+      width: 100%;
+    }
     .msg-bubble-wrap:hover .msg-bubble-more,
     .msg-bubble-wrap:focus-within .msg-bubble-more,
     .msg-bubble-more:focus-visible {
@@ -462,6 +464,8 @@
       letter-spacing: 0.02em;
       color: var(--brand-accent);
       line-height: 1.2;
+      flex: 1;
+      min-width: 0;
     }
     .msg-row.mine .msg-sender {
       text-align: right;
@@ -2879,6 +2883,19 @@
       const bubble = document.createElement("div");
       bubble.className = "msg-bubble";
 
+      const moreBtn = document.createElement("button");
+      moreBtn.type = "button";
+      moreBtn.className = "msg-bubble-more";
+      moreBtn.setAttribute("aria-label", "More message options");
+      moreBtn.innerText = "⋯";
+      moreBtn.onclick = (e) => {
+        e.stopPropagation();
+        openActionSheet(key, false);
+      };
+
+      const header = document.createElement("div");
+      header.className = "msg-bubble-header";
+
       // Sender name: shown for all messages, with outgoing messages aligned to the right.
       const s = document.createElement("div");
       s.className = "msg-sender";
@@ -2899,7 +2916,10 @@
         s.style.color = "#1f1230";
       }
       s.onclick = (e) => { e.stopPropagation(); openUserProfile(data.user); };
-      bubble.appendChild(s);
+
+      header.appendChild(moreBtn);
+      header.appendChild(s);
+      bubble.appendChild(header);
 
       // Reply quote
       if (data.replyTo && data.replyTo.user) {
@@ -2993,20 +3013,9 @@
         }
       }
 
-      const moreBtn = document.createElement("button");
-      moreBtn.type = "button";
-      moreBtn.className = "msg-bubble-more";
-      moreBtn.setAttribute("aria-label", "More message options");
-      moreBtn.innerText = "⋯";
-      moreBtn.onclick = (e) => {
-        e.stopPropagation();
-        openActionSheet(key, false);
-      };
-
       // Long-press handler
       attachLongPress(bubble, key);
       bubbleWrap.appendChild(bubble);
-      bubbleWrap.appendChild(moreBtn);
       row.appendChild(bubbleWrap);
       return row;
     }
