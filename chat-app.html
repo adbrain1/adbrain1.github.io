@@ -435,6 +435,12 @@
       min-width: 0;
       width: 100%;
     }
+    .msg-row.mine .msg-bubble-header {
+      justify-content: flex-end;
+    }
+    .msg-row.other .msg-bubble-header {
+      justify-content: flex-start;
+    }
     .msg-bubble-wrap:hover .msg-bubble-more,
     .msg-bubble-wrap:focus-within .msg-bubble-more,
     .msg-bubble-more:focus-visible {
@@ -2920,8 +2926,13 @@
       }
       s.onclick = (e) => { e.stopPropagation(); openUserProfile(data.user); };
 
-      header.appendChild(moreBtn);
-      header.appendChild(s);
+      if (isMe) {
+        header.appendChild(s);
+        header.appendChild(moreBtn);
+      } else {
+        header.appendChild(moreBtn);
+        header.appendChild(s);
+      }
       bubble.appendChild(header);
 
       // Reply quote
