@@ -1607,10 +1607,6 @@
 
     <!-- Messages -->
     <div style="position:relative; flex:1 1 auto; overflow:hidden; display:flex; flex-direction:column;">
-      <div class="message-tip hidden" id="messageTip">
-        <span>Tip: Hold a message for options ✨</span>
-        <button type="button" aria-label="Close tip" onclick="dismissMessageTip()">×</button>
-      </div>
       <div id="messagesContainer"></div>
       <!-- Floating scroll-down + unread badge button -->
       <button class="new-msg-fab" id="newMsgFab" onclick="scrollToBottomAndClear()">
@@ -3063,22 +3059,6 @@
       return line;
     }
 
-    function dismissMessageTip() {
-      const tip = document.getElementById("messageTip");
-      if (!tip) return;
-      tip.classList.add("hidden");
-      try { sessionStorage.setItem("rafay_message_tip_seen", "1"); } catch (e) {}
-    }
-
-    function showMessageTipIfNeeded() {
-      const tip = document.getElementById("messageTip");
-      if (!tip) return;
-      const seen = sessionStorage.getItem("rafay_message_tip_seen");
-      if (!seen) {
-        tip.classList.remove("hidden");
-      }
-    }
-
     // ════════════════════════════════════════════════════════════════════
     //  Image lightbox
     // ════════════════════════════════════════════════════════════════════
@@ -4157,7 +4137,6 @@
         setTimeout(() => { fitAppToVisibleArea(); scrollToBottom(); }, 250);
       });
       document.getElementById("searchInput").addEventListener("input", performSearch);
-      showMessageTipIfNeeded();
 
       window.addEventListener("popstate", () => {
         const sheet = document.getElementById("actionSheet");
