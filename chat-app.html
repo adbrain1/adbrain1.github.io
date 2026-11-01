@@ -386,10 +386,10 @@
       max-width: 78%;
       min-width: 120px;
       padding: 6px 10px 6px 10px;
-      border-radius: 8px;
+      border-radius: 12px;
       position: relative;
       display: flex; flex-direction: column; gap: 4px;
-      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.06);
+      box-shadow: 0 10px 22px rgba(46, 15, 62, 0.10), 0 3px 8px rgba(46, 15, 62, 0.08);
       word-wrap: break-word;
       overflow-wrap: break-word;
       user-select: none;
@@ -551,9 +551,9 @@
     /* ─── Input area ─── */
     .input-wrap {
       flex: 0 0 auto;
-      background: rgba(255, 245, 217, 0.82);
-      padding: 10px 12px calc(10px + var(--safe-bottom)) 12px;
-      border-top: 1px solid rgba(112, 45, 101, 0.06);
+      background: rgba(255, 245, 217, 0.86);
+      padding: 8px 10px calc(8px + var(--safe-bottom)) 10px;
+      border-top: 1px solid rgba(112, 45, 101, 0.08);
     }
     .staging-area {
       display: none;
@@ -569,18 +569,18 @@
     .staging-area .name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .input-row {
-      display: flex; align-items: flex-end; gap: 8px;
-      padding: 8px 10px 8px 8px;
+      display: flex; align-items: flex-end; gap: 6px;
+      padding: 7px 8px 7px 6px;
       border-radius: 26px;
       background: #FFFDF7;
       border: 1px solid #E9DDF2;
-      box-shadow: 0 2px 10px rgba(49, 0, 68, 0.06), 0 1px 3px rgba(49, 0, 68, 0.05);
+      box-shadow: 0 6px 18px rgba(49, 0, 68, 0.08), 0 2px 6px rgba(49, 0, 68, 0.05);
       max-width: 980px;
       width: min(100%, 980px);
       margin: 0 auto;
     }
     .input-row .ic-input {
-      width: 36px; height: 36px;
+      width: 34px; height: 34px;
       border-radius: 12px;
       display: flex; align-items: center; justify-content: center;
       color: #665477;
@@ -605,9 +605,9 @@
     .input-row .ic-input svg { width: 22px; height: 22px; fill: currentColor; }
     #chatInput {
       flex: 1;
-      min-height: 40px; max-height: 128px;
-      padding: 9px 8px 9px 10px;
-      border-radius: 18px;
+      min-height: 38px; max-height: 128px;
+      padding: 8px 6px 8px 6px;
+      border-radius: 16px;
       border: 0;
       background: transparent;
       color: #29213A;
@@ -643,17 +643,17 @@
         padding-right: 8px;
       }
       .input-row {
-        gap: 6px;
-        padding: 7px 8px 7px 6px;
+        gap: 5px;
+        padding: 6px 7px 6px 5px;
         border-radius: 24px;
       }
       .input-row .ic-input {
-        width: 34px; height: 34px;
+        width: 33px; height: 33px;
       }
       #chatInput {
-        min-height: 36px;
-        padding-top: 8px;
-        padding-bottom: 8px;
+        min-height: 34px;
+        padding-top: 7px;
+        padding-bottom: 7px;
       }
       #sendBtn {
         width: 42px; height: 42px;
@@ -3934,7 +3934,11 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       const input = document.getElementById("chatInput");
-      input.addEventListener("input", () => { autoResize(); updateTypingStatus("typing"); });
+      input.addEventListener("input", () => {
+        autoResize();
+        const hasText = input.value.trim().length > 0;
+        updateTypingStatus(hasText ? "typing" : "stopped");
+      });
       input.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey && !navigator.userAgent.match(/Mobi/)) {
           e.preventDefault(); handleSendClick();
