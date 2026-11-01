@@ -1151,55 +1151,51 @@
       opacity: 1; pointer-events: auto;
     }
     .custom-modal {
-      width: min(92vw, 420px);
-      background: rgba(255,255,255,0.96);
-      border: 1px solid rgba(75,39,133,0.08);
-      border-radius: 24px;
-      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22), 0 8px 18px rgba(15, 23, 42, 0.08);
-      padding: 22px 20px 18px;
-      transform: translateY(10px) scale(0.98);
+      width: min(92vw, 380px);
+      background: rgba(255,255,255,0.97);
+      border: 1px solid rgba(112,45,101,0.12);
+      border-radius: 18px;
+      box-shadow: 0 16px 32px rgba(15, 23, 42, 0.14), 0 4px 10px rgba(15, 23, 42, 0.06);
+      padding: 18px 18px 16px;
+      transform: translateY(8px) scale(0.98);
       transition: transform 0.18s ease;
       color: var(--text-primary);
     }
     html[data-theme="dark"] .custom-modal {
       background: rgba(17, 24, 39, 0.94);
       border-color: rgba(255,255,255,0.08);
-      box-shadow: 0 24px 60px rgba(0,0,0,0.36), 0 8px 22px rgba(0,0,0,0.22);
+      box-shadow: 0 16px 32px rgba(0,0,0,0.28), 0 4px 10px rgba(0,0,0,0.18);
     }
     .custom-modal-backdrop.show .custom-modal {
       transform: translateY(0) scale(1);
     }
     .custom-modal-icon {
-      width: 50px; height: 50px; border-radius: 50%;
-      display: grid; place-items: center;
-      margin: 0 auto 14px;
-      background: linear-gradient(135deg, #f0e7ff, #e8d5ff);
-      color: #4B2785;
-      font-size: 26px; font-weight: 800;
-    }
-    html[data-theme="dark"] .custom-modal-icon {
-      background: linear-gradient(135deg, rgba(124,58,237,0.22), rgba(75,39,133,0.32));
-      color: #d8c6ff;
+      display: none;
     }
     .custom-modal-title {
-      text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 8px;
+      text-align: center; font-size: 18px; font-weight: 700; margin-bottom: 10px; color: #2d1b37;
+    }
+    html[data-theme="dark"] .custom-modal-title {
+      color: #f5ecff;
     }
     .custom-modal-message {
-      text-align: center; color: var(--text-secondary); font-size: 14px; line-height: 1.55;
+      text-align: center; color: var(--text-secondary); font-size: 14px; line-height: 1.5;
       white-space: pre-line;
+      margin-bottom: 16px;
     }
     .custom-modal-actions {
-      display: flex; align-items: center; justify-content: flex-end; gap: 10px;
-      margin-top: 18px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      margin-top: 6px;
     }
     .custom-modal-btn {
-      border: none; border-radius: 12px; padding: 10px 16px; font-weight: 600; font-size: 14px;
+      border: none; border-radius: 12px; padding: 10px 16px; font-weight: 700; font-size: 14px;
       cursor: pointer; transition: transform 0.15s ease, opacity 0.15s ease;
+      min-width: 112px;
     }
     .custom-modal-btn:active { transform: scale(0.98); }
     .custom-modal-btn.primary {
-      background: linear-gradient(135deg, #7c3aed, #4B2785);
-      color: white; box-shadow: 0 10px 18px rgba(75,39,133,0.2);
+      background: linear-gradient(135deg, #9d4edd, #702D65);
+      color: white; box-shadow: 0 8px 16px rgba(112,45,101,0.18);
     }
     .custom-modal-btn.secondary {
       background: rgba(148, 163, 184, 0.12);
@@ -1207,9 +1203,9 @@
     }
     @media (max-width: 480px) {
       .custom-modal-backdrop { padding: 16px; }
-      .custom-modal { border-radius: 20px; padding: 20px 16px 14px; }
+      .custom-modal { border-radius: 16px; padding: 16px 14px 14px; }
       .custom-modal-actions { gap: 8px; }
-      .custom-modal-btn { flex: 1; }
+      .custom-modal-btn { flex: 1; min-width: 0; }
     }
 
     /* ─── Upload spinner overlay ─── */
@@ -2987,10 +2983,8 @@
       confirmBtn.innerText = confirmText;
       cancelBtn.innerText = cancelText;
       cancelBtn.style.display = mode === "confirm" ? "inline-flex" : "none";
-      icon.innerText = mode === "confirm" ? "?" : "!";
-      icon.style.background = mode === "confirm"
-        ? "linear-gradient(135deg, rgba(124,58,237,0.18), rgba(75,39,133,0.24))"
-        : "linear-gradient(135deg, #f0e7ff, #e8d5ff)";
+      icon.innerText = "";
+      icon.style.background = "transparent";
 
       const close = (result) => {
         backdrop.classList.remove("show");
@@ -3027,12 +3021,12 @@
       });
     }
 
-    function showConfirm(message, title = "Confirm") {
+    function showConfirm(message, title = "Confirm", confirmText = "Continue") {
       return new Promise((resolve) => {
         showCustomModal({
           title,
           message: String(message),
-          confirmText: "Yes",
+          confirmText,
           cancelText: "Cancel",
           mode: "confirm",
           onConfirm: () => resolve(true),
@@ -3256,7 +3250,7 @@
 
       // --- Admin (Adnan) always hard-deletes ---
       if (isAdmin) {
-        const ok = await showConfirm("Admin: Permanently delete this message?");
+        const ok = await showConfirm("Admin: Permanently delete this message?", "Delete message", "Delete");
         if (!ok) { hideActionSheet(); return; }
         // Also delete the file from Storage if there is one
         if (data.fileUrl) {
@@ -3269,7 +3263,7 @@
 
       // --- Abdul Rafay soft-deletes (hidden from everyone except Adnan) ---
       if (isAbdulRafayName(currentUserName)) {
-        const ok = await showConfirm("Delete this message?");
+        const ok = await showConfirm("Delete this message?", "Delete message", "Delete");
         if (!ok) { hideActionSheet(); return; }
         db.ref(`messages/${activeSelectedMsgId}`).update({
           deletedBy: currentUserName,
@@ -3281,7 +3275,7 @@
 
       // --- Everyone else can only delete their OWN messages (hard delete) ---
       if (isMine) {
-        const ok = await showConfirm("Delete this message for everyone?");
+        const ok = await showConfirm("Delete this message for everyone?", "Delete message", "Delete");
         if (!ok) { hideActionSheet(); return; }
         if (data.fileUrl) {
           try { storage.refFromURL(data.fileUrl).delete().catch(() => {}); } catch(e) {}
@@ -3665,7 +3659,7 @@
         return;
       }
 
-      const confirmed = await showConfirm(`Are you SURE you want to permanently delete ALL data for "${targetUser}"?\n\nThis cannot be undone.`);
+      const confirmed = await showConfirm(`Are you SURE you want to permanently delete ALL data for "${targetUser}"?\n\nThis cannot be undone.`, "Delete user", "Delete");
       if (!confirmed) return;
 
       // Show spinner
@@ -3864,7 +3858,7 @@
       el.style.height = Math.min(el.scrollHeight, 140) + "px";
     }
     async function signOut() {
-      const confirmed = await showConfirm("Sign out and choose a different name?");
+      const confirmed = await showConfirm("Sign out and choose a different name?", "Sign out", "Continue");
       if (!confirmed) return;
       // Clear presence
       if (currentUserName) {
@@ -3884,7 +3878,7 @@
         if (password !== null) alert("Incorrect password.");
         return;
       }
-      const confirmed = await showConfirm("This will permanently delete ALL messages for everyone. Continue?");
+      const confirmed = await showConfirm("This will permanently delete ALL messages for everyone. Continue?", "Clear history", "Clear");
       if (!confirmed) return;
       db.ref("messages").remove()
         .then(() => alert("Chat history cleared."))
