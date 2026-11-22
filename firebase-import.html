@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Firebase Import Tool</title>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: -apple-system, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f9fafb; }
+    h1 { color: #e11d48; }
+    #status { font-size: 16px; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    .working { background: #fef3c7; color: #92400e; }
+    .done { background: #d1fae5; color: #047857; }
+    .error { background: #fee2e2; color: #991b1b; }
+    .progress { font-size: 14px; color: #666; margin: 10px 0; }
+    button { padding: 12px 24px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; background: #e11d48; color: #fff; font-weight: 600; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <h1>Health Log — Firebase Import Tool</h1>
+  <p>This tool imports all 39 readings from Supabase into your Firebase Firestore database.</p>
+  <p><strong>Only run this once.</strong> Running it again will update the same documents (no duplicates).</p>
+  <div id="status" style="display:none;"></div>
+  <button id="import-btn" onclick="startImport()">Import 39 readings to Firebase</button>
+  <div id="progress"></div>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBs-4DcrlVmiXNaSPD7WOP1nI0yRTZsqOs",
+      authDomain: "health-log-62d52.firebaseapp.com",
+      projectId: "health-log-62d52",
+      storageBucket: "health-log-62d52.firebasestorage.app",
+      messagingSenderId: "578590013668",
+      appId: "1:578590013668:web:cc7ff3a17f5862fa0c54f1"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // The 39 readings extracted from Supabase
+    const readings = [
+  {
+    "id": "b981f53b-d68f-4830-a56b-10e1973772ca",
+    "systolic": 136,
+    "diastolic": 79,
+    "sugar": 140.0,
+    "meal_timing": "after",
+    "recorded_at": "2026-10-14T09:20:00Z",
+    "created_at": "2026-10-14T16:16:30.484094Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "bc20efd1-5775-4ffa-a25b-d94ca1bc2b82",
+    "systolic": 128,
+    "diastolic": 79,
+    "sugar": 120.0,
+    "meal_timing": null,
+    "recorded_at": "2026-10-14T18:30:00Z",
+    "created_at": "2026-10-14T16:16:59.902659Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "dfc06f78-d4ae-4505-9e87-10c83c7bf2b2",
+    "systolic": 137,
+    "diastolic": 64,
+    "sugar": 100.0,
+    "meal_timing": "before",
+    "recorded_at": "2026-10-15T06:15:00Z",
+    "created_at": "2026-10-16T12:29:04.580346Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "439b9de6-9506-4586-aa41-4db877d6b264",
+    "systolic": 129,
+    "diastolic": 70,
+    "sugar": 117.0,
+    "meal_timing": "after",
+    "recorded_at": "2026-10-15T10:00:00Z",
+    "created_at": "2026-10-16T12:29:51.947674Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "4beba4f2-4358-4d87-8bad-38059d37ea3e",
+    "systolic": 143,
+    "diastolic": 79,
+    "sugar": 140.0,
+    "meal_timing": null,
+    "recorded_at": "2026-10-05T11:00:00Z",
+    "created_at": "2026-10-11T11:57:32.963113Z",
+    "notes": null
+  },
+  {
+    "id": "42e3a0d9-917e-4e57-92e6-292fb01a2f17",
+    "systolic": 148,
+    "diastolic": 87,
+    "sugar": 102.0,
+    "meal_timing": null,
+    "recorded_at": "2026-10-15T18:30:00Z",
+    "created_at": "2026-10-16T12:30:46.711543Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "3733bbd8-acf1-4399-b49f-a2073683687c",
+    "systolic": 141,
+    "diastolic": 71,
+    "sugar": 95.0,
+    "meal_timing": null,
+    "recorded_at": "2026-10-05T17:00:00Z",
+    "created_at": "2026-10-11T11:58:36.398635Z",
+    "notes": null
+  },
+  {
+    "id": "04103b96-eee8-43a9-8e82-bec29280c188",
+    "systolic": null,
+    "diastolic": null,
+    "sugar": 134.0,
+    "meal_timing": null,
+    "recorded_at": "2026-10-15T20:15:00Z",
+    "created_at": "2026-10-16T12:31:30.878649Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "4e07df8d-6b52-4c90-a865-3f1922cfedae",
+    "systolic": 141,
+    "diastolic": 67,
+    "sugar": null,
+    "meal_timing": null,
+    "recorded_at": "2026-10-05T21:00:00Z",
+    "created_at": "2026-10-11T11:59:11.286271Z",
+    "notes": null
+  },
+  {
+    "id": "50bb0a23-a2f6-43e1-b992-0b3f1f205bb7",
+    "systolic": 135,
+    "diastolic": 76,
+    "sugar": 108.0,
+    "meal_timing": "before",
+    "recorded_at": "2026-10-16T07:30:00Z",
+    "created_at": "2026-10-16T14:26:08.705218Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "b92a8ab2-cb3d-41f4-ac32-8865bfa607f7",
+    "systolic": 148,
+    "diastolic": 74,
+    "sugar": 115.0,
+    "meal_timing": "before",
+    "recorded_at": "2026-10-06T06:30:00Z",
+    "created_at": "2026-10-11T12:00:45.794051Z",
+    "notes": null
+  },
+  {
+    "id": "ecbe481e-44ee-4062-8ada-d43abb968558",
+    "systolic": null,
+    "diastolic": null,
+    "sugar": 127.0,
+    "meal_timing": "after",
+    "recorded_at": "2026-10-06T09:10:00Z",
+    "created_at": "2026-10-11T12:02:11.735174Z",
+    "notes": null
+  },
+  {
+    "id": "cb7acd7e-7934-49bf-a683-16ecb9141b02",
+    "systolic": 139,
+    "diastolic": 80,
+    "sugar": 112.0,
+    "meal_timing": null,
+    "recorded_at": "2026-10-16T18:15:00Z",
+    "created_at": "2026-10-16T14:26:35.679159Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "b70ecadd-90aa-42fe-8e95-1b702fcfd426",
+    "systolic": 135,
+    "diastolic": 66,
+    "sugar": 126.0,
+    "meal_timing": null,
+    "recorded_at": "2026-10-06T20:30:00Z",
+    "created_at": "2026-10-11T12:03:01.435788Z",
+    "notes": null
+  },
+  {
+    "id": "76c14c56-00c0-474c-813e-e03dd7c54a68",
+    "systolic": 141,
+    "diastolic": 73,
+    "sugar": 93.0,
+    "meal_timing": "before",
+    "recorded_at": "2026-10-08T06:30:00Z",
+    "created_at": "2026-10-11T12:04:31.77967Z",
+    "notes": null
+  },
+  {
+    "id": "fbe9be5f-5ab3-4741-9c47-72ec15bcb0f7",
+    "systolic": 142,
+    "diastolic": 70,
+    "sugar": 102.0,
+    "meal_timing": "before",
+    "recorded_at": "2026-10-18T08:00:00Z",
+    "created_at": "2026-10-18T16:35:56.198091Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "4656b1f0-8967-4e5a-b2ea-de4e339992e1",
+    "systolic": 148,
+    "diastolic": 77,
+    "sugar": 135.0,
+    "meal_timing": null,
+    "recorded_at": "2026-10-08T11:00:00Z",
+    "created_at": "2026-10-11T12:05:49.944687Z",
+    "notes": null
+  },
+  {
+    "id": "4ca76167-6597-404d-8a7d-5ac32c5a9d51",
+    "systolic": 137,
+    "diastolic": 67,
+    "sugar": 133.0,
+    "meal_timing": "after",
+    "recorded_at": "2026-10-08T21:00:00Z",
+    "created_at": "2026-10-11T12:06:46.950226Z",
+    "notes": null
+  },
+  {
+    "id": "fba4e7e2-4387-40f8-a065-f1617d362b2c",
+    "systolic": 130,
+    "diastolic": 77,
+    "sugar": null,
+    "meal_timing": "after",
+    "recorded_at": "2026-10-18T20:42:00Z",
+    "created_at": "2026-10-18T16:42:01.730784Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "09ff0860-1cca-4642-a984-e7112fcb597c",
+    "systolic": 145,
+    "diastolic": 73,
+    "sugar": 98.0,
+    "meal_timing": "before",
+    "recorded_at": "2026-10-09T06:30:00Z",
+    "created_at": "2026-10-11T12:08:08.314374Z",
+    "notes": null
+  },
+  {
+    "id": "9dc5f849-95a6-46f6-a2da-b823437066ff",
+    "systolic": 129,
+    "diastolic": 77,
+    "sugar": 106.0,
+    "meal_timing": "before",
+    "recorded_at": "2026-10-19T06:30:00Z",
+    "created_at": "2026-10-25T15:29:02.611965Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "8cf2dedd-c523-424b-b75b-d7ab1e093658",
+    "systolic": 134,
+    "diastolic": 85,
+    "sugar": null,
+    "meal_timing": "before",
+    "recorded_at": "2026-10-20T06:30:00Z",
+    "created_at": "2026-10-25T15:29:42.587697Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "a8e05e78-1a7c-4317-94fb-a7736cdb4dee",
+    "systolic": 139,
+    "diastolic": 67,
+    "sugar": null,
+    "meal_timing": "before",
+    "recorded_at": "2026-10-21T06:30:00Z",
+    "created_at": "2026-10-25T15:30:05.300387Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "b5d6b74f-80f1-46ea-80a3-94ec68b87708",
+    "systolic": 125,
+    "diastolic": 67,
+    "sugar": 138.0,
+    "meal_timing": null,
+    "recorded_at": "2026-10-09T20:30:00Z",
+    "created_at": "2026-10-11T12:09:34.210279Z",
+    "notes": null
+  },
+  {
+    "id": "136c171c-0ade-49f5-a8cf-02d98673e178",
+    "systolic": 134,
+    "diastolic": 64,
+    "sugar": 97.0,
+    "meal_timing": "before",
+    "recorded_at": "2026-10-10T06:30:00Z",
+    "created_at": "2026-10-11T12:42:52.198395Z",
+    "notes": null
+  },
+  {
+    "id": "ec156d2e-8e01-4c81-9156-c02cf95df3d7",
+    "systolic": null,
+    "diastolic": null,
+    "sugar": 126.0,
+    "meal_timing": "after",
+    "recorded_at": "2026-10-09T09:00:00Z",
+    "created_at": "2026-10-11T12:43:58.762535Z",
+    "notes": null
+  },
+  {
+    "id": "b23a0f60-0282-44f4-9f28-6e242400a15f",
+    "systolic": null,
+    "diastolic": null,
+    "sugar": 119.0,
+    "meal_timing": "after",
+    "recorded_at": "2026-10-10T09:00:00Z",
+    "created_at": "2026-10-11T12:44:53.672421Z",
+    "notes": null
+  },
+  {
+    "id": "cc02661e-93a6-4d52-8be1-3a22b9ee2dde",
+    "systolic": 122,
+    "diastolic": 64,
+    "sugar": 132.0,
+    "meal_timing": null,
+    "recorded_at": "2026-10-10T21:00:00Z",
+    "created_at": "2026-10-11T12:45:39.252528Z",
+    "notes": null
+  },
+  {
+    "id": "dfd236ed-0624-423b-86a7-ecd65b2f54ae",
+    "systolic": 126,
+    "diastolic": 65,
+    "sugar": 106.0,
+    "meal_timing": "before",
+    "recorded_at": "2026-10-11T07:30:00Z",
+    "created_at": "2026-10-11T12:46:31.978177Z",
+    "notes": "25 MG EaziDay"
+  },
+  {
+    "id": "f8e06811-7eea-4c98-84d8-660c42854201",
+    "systolic": 136,
+    "diastolic": 74,
+    "sugar": null,
+    "meal_timing": null,
+    "recorded_at": "2026-10-11T17:30:00Z",
+    "created_at": "2026-10-11T16:03:49.337498Z",
+    "notes": "25 MG EaziDay"
+  },
+  {
+    "id": "d845fdd7-33c3-4fb6-a7a9-1391737dd858",
+    "systolic": 134,
+    "diastolic": 66,
+    "sugar": null,
+    "meal_timing": null,
+    "recorded_at": "2026-10-11T09:30:00Z",
+    "created_at": "2026-10-11T12:47:24.521995Z",
+    "notes": "25 MG EaziDay"
+  },
+  {
+    "id": "79581bae-5236-468a-8cb1-3b0cf5c8b767",
+    "systolic": 146,
+    "diastolic": 71,
+    "sugar": 97.0,
+    "meal_timing": "before",
+    "recorded_at": "2026-10-12T06:30:00Z",
+    "created_at": "2026-10-12T15:11:33.85036Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "44e43a2b-eb2c-49e4-8e5e-c54960d2a8db",
+    "systolic": 126,
+    "diastolic": 71,
+    "sugar": null,
+    "meal_timing": null,
+    "recorded_at": "2026-10-12T12:00:00Z",
+    "created_at": "2026-10-12T15:12:29.367953Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "fd4ea9e3-49bf-4ab6-9967-d9bc69c7b6cc",
+    "systolic": null,
+    "diastolic": null,
+    "sugar": 136.0,
+    "meal_timing": "after",
+    "recorded_at": "2026-10-12T09:00:00Z",
+    "created_at": "2026-10-12T15:13:35.077742Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "105b62d2-0218-4e0b-905b-8f9affda9f88",
+    "systolic": 139,
+    "diastolic": 73,
+    "sugar": 119.0,
+    "meal_timing": null,
+    "recorded_at": "2026-10-12T18:15:00Z",
+    "created_at": "2026-10-12T15:14:26.950691Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "8ae6c5be-84e8-4ef0-8163-cbf7a6da6c4d",
+    "systolic": 124,
+    "diastolic": 67,
+    "sugar": 132.0,
+    "meal_timing": "after",
+    "recorded_at": "2026-10-13T09:15:00Z",
+    "created_at": "2026-10-13T08:04:14.595412Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "1abe83c0-a26e-4675-aee4-7848d9a2f643",
+    "systolic": 138,
+    "diastolic": 73,
+    "sugar": 101.0,
+    "meal_timing": "before",
+    "recorded_at": "2026-10-13T06:30:00Z",
+    "created_at": "2026-10-13T08:03:58.875786Z",
+    "notes": null
+  },
+  {
+    "id": "0426ad54-794c-4b20-a3ee-7fb014d9f0cb",
+    "systolic": 134,
+    "diastolic": 71,
+    "sugar": 137.0,
+    "meal_timing": null,
+    "recorded_at": "2026-10-13T18:15:00Z",
+    "created_at": "2026-10-13T16:09:39.454001Z",
+    "notes": "50 MG EaziDay"
+  },
+  {
+    "id": "69d59e4b-0e2f-4d7f-b8d1-49ce0aa516d6",
+    "systolic": 146,
+    "diastolic": 66,
+    "sugar": 97.0,
+    "meal_timing": "before",
+    "recorded_at": "2026-10-14T06:30:00Z",
+    "created_at": "2026-10-14T16:15:48.630827Z",
+    "notes": "50 MG EaziDay"
+  }
+];
+
+    async function startImport() {
+      const btn = document.getElementById('import-btn');
+      const status = document.getElementById('status');
+      const progress = document.getElementById('progress');
+      btn.disabled = true;
+      status.style.display = 'block';
+      status.className = 'working';
+      status.textContent = 'Importing... please wait.';
+
+      let success = 0;
+      let errors = 0;
+
+      for (let i = 0; i < readings.length; i++) {
+        const r = readings[i];
+        try {
+          const data = {
+            systolic: r.systolic,
+            diastolic: r.diastolic,
+            sugar: r.sugar,
+            meal_timing: r.meal_timing,
+            notes: r.notes,
+            recorded_at: firebase.firestore.Timestamp.fromDate(new Date(r.recorded_at)),
+            created_at: firebase.firestore.Timestamp.fromDate(new Date(r.created_at))
+          };
+          await db.collection('readings').doc(r.id).set(data);
+          success++;
+          progress.innerHTML = `<div class="progress">Imported ${i + 1} of ${readings.length}... (${success} success, ${errors} errors)</div>`;
+        } catch (err) {
+          errors++;
+          progress.innerHTML += `<div class="progress" style="color:red;">Error on reading ${i + 1}: ${err.message}</div>`;
+        }
+      }
+
+      if (errors === 0) {
+        status.className = 'done';
+        status.innerHTML = `Done! ${success} readings imported successfully to Firebase.<br><br>You can now close this page and delete this file.`;
+      } else {
+        status.className = 'error';
+        status.innerHTML = `Imported ${success} readings with ${errors} errors. Check the messages above.`;
+      }
+      btn.disabled = false;
+      btn.textContent = 'Re-run import (safe — updates existing data)';
+    }
+  </script>
+</body>
+</html>
