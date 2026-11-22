@@ -175,6 +175,9 @@
     .live-dot { width: 0.4rem; height: 0.4rem; border-radius: 50%; background: #10b981; animation: livepulse 2s infinite; }
     @keyframes livepulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
   </style>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <!-- jsPDF for client-side PDF generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
@@ -253,10 +256,19 @@
     "use strict";
 
     /* =========================================================================
-       CONFIG — Same Supabase credentials as the main health.html page.
+       CONFIG — Firebase configuration
        ========================================================================= */
-    var SUPABASE_URL = "https://tyvpzycdpemqlfphcmxf.supabase.co";
-    var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5dnB6eWNkcGVtcWxmcGhjbXhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NTU1NTcsImV4cCI6MjEwNzIzMTU1N30.S8N0Kmqg7_sWgQPJeX0HdQcjI8DzOo90lxjiyELXKWk";
+    var firebaseConfig = {
+      apiKey: "AIzaSyBs-4DcrlVmiXNaSPD7WOP1nI0yRTZsqOs",
+      authDomain: "health-log-62d52.firebaseapp.com",
+      projectId: "health-log-62d52",
+      storageBucket: "health-log-62d52.firebasestorage.app",
+      messagingSenderId: "578590013668",
+      appId: "1:578590013668:web:cc7ff3a17f5862fa0c54f1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+    var configured = true;
     /* ========================================================================= */
 
     var ICON_SVG = "data:image/svg+xml,%3Csvg%20width%3D%22512%22%20height%3D%22512%22%20viewBox%3D%220%200%20512%20512%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22512%22%20y2%3D%22512%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%23e11d48%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23be123c%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22url(%23bg)%22%2F%3E%3Cpath%20d%3D%22M256%20392c-12%200-23.5-4.5-32.5-12.5l-95-86c-30-27-30-73%200-100%2027-24%2067-22%2092%204l35.5%2037%2035.5-37c25-26%2065-28%2092-4%2030%2027%2030%2073%200%20100l-95%2086c-9%208-20.5%2012.5-32.5%2012.5z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.95%22%2F%3E%3Cpath%20d%3D%22M120%20256h58l24-54%2040%20108%2028-72%2022%2042h100%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%2220%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E";
@@ -290,8 +302,7 @@
     var deferredPrompt = null;
     var refreshTimer = null;
     var currentView = "list"; // "list" or "daily"
-    var configured = SUPABASE_URL && SUPABASE_URL !== "PASTE_YOUR_SUPABASE_URL_HERE" && SUPABASE_URL.indexOf("supabase.co") !== -1
-      && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== "PASTE_YOUR_SUPABASE_ANON_KEY_HERE" && SUPABASE_ANON_KEY.length > 30;
+    var configured = true;
 
     function $(id) { return document.getElementById(id); }
     function escapeHtml(s) {
@@ -317,26 +328,23 @@
       $("status-label").textContent = label;
     }
 
-    // ---- Supabase REST API ----
-    function mapRow(r) {
+    // ---- Firebase Firestore API ----
+    function mapDoc(doc) {
+      var d = doc.data();
+      var recordedAt = d.recorded_at;
+      if (recordedAt && typeof recordedAt.toDate === "function") { recordedAt = recordedAt.toDate().toISOString(); }
+      var createdAt = d.created_at;
+      if (createdAt && typeof createdAt.toDate === "function") { createdAt = createdAt.toDate().toISOString(); }
       return {
-        id: r.id,
-        systolic: r.systolic,
-        diastolic: r.diastolic,
-        sugar: r.sugar,
-        mealTiming: r.meal_timing || null,
-        notes: r.notes || null,
-        recordedAt: r.recorded_at,
-        createdAt: r.created_at
+        id: doc.id,
+        systolic: d.systolic,
+        diastolic: d.diastolic,
+        sugar: d.sugar,
+        mealTiming: d.meal_timing || null,
+        notes: d.notes || null,
+        recordedAt: recordedAt,
+        createdAt: createdAt
       };
-    }
-
-    function sbHeaders(extra) {
-      return Object.assign({
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
-        "Content-Type": "application/json"
-      }, extra || {});
     }
 
     function fetchReadings() {
@@ -345,16 +353,10 @@
         renderErrorConfig();
         return;
       }
-      fetch(SUPABASE_URL + "/rest/v1/readings?order=recorded_at.desc&select=id,systolic,diastolic,sugar,meal_timing,notes,recorded_at,created_at", {
-        method: "GET",
-        headers: sbHeaders()
-      })
-        .then(function (res) {
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          return res.json();
-        })
-        .then(function (data) {
-          readings = (data || []).map(mapRow);
+      db.collection("readings").orderBy("recorded_at", "desc").get()
+        .then(function (querySnapshot) {
+          readings = [];
+          querySnapshot.forEach(function (doc) { readings.push(mapDoc(doc)); });
           setStatus("connected", "Live");
           render();
           if (readings.length > 0) { $("pdf-btn").style.display = "inline-flex"; } else { $("pdf-btn").style.display = "none"; }
@@ -382,12 +384,12 @@
     }
 
     function renderErrorConfig() {
-      $("list-container").innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><p class="empty-title">Setup required</p><p class="empty-text">Paste your Supabase URL and anon key into this file to view the log.</p></div>';
+      $("list-container").innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><p class="empty-title">Setup required</p><p class="empty-text">Firebase is not configured. Check the firebaseConfig in this file.</p></div>';
       $("list-count").innerHTML = '<span>—</span>';
     }
 
     function renderError() {
-      $("list-container").innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><p class="empty-title">Couldn\'t reach the database</p><p class="empty-text">Check your connection and make sure the Supabase URL and key are correct.</p></div>';
+      $("list-container").innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><p class="empty-title">Couldn\'t reach the database</p><p class="empty-text">Check your connection and make sure the Firebase config is correct.</p></div>';
       $("list-count").innerHTML = '<span>—</span>';
     }
 
@@ -684,17 +686,21 @@
       });
     }
 
-    // ---- Auto-refresh (live updates every 30 seconds) ----
-    function startAutoRefresh() {
-      if (refreshTimer) clearInterval(refreshTimer);
-      refreshTimer = setInterval(function () {
-        if (configured) { fetchReadings(); }
-      }, 30000);
+    // ---- Real-time listener (instant updates) ----
+    var unsubscribe = null;
+    function startLiveListener() {
+      if (unsubscribe) unsubscribe();
+      unsubscribe = db.collection("readings").orderBy("recorded_at", "desc").onSnapshot(function (querySnapshot) {
+        readings = [];
+        querySnapshot.forEach(function (doc) { readings.push(mapDoc(doc)); });
+        setStatus("connected", "Live");
+        render();
+        if (readings.length > 0) { $("pdf-btn").style.display = "inline-flex"; } else { $("pdf-btn").style.display = "none"; }
+      }, function (err) {
+        setStatus("error", "Offline");
+        renderError();
+      });
     }
-    // Also refresh when the page becomes visible again (e.g. switching tabs)
-    document.addEventListener("visibilitychange", function () {
-      if (!document.hidden && configured) { fetchReadings(); }
-    });
 
     // ---- Init ----
     function init() {
@@ -711,7 +717,7 @@
       });
       setupInstall();
       fetchReadings();
-      startAutoRefresh();
+      startLiveListener();
     }
 
     if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", init); }
